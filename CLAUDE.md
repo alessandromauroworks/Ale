@@ -9,3 +9,4 @@
   - `architetto` (Opus): solo progetti grandi, bug difficili, decisioni importanti.
   Nel dubbio scegli il più economico che basta. Il modello principale fa da solo solo le cose minime (un comando, una risposta breve). Alla fine di un lavoro scrivi in una riga quali aiutanti hai usato.
 - Risparmio: letture mirate invece di intere, niente lavori ripetuti. Per la sessione si consiglia `/model opusplan` (Opus per pianificare, Sonnet per eseguire).
+- Gestionali (tutti, nuovi e vecchi): segui la skill `gestionale-per-settore`: una sola base comune, per ogni settore solo i moduli in più, domande su cosa serve, collaudo completo con Playwright, controllo di sicurezza, «completato» solo al 100%.
