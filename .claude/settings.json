@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/ripara-errore.py\"",
+            "timeout": 10,
+            "statusMessage": "Riparo l'errore..."
+          }
+        ]
+      }
+    ]
+  }
+}
