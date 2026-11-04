@@ -8,4 +8,5 @@
   - `scrittore` (Sonnet): testi, messaggi ai clienti, contenuti, decisioni normali, codice semplice o medio;
   - `architetto` (Opus): solo progetti grandi, bug difficili, decisioni importanti.
   Nel dubbio scegli il più economico che basta. Il modello principale fa da solo solo le cose minime (un comando, una risposta breve). Alla fine di un lavoro scrivi in una riga quali aiutanti hai usato.
+- Link, video, audio e social (YouTube, Instagram, TikTok, vocali): segui sempre la skill `analizza-video` e usa l'app **Analizza** di Alessandro (sul PC in `Desktop\Lavoro IA\App\Analizza`, http://localhost:8765, report in `Lavoro IA\Analisi\Reel`) per scaricare, trascrivere e vedere il video. Se il PC non è collegato alla sessione: niente trascrizioni a crediti (Horacle) da sole, chiedi ad Alessandro di incollare il link in Analizza dal telefono e mandare il report `# REPORT ANALIZZA REEL`.
 - Risparmio: letture mirate invece di intere, niente lavori ripetuti. Per la sessione si consiglia `/model opusplan` (Opus per pianificare, Sonnet per eseguire).
