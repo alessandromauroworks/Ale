@@ -1,0 +1,399 @@
+{
+  "name": "Demo Commercialista – Documenti che arrivano da soli",
+  "nodes": [
+    {
+      "id": "b0b65f4b-662e-4959-b3ea-d886b34636f8",
+      "name": "1 · Documento ricevuto su WhatsApp",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        96
+      ],
+      "parameters": {
+        "formTitle": "Studio Commercialista Demo · Documento dal cliente",
+        "formDescription": "Simula un cliente che manda un documento su WhatsApp allo studio. Dati inventati, solo dimostrativi.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Nome del cliente",
+              "fieldName": "cliente",
+              "fieldType": "text",
+              "requiredField": true,
+              "placeholder": "Es. Marco Bianchi"
+            },
+            {
+              "fieldLabel": "Documento appena inviato",
+              "fieldName": "documento",
+              "fieldType": "dropdown",
+              "requiredField": true,
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Fatture acquisti"
+                  },
+                  {
+                    "option": "Estratto conto"
+                  },
+                  {
+                    "option": "Certificazione Unica"
+                  },
+                  {
+                    "option": "Spese detraibili"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Cosa manca ancora alla pratica",
+              "fieldName": "mancante",
+              "fieldType": "dropdown",
+              "requiredField": true,
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Estratto conto"
+                  },
+                  {
+                    "option": "Certificazione Unica"
+                  },
+                  {
+                    "option": "Spese detraibili"
+                  },
+                  {
+                    "option": "Nulla, tutto arrivato"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "Invia documento",
+          "path": "demo-commercialista-documento"
+        }
+      },
+      "webhookId": "6ccdf63f-50c4-4e43-b8c9-01bcdaa7e7ae"
+    },
+    {
+      "id": "ca22bc5e-75ce-40ab-8010-20bb9db06be1",
+      "name": "Archivia nella cartella del cliente",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        96
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "nomeBreve",
+              "name": "nomeBreve",
+              "value": "={{ String($json.cliente).trim().split(\" \")[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "cartella",
+              "name": "cartella",
+              "value": "={{ \"Clienti / \" + String($json.cliente).trim() + \" / Documenti / \" + $json.documento }}",
+              "type": "string"
+            },
+            {
+              "id": "manca",
+              "name": "manca",
+              "value": "={{ $json.mancante !== \"Nulla, tutto arrivato\" }}",
+              "type": "boolean"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "d70ff1e0-e90b-471f-b8ca-cee6337fe5c2",
+      "name": "Manca ancora qualcosa?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        96
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.manca }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "d8bd94e4-61d0-4f41-816c-846f24032a32",
+      "name": "Prepara promemoria al cliente",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        128
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "promemoria",
+              "name": "promemoria",
+              "value": "={{ \"Buongiorno \" + $json.nomeBreve + \", abbiamo ricevuto \" + $json.documento + \". Per completare la sua pratica ci manca ancora: \" + $json.mancante + \". Può inviarcelo rispondendo direttamente a questo messaggio. Grazie!\" }}",
+              "type": "string"
+            },
+            {
+              "id": "riepilogo",
+              "name": "riepilogo",
+              "value": "={{ \"DEMO COMMERCIALISTA\\n\\nPasso 1 · Il cliente \" + $json.cliente + \" ha mandato su WhatsApp: \" + $json.documento + \".\\nPasso 2 · Archiviato in automatico in: \" + $json.cartella + \".\\nPasso 3 · Manca ancora: \" + $json.mancante + \". Al cliente partirebbe questo promemoria:\\n\\n\" + \"Buongiorno \" + $json.nomeBreve + \", abbiamo ricevuto \" + $json.documento + \". Per completare la sua pratica ci manca ancora: \" + $json.mancante + \". Può inviarcelo rispondendo direttamente a questo messaggio. Grazie!\" + \"\\n\\nPasso 4 · Pannello scadenze aggiornato: documento ricevuto, 1 documento ancora mancante per \" + $json.cliente + \".\" }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "c502102f-ea80-483b-a1a6-92f7915a98e4",
+      "name": "Anteprima su Telegram (promemoria)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        944,
+        128
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<RIMOSSO>",
+        "text": "={{ $json.riepilogo }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true
+        }
+      },
+      "onError": "continueRegularOutput",
+      "webhookId": "f36ef586-787d-4d21-965b-1ccc77aa7542",
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "id": "955d2d47-c56b-472e-b313-dedf4f2dd3f2",
+      "name": "Mostra il promemoria",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        1168,
+        128
+      ],
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "text",
+        "completionTitle": "Documento archiviato",
+        "completionMessage": "={{ \"Il documento è stato archiviato nella cartella del cliente.\\n\\nAl cliente partirebbe su WhatsApp questo promemoria:\\n\\n\" + $(\"Prepara promemoria al cliente\").item.json.promemoria }}"
+      },
+      "webhookId": "c4297211-2a2c-4e42-84de-e7e49fa7c7aa"
+    },
+    {
+      "id": "22753e2d-ce40-4356-9d4a-fd6c71e53f84",
+      "name": "Prepara conferma pratica completa",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        320
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "conferma",
+              "name": "conferma",
+              "value": "={{ \"Buongiorno \" + $json.nomeBreve + \", abbiamo ricevuto \" + $json.documento + \": la sua documentazione è completa. Ci pensiamo noi, la avvisiamo appena è tutto pronto.\" }}",
+              "type": "string"
+            },
+            {
+              "id": "riepilogo",
+              "name": "riepilogo",
+              "value": "={{ \"DEMO COMMERCIALISTA\\n\\nPasso 1 · Il cliente \" + $json.cliente + \" ha mandato su WhatsApp: \" + $json.documento + \".\\nPasso 2 · Archiviato in automatico in: \" + $json.cartella + \".\\nPasso 3 · Non manca nulla: nessun promemoria da mandare. Al cliente partirebbe questa conferma:\\n\\n\" + \"Buongiorno \" + $json.nomeBreve + \", abbiamo ricevuto \" + $json.documento + \": la sua documentazione è completa. Ci pensiamo noi, la avvisiamo appena è tutto pronto.\" + \"\\n\\nPasso 4 · Pannello scadenze aggiornato: pratica di \" + $json.cliente + \" con documenti completi, pronta da lavorare.\" }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "c4f01bd1-12f6-40eb-9db9-f0c6134eecc3",
+      "name": "Anteprima su Telegram (pratica completa)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        944,
+        320
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<RIMOSSO>",
+        "text": "={{ $json.riepilogo }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true
+        }
+      },
+      "onError": "continueRegularOutput",
+      "webhookId": "128f56e5-6068-433b-9338-9b7c67c0ea35",
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "id": "0edf30b1-4a1a-4866-a838-77be457309f8",
+      "name": "Mostra la conferma",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        1168,
+        320
+      ],
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "text",
+        "completionTitle": "Pratica completa",
+        "completionMessage": "={{ \"Il documento è stato archiviato e la pratica risulta completa.\\n\\nAl cliente partirebbe su WhatsApp questa conferma:\\n\\n\" + $(\"Prepara conferma pratica completa\").item.json.conferma }}"
+      },
+      "webhookId": "8f8cf171-82c4-43b0-9173-075cbcbfafdd"
+    },
+    {
+      "id": "b2b62728-9777-41b2-a19c-1bbf4285a7c1",
+      "name": "Sticky Note e56b682d",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        512,
+        320
+      ],
+      "parameters": {
+        "color": 4,
+        "content": "## Demo Studio Commercialista (dati inventati)\nI 4 passi dell'automazione:\n1. Il cliente manda un documento su WhatsApp.\n2. Viene archiviato in automatico nella cartella giusta del cliente.\n3. Se manca qualcosa, parte il promemoria al cliente; se è tutto arrivato, parte la conferma.\n4. Il pannello scadenze dello studio si aggiorna da solo.\n\nOggi tutto arriva solo ad Alessandro su Telegram: nessun cliente riceve niente.\nCon uno studio vero: WhatsApp Business API intestato allo studio (costo a carico del cliente, dichiarato nel preventivo) e collegamento al gestionale dello studio."
+      }
+    }
+  ],
+  "connections": {
+    "1 · Documento ricevuto su WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Archivia nella cartella del cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archivia nella cartella del cliente": {
+      "main": [
+        [
+          {
+            "node": "Manca ancora qualcosa?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manca ancora qualcosa?": {
+      "main": [
+        [
+          {
+            "node": "Prepara promemoria al cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepara conferma pratica completa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara promemoria al cliente": {
+      "main": [
+        [
+          {
+            "node": "Anteprima su Telegram (promemoria)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anteprima su Telegram (promemoria)": {
+      "main": [
+        [
+          {
+            "node": "Mostra il promemoria",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara conferma pratica completa": {
+      "main": [
+        [
+          {
+            "node": "Anteprima su Telegram (pratica completa)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anteprima su Telegram (pratica completa)": {
+      "main": [
+        [
+          {
+            "node": "Mostra la conferma",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
