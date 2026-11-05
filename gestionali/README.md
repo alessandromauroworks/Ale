@@ -2,7 +2,9 @@
 
 Un solo gestionale base, una versione per ogni tipo di attività. Regola completa: skill `.claude/skills/gestionale-per-settore/SKILL.md`.
 
-## Struttura
+## Struttura (piano)
+Attenzione: questa è la struttura prevista, non quella attuale. Per ora nel repo c'è solo questo README: nessuna cartella o file elencato qui sotto esiste ancora. La base comune va presa dal gestionale del Patronato di Carapelle, che non è ancora caricato qui: va aggiunto in `gestionali/base/` quando Alessandro lo porta.
+
 - `base/` — parte comune a tutti: `base.css`, `base.js` (layout, navigazione, tasti Liquid Glass / normale e chiaro / scuro, salvataggio, tabelle, schede, agenda, pipeline, modali, statistiche, ricerca, esporta CSV).
 - `settori/<settore>.js` — solo ciò che è del settore: sezioni, campi, stati, moduli in più, dati demo inventati.
 - `settori/<settore>.md` — le 5 domande sul settore (come lavora, dove perde tempo, moduli in più, obblighi di legge, dati sensibili) ed esito del collaudo.
@@ -17,6 +19,8 @@ Un solo gestionale base, una versione per ogni tipo di attività. Regola complet
 Se serve una funzione utile a tutti, va in `base/`, mai copiata dentro un settore.
 
 ## Stato dei settori
+Nessun file di settore è ancora nel repo: la tabella è lo stato previsto, da aggiornare quando i file vengono caricati.
+
 | Settore | Stato | Collaudo | Sicurezza |
 |---|---|---|---|
 | Agenzia immobiliare | in costruzione | — | — |
