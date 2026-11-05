@@ -1,8 +1,0 @@
-name = "motore-jarvis"
-main = "src/index.js"
-compatibility_date = "2026-10-01"
-compatibility_flags = ["nodejs_compat"]
-
-# Browser Run (piano gratuito: 10 minuti di browser al giorno) per i siti in JavaScript
-[browser]
-binding = "BROWSER"
