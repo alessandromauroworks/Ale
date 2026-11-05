@@ -103,6 +103,11 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
 .actions{display:flex;flex-wrap:wrap;gap:10px}
 .num{font-size:15px;color:var(--muted)}
 .num b{color:var(--ink);user-select:all}
+.book{display:flex;flex-direction:column;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin-top:6px}
+.book h2{font-size:clamp(20px,4.5vw,24px)}
+.book ul{margin:6px 0 0;padding-left:20px;font-size:15px;color:var(--ink)}
+.book li{margin:3px 0}
+.book .btn{width:100%}
 .toast{max-width:calc(100% - 32px);text-align:center;position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);background:var(--ink);color:#fff;font-size:14px;border-radius:999px;padding:9px 16px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:30}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
@@ -197,7 +202,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
       <div class="q"><span class="lab">Come preferiresti pagare?</span><div class="chips" data-one="pag" id="cPag"></div></div>
       <div class="q"><span class="lab">A chi va intestata la ricevuta?</span><span class="hint">Serve per scriverti cifre giuste fin da subito (per esempio se c'è la ritenuta d'acconto).</span><div class="chips" data-one="iva" id="cIva"></div></div>
       <div class="q"><label for="fTel">Il tuo numero WhatsApp</label><input id="fTel" maxlength="25" type="tel" autocomplete="tel" placeholder="Es. 333 123 4567"></div>
-      <div class="privacy"><b>Come uso le tue risposte</b>Le risposte arrivano solo ad Alessandro Mauro, tramite WhatsApp (servizio di Meta), e servono a preparare la call e la proposta per la tua attività. Non vengono cedute a nessuno e non servono per pubblicità. Le tengo solo per il tempo necessario: se non lavoriamo insieme le cancello, e puoi chiederne la cancellazione quando vuoi scrivendo a +39 339 405 2935 o alessandromauro.works@gmail.com. Finché non invii, la bozza resta solo su questo telefono o computer.</div>
+      <div class="privacy"><b>Come uso le tue risposte</b>Le risposte arrivano solo ad Alessandro Mauro, tramite WhatsApp (servizio di Meta), e servono a preparare la call e la proposta per la tua attività. Non vengono cedute a nessuno e non servono per pubblicità. Le tengo solo per il tempo necessario: se non lavoriamo insieme le cancello, e puoi chiederne la cancellazione quando vuoi scrivendo a +39 339 405 2935 o alessandromauro.works@gmail.com. Se prenoti la call, il tuo nome, la tua email e un breve riassunto delle risposte passano al servizio di prenotazione (Cal.com) e al calendario Google di Alessandro, solo per fissare l'appuntamento. Finché non invii, la bozza resta solo su questo telefono o computer.</div>
       <label class="check" for="fPriv"><input id="fPriv" type="checkbox"><span>Ho letto e acconsento a questo uso delle mie risposte.</span></label>
       <p class="err" id="err7"></p>
     </section>
@@ -222,6 +227,13 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
           <button class="btn ghost" type="button" id="editBtn">Modifica le risposte</button>
         </div>
         <textarea id="copyArea" readonly hidden aria-label="Risposte da copiare"></textarea>
+        <div class="book" aria-labelledby="bookT">
+          <h2 id="bookT">Prenota la call conoscitiva</h2>
+          <p class="lead">Dura circa 30 minuti, online. Guardiamo insieme come lavori oggi, dove si perdono tempo e soldi, i problemi che mi hai segnalato e cosa si può sistemare. Nessun impegno.</p>
+          <div id="bookPunti" hidden><b>Ne parliamo in call, per esempio:</b><ul id="bookList"></ul></div>
+          <div class="actions"><a class="btn primary" id="bookBtn" href="#" target="_blank" rel="noopener">Scegli giorno e ora</a></div>
+          <p class="num" id="bookHint">Si apre una pagina dove scegli l'orario libero. L'invito arriva nel tuo calendario.</p>
+        </div>
       </div>
     </section>
   </main>
@@ -235,6 +247,13 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
 <script>
 const SETTORI=[{"n":"Concessionaria auto","a":"auto salone veicoli usato","L":["Contatti dai portali","Risposte ai clienti","Prove su strada","Trattativa e pratiche","Dopo la vendita"],"P":[[0,"Richieste che arrivano da ovunque",4],[1,"Rispondo sempre alle stesse domande",5],[2,"Appuntamenti che saltano",2],[3,"Documenti da rincorrere",3],[4,"Clienti persi dopo la vendita",2]]},{"n":"Agenzia immobiliare","a":"immobili immobiliari case affitti agente immobiliare","L":["Acquisizione immobili","Annunci","Richieste","Visite","Trattativa e rogito"],"P":[[2,"Troppe chiamate di chi non compra",5],[1,"Gli annunci mi rubano tempo",3],[3,"Visite da incastrare a mano",3],[4,"Documenti sparsi ovunque",2],[0,"Pochi proprietari nuovi",2]]},{"n":"Patronato / CAF","a":"caf patronato pratiche inps isee pensioni sindacato","L":["Accoglienza","Appuntamenti","Raccolta documenti","Pratiche","Scadenze"],"P":[[0,"Il telefono squilla tutto il giorno",6],[2,"Manca sempre qualche documento",4],[1,"Agenda piena e confusa",3],[4,"Le scadenze le ricordo a memoria",3]]},{"n":"Studio dentistico","a":"dentista dentisti odontoiatra ortodonzia","L":["Contatti dei pazienti","Agenda appuntamenti","Promemoria","Visita","Dopo la visita"],"P":[[0,"Il telefono squilla mentre lavoro",4],[0,"La sera rispondo ancora ai messaggi",3],[1,"Scrivo tutto due volte",2],[2,"Un'ora al giorno al telefono",5],[4,"I richiami si dimenticano",2]]},{"n":"Studio medico / poliambulatorio","a":"medico ambulatorio clinica specialista poliambulatorio poliambulatori dermatologo dermatologi ortopedico ortopedici ginecologo ginecologi cardiologo cardiologi chirurgo chirurghi plastico","L":["Prenotazioni","Accettazione","Visita","Documenti dopo la visita","Controlli"],"P":[[0,"La segreteria è sommersa di chiamate",6],[1,"Moduli compilati a mano",2],[3,"Pazienti che chiamano per i documenti",3],[4,"Appuntamenti non disdetti",2]]},{"n":"Dietista / nutrizionista","a":"nutrizionista nutrizionisti biologo dieta","L":["Primo contatto","Prima visita","Piano alimentare","Controlli","Social e contenuti"],"P":[[0,"Sempre le stesse domande sulla prima visita",3],[2,"I piani mi portano via le serate",4],[3,"Pazienti che spariscono tra un controllo e l'altro",2],[4,"Non ho tempo per i social",3]]},{"n":"Ristorante / pizzeria","a":"ristorante ristoranti pizzeria trattoria osteria sushi hamburgeria ristorazione braceria","L":["Prenotazioni","Ordini asporto e domicilio","Servizio in sala","Menu e prezzi","Recensioni e social"],"P":[[0,"Il telefono squilla in pieno servizio",4],[1,"Ordini presi male al telefono",3],[3,"Il menu va aggiornato ovunque",1],[4,"Poche recensioni nuove",1],[4,"Social fermi da settimane",3]]},{"n":"Bar / caffetteria","a":"bar caffè pasticceria gelateria pub","L":["Banco e colazioni","Ordini ai fornitori","Pranzi e ordini di gruppo","Eventi e aperitivi","Social"],"P":[[1,"Ordini ai fornitori fatti a memoria",2],[2,"Ordini di gruppo al telefono",2],[3,"Gli eventi non li conosce nessuno",2],[4,"Social aggiornati quando capita",3]]},{"n":"Centro estetico","a":"estetista estetici estetica spa beauty nail unghie","L":["Prenotazioni","Scheda cliente","Trattamenti","Pacchetti e abbonamenti","Fidelizzazione"],"P":[[0,"Prenotazioni sparse tra telefono, DM e WhatsApp",5],[0,"Clienti che non si presentano",2],[1,"Schede clienti su carta",2],[3,"Pacchetti contati a mano",1],[4,"Clienti che non tornano",2]]},{"n":"Parrucchiere / barbiere","a":"barbiere barbieri barberia barberie parrucchiere parrucchieri salone capelli hair","L":["Prenotazioni","Servizio","Cassa","Prodotti","Social"],"P":[[0,"Rispondo al telefono con le forbici in mano",4],[0,"Buchi in agenda per chi non arriva",2],[3,"Magazzino prodotti a occhio",1],[4,"Nessuno pubblica i lavori",3]]},{"n":"Palestra / centro sportivo","a":"palestra palestre fitness crossfit padel piscina personal trainer","L":["Nuovi iscritti","Abbonamenti e pagamenti","Corsi e prenotazioni","Schede allenamento","Rinnovi"],"P":[[0,"Contatti dai social che non richiamo",3],[1,"Rincorro chi non ha pagato",3],[2,"Corsi pieni o vuoti senza saperlo",2],[4,"Iscritti che non rinnovano",2]]},{"n":"B&B / hotel / casa vacanze","a":"b&b bed and breakfast hotel albergo casa vacanze affittacamere struttura","L":["Prenotazioni","Domande prima dell'arrivo","Check-in","Soggiorno","Recensioni"],"P":[[0,"Le commissioni dei portali pesano",1],[1,"Messaggi degli ospiti a tutte le ore",4],[2,"Check-in e documenti a mano",2],[4,"Recensioni lasciate al caso",1]]},{"n":"Studio commercialista","a":"commercialista commercialisti contabile consulente fiscale","L":["Richieste dei clienti","Raccolta documenti","Contabilità","Scadenze fiscali","Comunicazioni"],"P":[[1,"I documenti arrivano tardi e incompleti",5],[0,"Mail e telefonate per domande semplici",4],[3,"Scadenze da ricordare cliente per cliente",3],[4,"Circolari che nessuno legge",1]]},{"n":"Studio legale","a":"avvocato legale studio legale","L":["Primo contatto","Consulenza","Pratiche e fascicoli","Udienze e scadenze","Aggiornamenti al cliente"],"P":[[0,"Contatti che non sono casi per me",3],[2,"Documenti sparsi tra mail e chat",2],[3,"Scadenze su agenda di carta",2],[4,"Clienti che chiamano per sapere a che punto siamo",3]]},{"n":"Officina / carrozzeria / autolavaggio","a":"officina meccanico carrozzeria carrozzerie autocarrozzeria gommista autolavaggio elettrauto revisioni","L":["Richieste e preventivi","Perizia e assicurazione","Accettazione e auto di cortesia","Riparazione","Consegna e pagamento","Richiami e recensioni"],"P":[[0,"Il telefono squilla mentre lavoro",4],[0,"Preventivi chiesti con foto su WhatsApp, a tutte le ore",3],[0,"Preventivi fatti che poi non diventano lavori",2],[1,"Pratiche, periti e assicurazioni da rincorrere",3],[2,"Auto di cortesia e appuntamenti incastrati a mano",2],[4,"«È pronta la macchina?» al telefono",2],[5,"Revisioni e tagliandi da ricordare",2],[5,"Pochi clienti nuovi da Google e social",2]]},{"n":"Negozio / attività commerciale","a":"negozio abbigliamento ferramenta ottica profumeria commercio boutique imballaggi","L":["Vetrina e social","Richieste dei clienti","Vendita","Magazzino","Clienti abituali"],"P":[[0,"Social senza costanza",3],[1,"Stesse domande su prezzi e disponibilità",3],[3,"Magazzino controllato a mano",2],[4,"Clienti che non tornano",1]]},{"n":"Fisioterapista / osteopata","a":"fisioterapia fisioterapista osteopata riabilitazione massoterapista","L":["Prenotazioni","Prima valutazione","Sedute","Esercizi a casa","Controlli"],"P":[[0,"Rispondo al telefono tra un paziente e l'altro",4],[0,"Sedute disdette all'ultimo",2],[3,"Gli esercizi spiegati a voce si dimenticano",2],[4,"Pazienti che non tornano al controllo",1]]},{"n":"Impresa edile / artigiano","a":"edilizia impresa edile idraulico elettricista artigiano ristrutturazioni infissi serramenti clima termoidraulica impianti","L":["Richieste preventivo","Sopralluogo","Preventivo","Cantiere","Fine lavori"],"P":[[0,"Richieste poco chiare",3],[2,"I preventivi mi tengono sveglio la sera",4],[3,"Aggiornare il cliente sul cantiere",2],[4,"Pochi lavori mostrati online",2]]},{"n":"Psicologo / psicoterapeuta","a":"psicologo psicologi psicoterapeuta psicoterapia counselor","L":["Primo contatto","Primo colloquio","Sedute","Agenda e pagamenti","Farsi conoscere"],"P":[[0,"Rispondo al telefono tra una seduta e l'altra",3],[3,"Spostamenti e disdette via messaggio",2],[3,"Fatture e ricevute a fine mese",2],[4,"Non ho tempo per farmi conoscere",2]]},{"n":"Veterinario","a":"veterinario veterinari clinica veterinaria animali","L":["Prenotazioni","Visita","Vaccini e richiami","Referti e ricette","Negozio e prodotti"],"P":[[0,"Il telefono non smette mai di squillare",5],[2,"Vaccini e richiami ricordati a mano",3],[3,"Proprietari che chiamano per i documenti",2],[4,"Ordini di alimenti fatti al momento",1]]},{"n":"Farmacia / parafarmacia","a":"farmacia farmacie parafarmacia sanitaria","L":["Banco","Prenotazioni servizi","Ordini e prodotti da ritirare","Promozioni","Social e Google"],"P":[[1,"Servizi prenotati a voce",2],[2,"Clienti da avvisare quando arriva il prodotto",3],[3,"Le promozioni le conoscono in pochi",2],[4,"Scheda Google poco curata",1]]},{"n":"Scuola di danza / musica","a":"scuola danza musica ballo canto accademia corsi","L":["Iscrizioni","Corsi e orari","Quote mensili","Comunicazioni alle famiglie","Social"],"P":[[0,"Richieste di informazioni a tutte le ore",3],[2,"Rincorro chi non ha pagato la quota",3],[3,"Avvisi alle famiglie su mille gruppi WhatsApp",2],[4,"Video dei saggi che restano nel telefono",2]]},{"n":"Agenzia viaggi","a":"viaggi viaggio tour operator vacanze crociere","L":["Richieste","Preventivi","Prenotazione","Prima della partenza","Dopo il viaggio"],"P":[[0,"Richieste generiche che non diventano viaggi",4],[1,"Preventivi che mi rubano ore",5],[3,"Documenti e promemoria mandati a mano",2],[4,"Clienti che non tornano",1]]},{"n":"Agenzia assicurativa","a":"assicurazioni assicurazione assicurativa broker polizze","L":["Nuovi contatti","Preventivi","Contratti e documenti","Scadenze e rinnovi","Sinistri"],"P":[[1,"Preventivi che chiedono sempre gli stessi dati",4],[2,"Documenti che arrivano a pezzi",3],[3,"Scadenze da ricordare cliente per cliente",3],[4,"Clienti che chiamano per sapere del sinistro",2]]},{"n":"Autoscuola","a":"autoscuola autoscuole scuola guida patente patenti","L":["Iscrizioni","Teoria","Guide pratiche","Esami","Pagamenti"],"P":[[0,"Sempre le stesse domande su costi e tempi",4],[2,"Agenda delle guide incastrata a mano",4],[3,"Documenti per l'esame da rincorrere",2],[4,"Rate da ricordare",2]]},{"n":"Cantina / agriturismo","a":"cantina cantine vino vinicola agriturismo masseria tenuta podere azienda agricola","L":["Visite e degustazioni","Vendita","Eventi","Clienti abituali","Racconto"],"P":[[0,"Degustazioni prenotate al telefono",3],[1,"Ordini dei clienti presi a voce",2],[3,"Clienti che comprano una volta e spariscono",1],[4,"La storia della cantina non la racconta nessuno",3]]},{"n":"Altra attività","a":"","L":["Contatti","Risposte","Appuntamenti","Il lavoro","Dopo"],"P":[[1,"Rispondo sempre alle stesse domande",4],[2,"Agenda gestita a mano",2],[4,"Clienti che non tornano",1]]}];
 const WA = "393394052935";
+/* PRENOTAZIONE CALL. Incolla qui il link della pagina di prenotazione di Alessandro.
+   Come si crea (2 minuti): su cal.com crea l'account, collega Google Calendar (così l'appuntamento
+   arriva da solo su telefono e computer), crea un tipo di evento "Call conoscitiva" da 30 minuti,
+   con Google Meet, e copia il link, es. https://cal.com/NOME/call-conoscitiva.
+   Funziona anche con "Pianificazione appuntamenti" di Google Calendar o con Calendly (il link si apre così com'è).
+   Con cal.com nome e riassunto delle risposte vengono precompilati. Se resta vuoto, il cliente ti scrive su WhatsApp. */
+const PRENOTA_URL = "";
 const SANITA = /dentist|medic|dietist|nutrizion|fisioterap|osteopat|psicolog|veterinar|farmacia|altra attivit/i;
 const GOALS = [["clienti","Più clienti","Nuove persone che ti scelgono"],["visibilita","Più visibilità","Farti trovare online e sui social"],["tempo","Risparmiare tempo","Più ore per te e per il lavoro vero"],["ordine","Più ordine","Meno errori, dimenticanze e carta"],["ritorno","Clienti che tornano","Richiami, fedeltà, passaparola"],["messaggi","Meno messaggi ripetitivi","Telefonate e chat sempre uguali"]];
 const OPZ = {
@@ -394,6 +413,34 @@ function riepilogo() {
   $("lungo").hidden = url.length <= 3800;
 }
 
+/* prenotazione della call */
+function prenota() {
+  const d = dati(), s = sett();
+  const prob = [...d.prob].sort((a, b) => (b[1] || 0) - (a[1] || 0)).slice(0, 3).map(([i]) => s.P[i][1]);
+  const punti = [];
+  if (d.ob.length) punti.push("Il tuo obiettivo: " + goalName(d.ob[0]).toLowerCase());
+  prob.forEach(p => punti.push(p));
+  if (punti.length < 2 && d.magia) punti.push("Da sistemare: " + taglia(d.magia, 80));
+  $("bookList").innerHTML = punti.slice(0, 4).map(p => `<li>${esc(p)}</li>`).join("");
+  $("bookPunti").hidden = !punti.length;
+  const btn = $("bookBtn"); let url = null, host = "";
+  try { if (PRENOTA_URL) { url = new URL(PRENOTA_URL); host = url.hostname; } } catch (e) { url = null; }
+  if (!url) {
+    btn.textContent = "Scrivimi su WhatsApp quando ti va bene";
+    btn.href = "https://wa.me/" + WA + "?text=" + encodeURIComponent("Ciao Alessandro, ho compilato il questionario. Per la call mi vanno bene: ");
+    $("bookHint").textContent = "Si apre WhatsApp: scrivimi i giorni e gli orari che ti vanno bene e ti confermo.";
+    return;
+  }
+  if (/(^|\.)cal\.com$/i.test(host)) {
+    const note = ["Attività: " + [d.attivita, d.s === "Altra attività" ? d.tipoAltro : d.s].filter(Boolean).join(", ") + (d.citta ? " (" + d.citta + ")" : ""),
+      prob.length ? "Problemi: " + prob.join("; ") : "", d.decide ? "Decide: " + d.decide : ""].filter(Boolean).join("\n");
+    if (d.nome) url.searchParams.set("name", d.nome);
+    url.searchParams.set("notes", taglia(note, 600));
+  }
+  btn.textContent = "Scegli giorno e ora"; btn.href = url.href;
+  $("bookHint").textContent = "Si apre una pagina dove scegli l'orario libero. L'invito arriva nel tuo calendario.";
+}
+
 /* navigazione */
 let cur = 0;
 function valida(n) {
@@ -406,7 +453,7 @@ function valida(n) {
 function go(n, back) {
   if (!back) { const e = valida(cur); document.querySelectorAll(".err").forEach(x => x.textContent = ""); if (e) { $(e[0]).textContent = e[1]; return; } }
   cur = Math.max(0, Math.min(STEPS - 1, n));
-  if (cur === 4) renderLav(); if (cur === 5) renderProbs(); if (cur === 2) renderGoals(); if (cur === LAST_Q) riepilogo();
+  if (cur === 4) renderLav(); if (cur === 5) renderProbs(); if (cur === 2) renderGoals(); if (cur === LAST_Q) riepilogo(); if (cur === 9) prenota();
   document.querySelectorAll(".step").forEach(s => { const on = Number(s.dataset.s) === cur; s.classList.toggle("on", on); s.classList.toggle("back", on && !!back); });
   $("barI").style.width = (cur / LAST_Q * 100) + "%";
   $("count").textContent = cur > 0 && cur < LAST_Q ? `${cur} di ${LAST_Q - 1}` : "";
