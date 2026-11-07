@@ -12,3 +12,5 @@ Da completare: nome e indirizzo del concessionario in chiusura; autorizzazione a
 
 ## Copione voce
 Visionario. Esclusivo. Nuovo McCormick X7.624 VT-Drive. Digital Edition. Sei cilindri. 6,7 litri. 240 cavalli. Assale sospeso a ruote indipendenti. Cabina a sospensione idraulica semi-attiva, sedili girevoli in Alcantara. Guida satellitare RTK. ISOBUS. Ingrassaggio automatico. Zavorra anteriore da 1.400 kg. Livrea esclusiva. Una serie speciale, per chi va oltre l'ordinario. McCormick X7. Digital Edition.
+
+> Superato: il cliente voleva lo spot sul modello X7.618 P6-Drive, vedi `video/spot-lombardi-x7618/`.
