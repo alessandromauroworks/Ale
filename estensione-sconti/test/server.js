@@ -392,6 +392,68 @@ const PAGINE_PRM = {
   '/privato': pagPrm('<p>Codice PRIVATO50</p>')
 };
 
+
+// ---------- WooCommerce a BLOCCHI simulato (React): ricavato da come è fatto WooCommerce 10, NON è il sito vero ----------
+// Trappole riprodotte: (1) il pulsante "Remove <prodotto> from cart" sta PRIMA di tutto e non va mai cliccato;
+// (2) "Add coupons" è un <div role=button> dentro un <div role=heading> (il clic va dato a quello interno);
+// (3) dopo ogni cambio il pannello si richiude; (4) per ~700 ms i totali sono segnaposto grigi mentre la riga "Discount" è già comparsa;
+// (5) l'errore dice "cannot be applied because it does not exist" (è un codice che non esiste, non uno "non applicabile").
+const PAGINA_WCB = HEAD('WooCommerce a blocchi (simulato)') + BANNER + `<h1>Cart</h1>
+<div id="righe"><div class="wc-block-cart-items"><span>Maglia Prova 50,00 €</span> <button class="wc-block-cart-item__remove-link" id="rmitem" type="button" aria-label="Remove Maglia Prova from cart">Remove item</button></div></div>
+<div id="vuoto" style="display:none">Your cart is currently empty!</div>
+<div id="app"></div>
+<script>
+const V = { ESTATE20: 0.2, SCONTO10: 0.1 };
+const virg = (n) => n.toFixed(2).replace('.', ',') + ' €';
+let st = { aperto: false, codice: null, caricando: false, errore: null, valore: '', vuoto: false };
+const app = document.getElementById('app');
+function ridisegna() {
+  const sub = 50, sc = st.codice ? sub * V[st.codice] : 0;
+  const tot = st.caricando ? '<div class="wc-block-components-skeleton__element" style="display:inline-block;width:45px;height:16px;background:#eee"></div>' : '<span class="wc-block-formatted-money-amount wc-block-components-formatted-money-amount">' + virg(sub - sc) + '</span>';
+  app.innerHTML = '<div class="wc-block-components-totals-wrapper">' +
+    '<div role="heading" aria-level="2" class="wc-block-components-totals-coupon wc-block-components-panel"><div aria-expanded="' + st.aperto + '" class="wc-block-components-panel__button" tabindex="0" role="button" id="tg">Add coupons</div>' +
+    (st.aperto ? '<div class="wc-block-components-panel__content"><form class="wc-block-components-totals-coupon__form" id="fm"><div class="wc-block-components-text-input"><input type="text" id="wc-block-components-totals-coupon__input-coupon" aria-label="Enter code" value="' + st.valore + '"><label for="wc-block-components-totals-coupon__input-coupon">Enter code</label></div><button type="submit" class="wc-block-components-button wc-block-components-totals-coupon__button"><div class="wc-block-components-button__text">Apply</div></button></form>' +
+      (st.errore ? '<div class="wc-block-components-validation-error" role="alert"><p><span>' + st.errore + '</span></p></div>' : '') + '</div>' : '') + '</div></div>' +
+    (st.codice ? '<div class="wc-block-components-totals-wrapper"><div class="wc-block-components-totals-item wc-block-components-totals-discount"><span class="wc-block-components-totals-item__label">Discount</span><span class="wc-block-formatted-money-amount">-' + virg(sc) + '</span><ul class="wc-block-components-totals-discount__coupon-list"><li class="wc-block-components-chip"><span class="wc-block-components-chip__text">' + st.codice.toLowerCase() + '</span><button class="wc-block-components-chip__remove" id="rmc" aria-label="Remove coupon &quot;' + st.codice.toLowerCase() + '&quot;"></button></li></ul></div></div>' : '') +
+    '<div class="wc-block-components-totals-wrapper"><div class="wc-block-components-totals-item wc-block-components-totals-footer-item"><span class="wc-block-components-totals-item__label">Estimated total</span><div class="wc-block-components-totals-item__value">' + tot + '</div></div></div>';
+  document.getElementById('tg').onclick = () => { st.aperto = !st.aperto; ridisegna(); };
+  const fm = document.getElementById('fm');
+  if (fm) { fm.querySelector('input').oninput = (e) => { st.valore = e.target.value; };
+    fm.onsubmit = (e) => { e.preventDefault(); const c = st.valore.trim().toUpperCase(); st.caricando = true; ridisegna();
+      setTimeout(() => { st.caricando = false; st.valore = '';
+        if (V[c]) { st.codice = c; st.errore = null; st.aperto = false; } else { st.errore = 'Coupon "' + c.toLowerCase() + '" cannot be applied because it does not exist.'; }
+        ridisegna(); }, 700); }; }
+  const rc = document.getElementById('rmc');
+  if (rc) rc.onclick = () => { st.caricando = true; ridisegna(); setTimeout(() => { st.codice = null; st.caricando = false; st.aperto = false; ridisegna(); }, 700); };
+}
+document.getElementById('rmitem').onclick = () => { document.getElementById('righe').style.display = 'none'; document.getElementById('vuoto').style.display = 'block'; app.innerHTML = ''; window.__carrelloSvuotato = true; };
+ridisegna();
+</script></body></html>`;
+
+// ---------- WooCommerce CLASSICO alla cassa: il campo sta dietro "Have a coupon? Click here to enter your code" ----------
+// Il link NON contiene la parola "coupon" nel testo: solo nell'etichetta aria-label.
+const PAGINA_WCC = HEAD('Cassa classica (simulata)') + BANNER + `<h1>Checkout</h1>
+<div class="woocommerce-form-coupon-toggle"><div class="wc-block-components-notice-banner is-info" role="status"><div>Have a coupon? <a href="#" role="button" aria-label="Enter your coupon code" aria-controls="woocommerce-checkout-form-coupon" aria-expanded="false" class="showcoupon">Click here to enter your code</a></div></div></div>
+<form class="checkout_coupon woocommerce-form-coupon" method="post" style="display:none" id="woocommerce-checkout-form-coupon" onsubmit="return false">
+  <label for="coupon_code" class="screen-reader-text">Coupon:</label><input type="text" name="coupon_code" class="input-text" placeholder="Coupon code" id="coupon_code">
+  <button type="submit" class="button" name="apply_coupon" value="Apply coupon">Apply coupon</button></form>
+<div id="msg"></div><div id="riga"></div>
+<table><tr class="order-total"><th>Total</th><td><strong><span class="woocommerce-Price-amount amount" id="t">30,00 €</span></strong></td></tr></table>
+<script>
+const V = { ESTATE20: 0.2, SCONTO10: 0.1 };
+const virg = (n) => n.toFixed(2).replace('.', ',') + ' €';
+document.querySelector('.showcoupon').onclick = (e) => { e.preventDefault(); document.getElementById('woocommerce-checkout-form-coupon').style.display = 'block'; };
+document.querySelector('[name=apply_coupon]').onclick = () => {
+  const c = document.getElementById('coupon_code').value.trim().toUpperCase();
+  setTimeout(() => {
+    if (V[c]) { document.getElementById('t').textContent = virg(30 * (1 - V[c])); document.getElementById('msg').innerHTML = '<div class="woocommerce-message" role="alert">Coupon code applied successfully.</div>';
+      document.getElementById('riga').innerHTML = '<div class="cart-discount">Coupon: ' + c.toLowerCase() + ' <a href="#" class="woocommerce-remove-coupon" id="rm">[Remove]</a></div>';
+      document.getElementById('rm').onclick = (e) => { e.preventDefault(); document.getElementById('t').textContent = '30,00 €'; document.getElementById('riga').innerHTML = ''; }; }
+    else document.getElementById('msg').innerHTML = '<div class="woocommerce-error" role="alert">Coupon "' + c.toLowerCase() + '" does not exist!</div>';
+  }, 200);
+};
+</script></body></html>`;
+
 function crea() {
   return http.createServer(async (req, res) => {
     const host = (req.headers.host || '').split(':')[0];
@@ -453,6 +515,8 @@ function crea() {
       res.writeHead(200, { 'content-type': 'application/json' });
       return res.end(JSON.stringify({ codici: [{ code: 'CONDIV25', n_report: 5, tasso_successo: 80 }] }));
     }
+    if (host.startsWith('wcb.')) return html(PAGINA_WCB);
+    if (host.startsWith('wcc.')) return html(PAGINA_WCC);
     if (host.startsWith('mag.')) return html(PAGINA_MAG);
     if (host.startsWith('pre.')) return html(PAGINA_PRE);
     if (host.startsWith('dis.')) return html(PAGINA_DIS);

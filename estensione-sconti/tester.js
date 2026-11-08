@@ -87,22 +87,32 @@
     }
     return { input: null };
   }
-  const RE_INTERRUTTORE = /hai un (codice|coupon|buono)|(codice|coupon) (sconto|promo|promozionale)|have a (promo|coupon|discount|voucher|gift)|(enter|add|use|apply) (a |your )?(promo|coupon|discount|voucher|gift)|have a (promo|coupon)|aggiungi (un )?(codice|coupon)|inserire il (tuo )?codice|inserisci (il )?(codice|coupon)/i;
+  const RE_INTERRUTTORE = /hai un (codice|coupon|buono)|(codice|coupon) (sconto|promo|promozionale)|have a (promo|coupon|discount|voucher|gift)|(enter|add|use|apply) (a |your )?(promo|coupon|discount|voucher|gift)|have a (promo|coupon)|aggiungi (un )?(codice|coupon)|enter your (code|coupon)|click here to enter|clicca qui per (inserire|immettere)|inserire il (tuo )?codice|inserisci (il )?(codice|coupon)/i;
   function trovaInterruttore() {
+    const buoni = [];
     for (const el of tutti('a,button,summary,[role="button"],[aria-expanded],[onclick],label,[data-role="title"],[role="heading"],[class*="toggle" i],[class*="collaps" i],[class*="accordion" i]')) {
       const t = pulisci(el.textContent);
-      if (t.length > 0 && t.length < 80 && RE_INTERRUTTORE.test(t) && visibile(el)) return el;
+      // anche l'etichetta per accessibilità (WooCommerce classico: <a aria-label="Enter your coupon code">Click here to enter your code</a>)
+      const tt = t + ' ' + pulisci(el.getAttribute('aria-label') || el.title || '');
+      if (t.length > 0 && t.length < 80 && RE_INTERRUTTORE.test(tt) && visibile(el)) buoni.push(el);
     }
-    return null;
+    // Se un candidato ne contiene un altro (es. WooCommerce a blocchi: <div role=heading> con dentro il vero <div role=button>) tengo il più interno,
+    // perché il clic va dato a chi ha il gestore, non al contenitore. Già aperto (aria-expanded=true) = niente da cliccare.
+    const interni = buoni.filter((b) => !buoni.some((o) => o !== b && b.contains(o)));
+    return interni.find((b) => b.getAttribute('aria-expanded') !== 'true') || interni[0] || null;
   }
   async function assicuraCampo() {
     fresco();
     let r = trovaCampo();
     if (r.input) return r.input;
-    const tg = trovaInterruttore();
-    if (tg) {
+    // Dopo aver tolto un codice alcune casse (WooCommerce a blocchi, React) ridisegnano il riquadro: aspetto fino a ~3 s che campo o interruttore tornino
+    let tg = trovaInterruttore();
+    for (let i = 0; i < 20 && !tg && !r.input; i++) { await dorme(150); fresco(); r = trovaCampo(); tg = trovaInterruttore(); }
+    if (r.input) return r.input;
+    for (let tentativo = 0; tg && !r.input && tentativo < 2; tentativo++) {
       tg.click();
-      for (let i = 0; i < 10 && !r.input; i++) { await dorme(100); fresco(); r = trovaCampo(); }
+      for (let i = 0; i < 15 && !r.input; i++) { await dorme(100); fresco(); r = trovaCampo(); }
+      if (!r.input) { fresco(); tg = trovaInterruttore(); }
     }
     return r.input;
   }
@@ -241,7 +251,17 @@
 
   const RE_ESCLUDI_TOT = /sub|ship|spediz|tax|iva|vat|discount|sconto|saving|risparm|item|count|qty|quant|before|prima|(^|[^a-z])old([^a-z]|$)|original|\bwas\b/i;
   const RE_ETICHETTA_TOT = /^(?:il\s+)?(?:totale|total|gesamtsumme|gesamt)(?:\s+(?:ordine|order|da pagare|complessivo|carrello|iva inclusa|due))?\s*:?\s*(?:[€$£]|\d.*)?$/i;
+  // Casse che mostrano un "segnaposto grigio" al posto dei totali mentre ricalcolano (WooCommerce a blocchi): il totale in quel momento NON è leggibile
+  function totaliInCaricamento() {
+    return tutti('[class*="skeleton" i]').some((el) => {
+      if (!visibile(el)) return false;
+      let c = padre(el);
+      for (let i = 0; i < 4 && c; i++, c = padre(c)) if (/total|summary|riepilogo/i.test(classe(c))) return true;
+      return false;
+    });
+  }
   function leggiTotaleLocale() {
+    if (totaliInCaricamento()) return null;
     for (const sel of selDa('totale')) {
       const els = tutti(sel).filter(visibile);
       if (els.length) { const p = ultimoPrezzo(testoUtile(els[els.length - 1])); if (p) return p; }
@@ -327,6 +347,8 @@
     if (!t) return 'nessuna reazione';
     if (/scadut|expired|abgelaufen|expiré|caducado/.test(t)) return 'scaduto';
     if (/minim/.test(t)) return 'importo minimo';
+    // "cannot be applied because it does not exist" (WooCommerce 10) è un codice inesistente, non un codice non applicabile
+    if (/non esist|does not exist|doesn't exist|non riconosciut|not recogni/.test(t)) return 'non valido';
     if (/non applicabil|not applicable|cannot be applied|non può essere/.test(t)) return 'non applicabile';
     if (/non valid|invalid|not valid|non esist|does not exist|non riconosciut|not recogni|not found|unknown/.test(t)) return 'non valido';
     return 'non valido';
@@ -367,13 +389,19 @@
   async function attendiEsito(prima) {
     const t0 = Date.now();
     const att = osservaAttivita();
-    let visto = 0;
+    let visto = 0, ultimaLettura = '', ultimoCambio = 0;
     while (Date.now() - t0 < TIMEOUT_ESITO) {
       await dorme(100);
       fresco();
-      if (segnale(prima, await leggi())) {
+      const ora = await leggi();
+      if (segnale(prima, ora)) {
         if (!visto) visto = Date.now();
-        if (Date.now() - visto >= 200) break; // lascia aggiornare anche il totale
+        // Aspetto che la lettura si assesti: in alcune casse (WooCommerce a blocchi) la riga "sconto" compare prima del totale
+        const j = JSON.stringify(snap(ora));
+        if (j !== ultimaLettura) { ultimaLettura = j; ultimoCambio = Date.now(); }
+        const totaleOk = ora.totale != null || prima.totale == null;
+        if (Date.now() - visto >= 200 && Date.now() - ultimoCambio >= 450 && (totaleOk || Date.now() - visto >= 2500)) break;
+        if (Date.now() - visto >= 6000) break;
       } else if (Date.now() - t0 > 800 && Date.now() - att.ultimo > 1800) break;
     }
     att.stop();
@@ -381,14 +409,28 @@
 
   // ---------- Rimuovere il codice ----------
   const RE_RIMUOVI = /^(rimuovi|remove|elimina|togli)\b|rimuovi (il )?(codice|coupon)|remove (coupon|code|discount)|^\[?\s*(rimuovi|remove)\s*\]?$/i;
+  const RE_NO_RIMUOVI = /\b(item|items|product|products|articol[oi]|prodott[oi]|quantity|quantit[àa]|line item|panier|warenkorb)\b|from (the |your )?cart|dal carrello|del carrello/i;
+  const RE_RIMUOVI_CODICE = /(coupon|codice|code|sconto|discount|promo|voucher|buono)/i;
   function trovaRimuovi() {
     fresco();
-    const ric = primoVisibile(selDa('rimuovi'));
-    if (ric) return ric;
+    // I selettori delle ricette sono tutti insieme: scarto quelli che toglierebbero un PRODOTTO ("Remove Maglia from cart")
+    for (const sel of selDa('rimuovi')) {
+      const el = tutti(sel).find((x) => visibile(x) && !RE_NO_RIMUOVI.test(pulisci(x.textContent + ' ' + (x.getAttribute('aria-label') || '') + ' ' + (x.title || ''))));
+      if (el) return el;
+    }
     for (const el of tutti('a,button,[role="button"]')) {
       if (!visibile(el)) continue;
       const t = pulisci(el.textContent + ' ' + (el.getAttribute('aria-label') || '') + ' ' + (el.title || ''));
-      if (t.length < 60 && RE_RIMUOVI.test(t)) return el;
+      if (t.length >= 60 || !RE_RIMUOVI.test(t)) continue;
+      // MAI il pulsante che toglie un PRODOTTO dal carrello ("Remove item", "Rimuovi articolo"...)
+      if (RE_NO_RIMUOVI.test(t)) continue;
+      // "Rimuovi" da solo vale solo se è dentro una riga di sconto/coupon
+      if (!RE_RIMUOVI_CODICE.test(t)) {
+        let c = padre(el), ok = false;
+        for (let i = 0; i < 3 && c && !ok; i++, c = padre(c)) ok = c.textContent.length < 120 && RE_RIGA_SCONTO.test(c.textContent);
+        if (!ok) continue;
+      }
+      return el;
     }
     return null;
   }

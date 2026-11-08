@@ -1,5 +1,5 @@
-{ "nome": "woocommerce", "versione": 1,
-  "input": ["#coupon_code", "input[name='coupon_code']"],
-  "bottone": ["button[name='apply_coupon']", "input[name='apply_coupon']"],
-  "totale": [".order-total .amount", ".order-total"],
-  "rimuovi": ["a.woocommerce-remove-coupon"] }
+{ "nome": "woocommerce", "versione": 2,
+  "input": ["#coupon_code", "input[name='coupon_code']", "#wc-block-components-totals-coupon__input-coupon", ".wc-block-components-totals-coupon__input input"],
+  "bottone": ["button[name='apply_coupon']", "input[name='apply_coupon']", ".wc-block-components-totals-coupon__button"],
+  "totale": [".order-total .amount", ".order-total", ".wc-block-components-totals-footer-item-tax-value", ".wc-block-components-totals-footer-item .wc-block-formatted-money-amount"],
+  "rimuovi": ["a.woocommerce-remove-coupon", ".wc-block-components-totals-discount__coupon-list-item .wc-block-components-chip__remove", "li.wc-block-components-chip .wc-block-components-chip__remove"] }

@@ -2,4 +2,4 @@
   "input": ["input[name='discount']", "#checkout_reduction_code", "input[name='reduction_code']", "input[name='checkout[reduction_code]']"],
   "bottone": ["button[aria-label*='sconto' i][type='submit']", "button[aria-label*='discount' i][type='submit']", "#checkout_submit_reduction", "button[type='submit'][class*='reduction' i]"],
   "totale": ["[data-checkout-payment-due-target]", ".total-line--grand .total-line__price"],
-  "rimuovi": ["button[aria-label*='Rimuovi' i]", "button[aria-label*='Remove' i]", "[class*='reduction-code'] button[type='button']"] }
+  "rimuovi": ["[class*='discount' i] button[aria-label*='Rimuovi' i]", "[class*='discount' i] button[aria-label*='Remove' i]", "[class*='coupon' i] button[aria-label*='Remove' i]", "[class*='reduction-code'] button[type='button']"] }

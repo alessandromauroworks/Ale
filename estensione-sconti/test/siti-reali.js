@@ -23,12 +23,23 @@ const SITI = [
     async vaiAlCarrello(p) { await p.locator('button[formaction*="cart.add"], button[onclick*="cart.add"]').first().click(); await dorme(2500); await p.goto(new URL('/index.php?route=checkout/cart', p.url()).href); } }
 ];
 
+// WooCommerce VERO in locale (WordPress + plugin WooCommerce da wordpress.org, SQLite, php -S; vedi RISULTATI-SITI-REALI.md).
+// Si accende con: WOO_BASE=http://127.0.0.1:9401 WOO_PID=11 node test/siti-reali.js   (WOO_SOLO=1 per provare solo questi)
+if (process.env.WOO_BASE) {
+  const base = process.env.WOO_BASE, pid = process.env.WOO_PID || '11';
+  const via = (nome, percorso) => ({ nome: 'WooCommerce vero (locale): ' + nome, host: new URL(base).host, piattaforma: 'WooCommerce', inizio: base + '/',
+    async vaiAlCarrello(p) { await p.goto(base + '/?add-to-cart=' + pid); await dorme(1500); await p.goto(base + percorso); } });
+  const woo = [via('carrello a blocchi', '/cart/'), via('cassa a blocchi', '/checkout/'), via('carrello classico [woocommerce_cart]', '/carrello-classico/'), via('cassa classica', '/cassa-classica/')];
+  if (process.env.WOO_SOLO) SITI.length = 0;
+  SITI.push(...woo);
+}
+
 (async () => {
   const proxy = process.env.HTTPS_PROXY || process.env.https_proxy;
   const ctx = await chromium.launchPersistentContext('', {
     channel: 'chromium', headless: true,
     args: ['--headless=new', `--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`],
-    proxy: proxy ? { server: proxy } : undefined, // rete vera: il proxy serve
+    proxy: proxy ? { server: proxy, bypass: '127.0.0.1,localhost' } : undefined, // rete vera: il proxy serve
     viewport: { width: 1280, height: 900 }
   });
   const sw = ctx.serviceWorkers()[0] || (await ctx.waitForEvent('serviceworker'));
@@ -41,6 +52,7 @@ const SITI = [
   const righe = [];
   for (const sito of SITI) {
     const r = { sito: sito.nome, piattaforma: sito.piattaforma, host: sito.host, raggiunto: 'no', campo: '-', bottone: '-', totale: '-', errore: '-', tempo: '-', nota: '' };
+    await ctx.clearCookies(); // carrello pulito a ogni sito (il codice migliore resta applicato alla fine)
     const p = await ctx.newPage();
     try {
       await p.goto(sito.inizio, { timeout: 30000, waitUntil: 'domcontentloaded' });
@@ -72,6 +84,10 @@ const SITI = [
         const arch = (await sw.evaluate(() => chrome.storage.local.get('archivio'))).archivio[dominio] || {};
         const motivi = CODICI.map((c) => (arch[c] ? c + ': ' + (arch[c].esito === 'ok' ? 'FUNZIONA' : arch[c].motivo) : c + ': non provato'));
         r.errore = motivi.join('; ');
+        const dg2 = await msgExt({ type: 'diagnosiTab', tabId: id }).catch(() => null);
+        const tot2 = dg2 && (dg2.frame || []).find((f) => f.totale != null);
+        if (tot2) r.totale += ' -> dopo il test ' + tot2.totale + ' ' + tot2.simbolo;
+        r.migliore = st && st.concluso && st.concluso.code ? st.concluso.code + (st.concluso.sconto ? ' (-' + st.concluso.sconto + ' ' + st.concluso.simbolo + ')' : '') : '-';
         r.nota = st ? st.concluso.tipo + (st.concluso.testo ? ' - ' + st.concluso.testo : '') : 'il test non è finito in 60 s';
       }
     } catch (e) { r.nota = 'Errore nei passi: ' + String(e.message).split('\n')[0]; }
@@ -82,8 +98,8 @@ const SITI = [
 
   const data = new Date().toISOString().slice(0, 10);
   let md = `# Prova su negozi demo pubblici (Cacciasconti)\n\nData prova: ${data}. Solo negozi DEMO, niente account, niente pagamenti, niente dati personali, al massimo ${CODICI.length} codici inventati per sito (${CODICI.join(', ')}).\n\n`;
-  md += '| Negozio | Raggiunto | Campo coupon | Pulsante applica | Totale letto | Messaggio di errore riconosciuto | Tempo | Note |\n|---|---|---|---|---|---|---|---|\n';
-  for (const r of righe) md += `| ${r.sito} (${r.host}) | ${r.raggiunto} | ${r.campo} | ${r.bottone} | ${r.totale} | ${r.errore} | ${r.tempo} | ${r.nota} |\n`;
+  md += '| Negozio | Raggiunto | Campo coupon | Pulsante applica | Totale letto | Messaggio di errore riconosciuto | Codice migliore applicato | Tempo | Note |\n|---|---|---|---|---|---|---|---|---|\n';
+  for (const r of righe) md += `| ${r.sito} (${r.host}) | ${r.raggiunto} | ${r.campo} | ${r.bottone} | ${r.totale} | ${r.errore} | ${r.migliore || '-'} | ${r.tempo} | ${r.nota} |\n`;
   fs.writeFileSync(path.join(__dirname, 'RISULTATI-SITI-REALI.generato.md'), md);
   console.log(md);
 })().catch((e) => { console.error('ERRORE', e); process.exit(2); });

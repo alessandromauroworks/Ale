@@ -290,6 +290,20 @@ async function finche(fn, ms, passo = 200) {
   verifica('PrestaShop simulato: "voucher does not exist" riconosciuto', rPre.cattivo && rPre.cattivo.esito === 'ko' && rPre.cattivo.motivo === 'non valido', rPre.cattivo);
   await rPre.page.close();
 
+  // ================= (u) Regressioni emerse dal WooCommerce VERO (versione a blocchi e cassa classica) =================
+  console.log('\n[u] WooCommerce vero: carrello a blocchi, cassa classica, messaggio "does not exist"');
+  const rWcb = await provaRapida(url('wcb', '/'), 'wcb.localhost');
+  verifica('Blocchi: "Add coupons" dentro un heading si apre, codice applicato (-10,00 €)', buonoOk(rWcb, 10), rWcb.st && rWcb.st.concluso);
+  verifica('Blocchi: il prodotto NON viene tolto dal carrello (mai cliccare "Remove ... from cart")', !(await rWcb.page.evaluate(() => window.__carrelloSvuotato === true)), rWcb.st && rWcb.st.concluso);
+  verifica('Blocchi: "cannot be applied because it does not exist" = non valido (non "non applicabile")', rWcb.cattivo && rWcb.cattivo.esito === 'ko' && rWcb.cattivo.motivo === 'non valido', rWcb.cattivo);
+  verifica('Blocchi: i codici si tolgono davvero tra una prova e l\'altra (non si ferma al primo)', !!(rWcb.st && rWcb.st.concluso && !rWcb.st.concluso.nota), rWcb.st && rWcb.st.concluso);
+  verifica('Blocchi: totale finale = 40,00 € (50 - 20% = 40)', await rWcb.page.evaluate(() => /40,00/.test(document.querySelector('.wc-block-components-totals-footer-item').textContent)));
+  await rWcb.page.close();
+  const rWcc = await provaRapida(url('wcc', '/'), 'wcc.localhost');
+  verifica('Cassa classica: interruttore "Click here to enter your code" (solo aria-label con "coupon") trovato e codice applicato (-6,00 €)', buonoOk(rWcc, 6), rWcc.st && rWcc.st.concluso);
+  verifica('Cassa classica: "Coupon ... does not exist!" = non valido', rWcc.cattivo && rWcc.cattivo.esito === 'ko' && rWcc.cattivo.motivo === 'non valido', rWcc.cattivo);
+  await rWcc.page.close();
+
   // ================= (o) Valute =================
   console.log('\n[o] Valute: €, $, £, CHF nell\'elenco dei codici e nei risparmi');
   const val = await ctx.newPage();
