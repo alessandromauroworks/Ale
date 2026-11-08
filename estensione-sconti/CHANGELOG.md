@@ -12,7 +12,7 @@ Correzioni dopo la revisione indipendente della 1.4.0.
 - Esploratore e controllo prezzi: robots.txt si legge sull'indirizzo completo (percorso e parametri) e i reindirizzamenti verso un altro sito si rifiutano.
 - Se lo spazio del browser finisce: si tolgono i dati più vecchi, si riprova una volta e il popup lo dice.
 - Testi: descrizione del manifest e informativa (richiesta con la chiave personale) aggiornate; scopo unico dello store riscritto. L'informativa resta una BOZZA da far controllare.
-- Servizio dei codici: tabella `cacciasconti_codici_email` allineata a quella già attiva (`email_data` è una data); chiave personale di almeno 32 caratteri; dopo 10 chiavi sbagliate in un'ora risponde 429; ordine per data con i codici senza data in fondo.
+- Servizio dei codici: tabella `cacciasconti_codici_email` allineata a quella già attiva (`email_data` è una data); chiave personale di almeno 32 caratteri; dopo 10 chiavi sbagliate in un'ora risponde 429 a qualunque chiave (nuova funzione SQL `cacciasconti_leggi`); ordine per data con i codici senza data in fondo.
 
 ## 1.4.0
 Prezzi, email e altre fonti di codici, tutte spente o solo locali di base.

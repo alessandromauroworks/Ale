@@ -52,12 +52,14 @@ async function personali(req: Request, url: URL, db: any): Promise<Response> {
   const segreto = Deno.env.get("CACCIASCONTI_TOKEN_PERSONALE");
   if (!segreto) return json({ errore: "servizio non configurato" }, 503);
   const dato = req.headers.get("x-cacciasconti-token") || "";
+  // Freno contro chi prova chiavi a caso: si contano le chiavi SBAGLIATE per ora e per indirizzo (solo l'hash, mai l'IP; prefisso "tokerr|" per non mischiarsi con le segnalazioni).
+  // Il conteggio si legge PRIMA di confrontare: dopo 10 sbagliate risponde 429 a qualunque chiave, anche a quella giusta.
+  const sale = Deno.env.get("CACCIASCONTI_SALE") || segreto;
+  const hash = await sha256("tokerr|" + ipCliente(req) + "|" + new Date().toISOString().slice(0, 10) + "|" + sale);
+  const { data: gia } = await db.rpc("cacciasconti_leggi", { p_hash: hash });
+  if (Number(gia) >= MAX_TOKEN_SBAGLIATI) return json({ errore: "troppi tentativi, riprova più tardi" }, 429);
   if (!dato || !(await confrontoCostante(dato, segreto))) {
-    // Freno contro chi prova chiavi a caso: si contano le chiavi SBAGLIATE per ora e per indirizzo (solo l'hash, mai l'IP). Prefisso "tok|" per non mischiarsi con le segnalazioni.
-    const sale = Deno.env.get("CACCIASCONTI_SALE") || segreto;
-    const hash = await sha256("tok|" + ipCliente(req) + "|" + new Date().toISOString().slice(0, 10) + "|" + sale);
-    const { data: n, error } = await db.rpc("cacciasconti_conta", { p_hash: hash });
-    if (!error && n > MAX_TOKEN_SBAGLIATI) return json({ errore: "troppi tentativi, riprova più tardi" }, 429);
+    await db.rpc("cacciasconti_conta", { p_hash: hash });
     return json({ errore: "non autorizzato" }, 401);
   }
   const dominio = (url.searchParams.get("domain") || "").toLowerCase();

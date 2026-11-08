@@ -631,7 +631,7 @@ const righe = [{ domain: 'a.it', code: 'MAIL15', sconto: '15%', scade_il: '2099-
 const db = { from: (t) => { reg.from++; reg.tabella = t; const q = {
   select: (c) => { reg.select = c; return q; }, or: (f) => { reg.or = f; return q; }, eq: (c, v) => { reg.eq = [c, v]; return q; }, gte: () => q,
   order: (c, o) => { reg.order = [c, o && o.ascending, o && o.nullsFirst]; return q; }, limit: (n) => { reg.limit = n; return Promise.resolve({ data: righe, error: null }); } }; return q; },
-  rpc: (nome, a) => { reg.rpc.push(a.p_hash); cont[a.p_hash] = (cont[a.p_hash] || 0) + 1; return Promise.resolve({ data: cont[a.p_hash], error: null }); } };
+  rpc: (nome, a) => { if (nome === 'cacciasconti_leggi') return Promise.resolve({ data: cont[a.p_hash] || 0, error: null }); reg.rpc.push(a.p_hash); cont[a.p_hash] = (cont[a.p_hash] || 0) + 1; return Promise.resolve({ data: cont[a.p_hash], error: null }); } };
 const get = (qs, h) => new Request('http://x/f?' + qs, { headers: h || {} });
 const out = {};
 let r = await m.gestisci(get('personali=1'), db);
@@ -656,18 +656,19 @@ await m.gestisci(get('personali=1', { 'x-cacciasconti-token': 'segreto-lungo-123
 out.giustoNonConta = reg.rpc.length === rpcPrima;
 out.tentativi = [];
 for (let i = 0; i < 12; i++) out.tentativi.push((await m.gestisci(get('personali=1', { 'x-cacciasconti-token': 'sbagliato' + i, 'cf-connecting-ip': '3.3.3.3' }), db)).status);
+out.giustoBloccato = (await m.gestisci(get('personali=1', { 'x-cacciasconti-token': 'segreto-lungo-123', 'cf-connecting-ip': '3.3.3.3' }), db)).status;
 out.altroIp = (await m.gestisci(get('personali=1', { 'x-cacciasconti-token': 'sbagliato', 'cf-connecting-ip': '4.4.4.4' }), db)).status;
 const sha = async (t) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)))].map((x) => x.toString(16).padStart(2, '0')).join('');
-out.prefissoTok = reg.rpc.includes(await sha('tok|3.3.3.3|' + new Date().toISOString().slice(0, 10) + '|segreto-lungo-123'));
-out.bloccoDopo = (await m.gestisci(get('personali=1', { 'x-cacciasconti-token': 'segreto-lungo-123', 'cf-connecting-ip': '5.5.5.5' }), db)).status;
+out.prefissoTok = reg.rpc.includes(await sha('tokerr|3.3.3.3|' + new Date().toISOString().slice(0, 10) + '|segreto-lungo-123'));
+out.altroIpGiusto = (await m.gestisci(get('personali=1', { 'x-cacciasconti-token': 'segreto-lungo-123', 'cf-connecting-ip': '5.5.5.5' }), db)).status;
 console.log(JSON.stringify(out));
 `);
   const rPers = spawnSync(process.execPath, ['--experimental-strip-types', '--no-warnings', path.join(dirEdge, 'prova-pers.mjs')], { encoding: 'utf8' });
   let ep = null;
   try { ep = JSON.parse(rPers.stdout.trim().split('\n').pop()); } catch (e) {}
   verifica('Edge Function personali: ordine per email_data dal più recente con i codici senza data IN FONDO (nullsFirst: false)', ep && ep.giusto.order[0] === 'email_data' && ep.giusto.order[1] === false && ep.giusto.order[2] === false, ep && ep.giusto.order);
-  verifica('Edge Function personali: dopo 10 chiavi sbagliate in un\'ora dallo stesso indirizzo la 11a risponde 429 (le prime 10: 401); un altro indirizzo non è bloccato', ep && JSON.stringify(ep.tentativi) === JSON.stringify([401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 429, 429]) && ep.altroIp === 401, ep && [ep.tentativi, ep.altroIp]);
-  verifica('Edge Function personali: il contatore delle chiavi sbagliate usa l\'hash con prefisso "tok|" (non si mischia con le segnalazioni) e una chiave GIUSTA non conta', ep && ep.prefissoTok === true && ep.giustoNonConta === true, ep && [ep.prefissoTok, ep.giustoNonConta]);
+  verifica('Edge Function personali: dopo 10 chiavi sbagliate in un\'ora dallo stesso indirizzo la 11a risponde 429 (le prime 10: 401), anche con la chiave GIUSTA; un altro indirizzo non è bloccato (nemmeno con la chiave giusta)', ep && JSON.stringify(ep.tentativi) === JSON.stringify([401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 429, 429]) && ep.giustoBloccato === 429 && ep.altroIp === 401 && ep.altroIpGiusto === 200, ep && [ep.tentativi, ep.altroIp]);
+  verifica('Edge Function personali: il contatore delle chiavi sbagliate usa l\'hash con prefisso "tokerr|" (non si mischia con le segnalazioni) e una chiave GIUSTA non conta', ep && ep.prefissoTok === true && ep.giustoNonConta === true, ep && [ep.prefissoTok, ep.giustoNonConta]);
   verifica('Edge Function personali: senza il segreto CACCIASCONTI_TOKEN_PERSONALE risponde 503 e non tocca il database', ep && ep.senzaSegreto.status === 503 && ep.senzaSegreto.db === 0, ep ? ep.senzaSegreto : rPers.stderr.slice(0, 300));
   verifica('Edge Function personali: senza intestazione, con chiave sbagliata o più corta = 401, database mai toccato', ep && ep.senzaToken.status === 401 && ep.tokenSbagliato.status === 401 && ep.tokenCorto.status === 401 && ep.tokenCorto.db === 0, ep && [ep.senzaToken, ep.tokenSbagliato, ep.tokenCorto]);
   verifica('Edge Function personali: con la chiave giusta 200, tabella cacciasconti_codici_email, max 500, solo non scaduti, ordinati per email_data', ep && ep.giusto.status === 200 && ep.giusto.tabella === 'cacciasconti_codici_email' && ep.giusto.limit === 500 && /^scade_il\.is\.null,scade_il\.gte\.\d{4}-\d{2}-\d{2}$/.test(ep.giusto.or) && ep.giusto.order[0] === 'email_data' && ep.giusto.order[1] === false && ep.giusto.corpo.codici[0].code === 'MAIL15', ep && ep.giusto);
