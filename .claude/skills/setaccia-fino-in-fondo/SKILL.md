@@ -53,7 +53,15 @@ Risultato: elenco dei buchi con priorità: **bloccante**, **importante**, **dett
 - Scrivi quanti giri hai fatto e quali aiutanti hai usato.
 - Mai consegnare con problemi noti e risolvibili scritti come «limiti». Se si può sistemare dentro il perimetro, si sistema prima.
 
-## 8. Costo
+## 8. «Cosa manca ancora» in fondo a OGNI risposta
+Vale anche per le risposte semplici e le ricerche (leggi, fisco, mercato, idee), non solo per i progetti.
+- Prima di rispondere chiediti: «cosa potrebbe ancora mancare? quale legge, caso, fonte, funzione, rischio non ho coperto?».
+- Chiudi sempre con una sezione **«Cosa manca ancora»**: elenco breve e concreto di ciò che si potrebbe aggiungere o approfondire, ognuno con una riga sul perché conta (es. «manca la legge X: si applica se hai dipendenti»).
+- Alessandro decide sì o no per ogni voce. Tu non ti fermi in silenzio e non aspetti che sia lui a chiederlo.
+- Quando si continua, si rifà la domanda dopo ogni giro. Si finisce quando non resta davvero niente di utile da aggiungere: allora scrivi «Non manca altro: ho controllato X, Y, Z».
+- Non riempire la lista per fare numero: solo cose vere e utili.
+
+## 9. Costo
 L'aiutante più economico che basta:
 - `lettore` (Haiku): leggere, controllare, riassumere;
 - `scrittore` (Sonnet): costruire, scrivere;
