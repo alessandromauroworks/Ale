@@ -38,29 +38,62 @@ async function leggiArchivio() {
 }
 const scriviArchivio = (archivio) => chrome.storage.local.set({ archivio });
 
+const TRENTA_GIORNI = 30 * 24 * 3600 * 1000;
+
+// Ordine: funzionati di recente (risparmio maggiore prima) > trovati nel sito (più nuovi prima)
+// > codici funzionati più di 30 giorni fa > manuali > comuni.
 function ordinaPerStato(lista) {
-  const rango = (e) => (e.esito === 'ok' ? 0 : e.source === 'manuale' ? 1 : e.source === 'pagina' ? 2 : 3);
+  const adesso = Date.now();
+  const rango = (e) => {
+    if (e.esito === 'ok') return adesso - (e.data || 0) < TRENTA_GIORNI ? 0 : 1.5;
+    if (e.source === 'pagina') return 1;
+    if (e.source === 'manuale') return 2;
+    return 3;
+  };
   return lista
     .map((e, i) => [e, i])
     .sort((a, b) => {
       const ra = rango(a[0]), rb = rango(b[0]);
       if (ra !== rb) return ra - rb;
       if (ra === 0) return (b[0].sconto || 0) - (a[0].sconto || 0) || a[1] - b[1];
+      if (ra === 1) return (b[0].trovato || 0) - (a[0].trovato || 0) || a[1] - b[1];
       return a[1] - b[1];
     })
     .map((x) => x[0]);
 }
 
-function costruisciCoda(archivio, dominio, opz) {
+function costruisciCoda(archivio, dominio, opz, riprova) {
   const adesso = Date.now();
   const mappa = archivio[dominio] || {};
   let lista = Object.values(mappa).filter((e) => opz.usaComuni || e.source !== 'comune');
   if (opz.usaComuni) {
     for (const c of COMUNI) if (!mappa[c]) lista.push({ code: c, source: 'comune', esito: 'mai' });
   }
-  // Salta i codici che hanno fallito da meno di 7 giorni.
-  lista = lista.filter((e) => !(e.esito === 'ko' && adesso - (e.data || 0) < SETTE_GIORNI));
+  // Salta i codici che hanno fallito da meno di 7 giorni (a meno che l'utente scelga "riprova tutti").
+  if (!riprova) lista = lista.filter((e) => !(e.esito === 'ko' && adesso - (e.data || 0) < SETTE_GIORNI));
   return ordinaPerStato(lista).slice(0, Math.max(1, opz.maxCodici)).map((e) => e.code);
+}
+
+async function aggiornaBadge(tabId, dominio, campo) {
+  if (tabId == null) return;
+  const [arch, opz] = [await leggiArchivio(), await leggiOpzioni()];
+  const n = campo
+    ? costruisciCoda(arch, dominio, opz, false).length
+    : Object.values(arch[dominio] || {}).filter((e) => e.esito !== 'ko').length;
+  try {
+    await chrome.action.setBadgeText({ tabId, text: n ? String(n) : '' });
+    await chrome.action.setBadgeBackgroundColor({ tabId, color: '#0f9d78' });
+  } catch (e) {}
+  return n;
+}
+
+async function leggiRicette() {
+  const out = [];
+  try {
+    const indice = await (await fetch(chrome.runtime.getURL('recipes/indice.json'))).json();
+    for (const f of indice) out.push(await (await fetch(chrome.runtime.getURL('recipes/' + f))).json());
+  } catch (e) {}
+  return out;
 }
 
 async function gestisci(m, sender) {
@@ -110,6 +143,7 @@ async function gestisci(m, sender) {
         e.esito = m.ok ? 'ok' : 'ko';
         e.sconto = m.ok ? m.sconto : null;
         e.data = Date.now();
+        e.motivo = m.ok ? null : m.motivo || 'nessuna reazione';
         e.source = m.ok ? 'funzionato' : e.origine || 'comune';
         sito[c] = e;
         await scriviArchivio(arch);
@@ -124,8 +158,65 @@ async function gestisci(m, sender) {
     }
     case 'coda': {
       const [arch, opz] = [await leggiArchivio(), await leggiOpzioni()];
-      return { coda: costruisciCoda(arch, m.dominio, opz), opzioni: opz };
+      return { coda: costruisciCoda(arch, m.dominio, opz, !!m.riprova), opzioni: opz };
     }
+    case 'badge':
+      return { n: await aggiornaBadge(tabId, m.dominio, m.campo) };
+    case 'ricette':
+      return { ricette: await leggiRicette() };
+    case 'storico':
+      return inFila(async () => {
+        const r = await chrome.storage.local.get('storico');
+        const lista = r.storico || [];
+        lista.unshift({ dominio: m.dominio, codice: m.codice, risparmio: m.risparmio, simbolo: m.simbolo || '€', data: Date.now() });
+        await chrome.storage.local.set({ storico: lista.slice(0, 500) });
+        return { ok: true };
+      });
+    case 'leggiStorico':
+      return { storico: (await chrome.storage.local.get('storico')).storico || [] };
+    case 'nascondiCard':
+      return inFila(async () => {
+        const r = await chrome.storage.local.get('nascosti');
+        const n = r.nascosti || {};
+        n[m.dominio] = Date.now();
+        await chrome.storage.local.set({ nascosti: n });
+        return { ok: true };
+      });
+    case 'cardNascosta': {
+      const n = (await chrome.storage.local.get('nascosti')).nascosti || {};
+      return { nascosta: !!n[m.dominio] && Date.now() - n[m.dominio] < 24 * 3600 * 1000 };
+    }
+    case 'esporta': {
+      const r = await chrome.storage.local.get(['archivio', 'storico', 'opzioni']);
+      return { dati: { app: 'Cacciasconti', versione: 1, archivio: r.archivio || {}, storico: r.storico || [], opzioni: r.opzioni || {} } };
+    }
+    case 'importa':
+      return inFila(async () => {
+        const d = m.dati;
+        if (!d || d.app !== 'Cacciasconti' || typeof d.archivio !== 'object') return { errore: 'File non valido.' };
+        const arch = await leggiArchivio();
+        for (const dom of Object.keys(d.archivio)) {
+          const sito = (arch[dom] = arch[dom] || {});
+          for (const e of Object.values(d.archivio[dom] || {})) {
+            const c = normalizza(e && e.code);
+            if (!c) continue;
+            const vecchio = sito[c];
+            if (!vecchio || (e.data || 0) > (vecchio.data || 0)) {
+              sito[c] = { code: c, source: e.source || 'manuale', origine: e.origine || 'manuale', esito: e.esito || 'mai',
+                sconto: e.sconto || null, data: e.data || null, trovato: e.trovato || Date.now(), motivo: e.motivo || null };
+            }
+          }
+        }
+        await scriviArchivio(arch);
+        if (Array.isArray(d.storico)) {
+          const r = await chrome.storage.local.get('storico');
+          const chiavi = new Set((r.storico || []).map((x) => x.dominio + x.codice + x.data));
+          const unito = (r.storico || []).concat(d.storico.filter((x) => x && !chiavi.has(x.dominio + x.codice + x.data)));
+          unito.sort((a, b) => b.data - a.data);
+          await chrome.storage.local.set({ storico: unito.slice(0, 500) });
+        }
+        return { ok: true };
+      });
     case 'opzioni':
       return inFila(async () => {
         const nuove = Object.assign(await leggiOpzioni(), m.opzioni || {});

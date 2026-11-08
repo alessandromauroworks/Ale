@@ -1,0 +1,2 @@
+{ "nome": "generico", "versione": 1, "input": [], "bottone": [], "totale": [],
+  "rimuovi": ["a[class*='remove-coupon' i]", "a[class*='remove-discount' i]", "button[class*='remove-coupon' i]", "button[class*='remove-discount' i]", "[data-action*='remove-coupon' i]"] }

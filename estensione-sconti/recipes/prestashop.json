@@ -1,0 +1,5 @@
+{ "nome": "prestashop", "versione": 1,
+  "input": ["input[name='discount_name']"],
+  "bottone": ["button[data-link-action='add-voucher']", "#promo-code button[type='submit']"],
+  "totale": [".cart-summary-line.cart-total .value", ".cart-total .value"],
+  "rimuovi": ["a[data-link-action='remove-voucher']"] }

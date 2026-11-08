@@ -1,0 +1,5 @@
+{ "nome": "magento", "versione": 1,
+  "input": ["#discount-code", "#coupon_code"],
+  "bottone": ["#discount-coupon-form button.action.apply", "button.action.apply"],
+  "totale": [".grand.totals .price", ".grand.totals"],
+  "rimuovi": ["#discount-coupon-form button.action.cancel", "button.action.cancel"] }
