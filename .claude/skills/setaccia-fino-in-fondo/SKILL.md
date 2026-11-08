@@ -18,6 +18,8 @@ Questa lista è la regola per fermarsi. «Perfetto» senza criteri non finisce m
 ## 2. Limiti noti: davanti, non in fondo
 Ciò che non si può fare (impossibile, illegale, serve un suo account o i suoi soldi) lo dici SUBITO, all'inizio, con l'alternativa. Non lo scopre alla fine.
 
+Prima di scrivere «non si può», «resta a te», «limite»: cerca almeno 2 alternative (altri strumenti, altre strade tecniche, cosa può fare Claude con gli accessi che ha: Supabase, GitHub, controllo del PC Windows, browser). Solo se nessuna funziona, dillo, con le alternative provate.
+
 ## 3. Ricerca a tappeto
 - il tema;
 - i migliori concorrenti o soluzioni che esistono già;
@@ -39,6 +41,8 @@ Poi:
 - usa dati veri e siti veri;
 - per le interfacce prova telefono e computer.
 Risultato: elenco dei buchi con priorità: **bloccante**, **importante**, **dettaglio**.
+
+Prima di consegnare un lavoro non piccolo, passa la bozza all'aiutante `controllore` (controlla alternative, limiti risolvibili, cosa manca, coerenza con Alessandro, prove, test). Un hook di fine risposta lo ricorda in automatico.
 
 ## 6. Correzione e nuovo giro
 - Correggi tutti i bloccanti e gli importanti. Rifai i test.

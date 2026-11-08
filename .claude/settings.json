@@ -12,6 +12,18 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Controllo di fine risposta. Input JSON: $ARGUMENTS. Se stop_hook_active e' true, oppure last_assistant_message ha meno di 4 righe (conferma, esito di un comando, risposta breve), rispondi {\"ok\": true}. Altrimenti leggi last_assistant_message e blocca SOLO se c'e' un problema reale tra: (a) dice «non si può», «non posso», «resta a te», «limite» o «non serve» senza elencare almeno 2 alternative provate; (b) presenta come «limiti» problemi che si potevano risolvere subito; (c) e' una risposta lunga o una ricerca senza la sezione «Cosa manca ancora»; (f) dice «pronta» o «completato» senza test davvero eseguiti. Se c'e' un problema rispondi {\"ok\": false, \"reason\": \"<in italiano, cosa correggere, es. hai scritto 'non si può' su X senza cercare alternative: cercale; oppure manca la sezione Cosa manca ancora>\"}. Nel dubbio rispondi {\"ok\": true}.",
+            "timeout": 30,
+            "statusMessage": "Controllo la risposta..."
+          }
+        ]
+      }
     ]
   }
 }
