@@ -143,7 +143,7 @@ const aUnFrame = async (tabId, frameId, m) => {
 async function gestisci(m, sender) {
   const tabId = m.tabId != null ? m.tabId : sender && sender.tab ? sender.tab.id : null;
   // I codici sono sempre del sito che si vede nella barra, anche se il messaggio arriva da un frame di un altro sito.
-  if (sender && sender.tab && sender.tab.url && m.dominio != null) {
+  if (sender && sender.tab && /^https?:/.test(sender.tab.url || '') && !/^chrome-extension:/.test(sender.url || '') && m.dominio != null) {
     try { m.dominio = dominioDi(new URL(sender.tab.url).hostname); } catch (e) {}
   }
   switch (m.type) {
@@ -314,6 +314,8 @@ async function gestisci(m, sender) {
       if (!c) return { ok: false, errore: 'Non trovo il campo del codice.' };
       return (await aUnFrame(tabId, c.frameId, { type: 'avvia', riprova: !!m.riprova })) || { ok: false, errore: 'Il frame non risponde.' };
     }
+    case 'diagnosiTab':
+      return { frame: (await aiFrame(tabId, { type: 'diagnosi' })).map((x) => Object.assign({ frameId: x.frameId }, x.r)) };
     case 'fermaTab':
       await aiFrame(tabId, { type: 'ferma' });
       return { ok: true };
@@ -321,6 +323,11 @@ async function gestisci(m, sender) {
     case 'overlay':
       await aUnFrame(tabId, 0, { type: 'disegnaOverlay', st: m.st });
       return { ok: true };
+    // Il link "rimuovi codice" può stare in un altro frame: clicca il primo che lo trova.
+    case 'rimuoviAltrove': {
+      const r = await aiFrame(tabId, { type: 'cliccaRimuovi' }, [sender.frameId]);
+      return { cliccato: r.some((x) => x.r.cliccato) };
+    }
     // Lettura di totale e messaggi negli altri frame
     case 'leggiAltrove': {
       const r = await aiFrame(tabId, { type: 'leggiLocale' }, [sender.frameId]);

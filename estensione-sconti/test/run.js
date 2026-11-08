@@ -25,6 +25,11 @@ async function finche(fn, ms, passo = 200) {
   await new Promise((r) => server.listen(0, r));
   const porta = server.address().port;
   const url = (h, p) => `http://${h}.localhost:${porta}${p}`;
+  // Secondo server su un'altra porta e un altro nome: serve per i frame di un altro sito (cross-origin)
+  const server2 = crea();
+  await new Promise((r) => server2.listen(0, r));
+  const porta2 = server2.address().port;
+  const url2 = (h, p) => `http://${h}.localhost:${porta2}${p}`;
 
   const ctx = await chromium.launchPersistentContext('', {
     channel: 'chromium',
@@ -112,9 +117,10 @@ async function finche(fn, ms, passo = 200) {
   verifica('Archivio: BENVENUTO10 fallito ("non valido")', b10.esito === 'ko' && b10.motivo === 'non valido', b10);
   verifica('Popup mostra il risultato "Risparmi 250,00"', await finche(async () => (await pSpa.locator('#risultato').textContent()).includes('Risparmi 250,00'), 5000), await pSpa.locator('#risultato').textContent());
   verifica('Popup: codice fallito mostrato con motivo', (await pSpa.locator('#lista').textContent()).includes('Non funziona (non valido)'));
+  verifica('Valuta: il popup mostra il risparmio in sterline "-250,00 £" (non in euro)', (await pSpa.locator('#lista').textContent()).includes('-250,00 £') && !(await pSpa.locator('#lista').textContent()).includes('250,00 €'), await pSpa.locator('#lista').textContent());
   await pSpa.locator('.scheda[data-s=risparmi]').click();
   verifica('Popup "Risparmi": elenco con ESTATE20 e totale', await finche(async () => { const t = await pSpa.locator('#s-risparmi').textContent(); return t.includes('ESTATE20') && t.includes('spa.localhost'); }, 3000));
-  verifica('Totale risparmiato = 270,00 € (20 + 250)', (await pSpa.locator('#totale').textContent()).includes('270,00'), await pSpa.locator('#totale').textContent());
+  verifica('Totale risparmiato diviso per valuta: 20,00 € + 250,00 £ (non si sommano euro e sterline)', (await pSpa.locator('#totale').textContent()) === '20,00 € + 250,00 £', await pSpa.locator('#totale').textContent());
   // Esporta / importa
   const dump = await msgExt({ type: 'esporta' });
   verifica('Esporta: JSON con archivio e storico', dump.dati.app === 'Cacciasconti' && dump.dati.archivio['spa.localhost'].ESTATE20 && dump.dati.storico.length >= 2);
@@ -158,8 +164,146 @@ async function finche(fn, ms, passo = 200) {
   const rip = await msgExt({ type: 'coda', dominio: 'spa.localhost', riprova: true });
   verifica('"Riprova tutti": WELCOME10 torna nella coda', rip.coda.includes('WELCOME10'), rip.coda);
 
+
+  // ================= Aiuto per le prove rapide (un solo codice buono + uno sbagliato) =================
+  async function provaRapida(urlPagina, dominio, opz = {}) {
+    await sw.evaluate((d) => chrome.storage.local.get('archivio').then((r) => { const a = r.archivio || {}; delete a[d]; return chrome.storage.local.set({ archivio: a }); }), dominio);
+    await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: false, maxCodici: 8 } }));
+    const page = await ctx.newPage();
+    await page.goto(urlPagina);
+    const id = await sw.evaluate(async (u) => (await chrome.tabs.query({})).find((t) => t.url === u).id, urlPagina);
+    await msgExt({ type: 'aggiungi', dominio, codice: 'ESTATE20' });
+    if (opz.fallito !== false) await msgExt({ type: 'aggiungi', dominio, codice: 'PROVA99' });
+    const stato = await finche(async () => { const r = await msgExt({ type: 'statoTab', tabId: id }); return r && r.campo ? r : null; }, 12000, 300);
+    const av = stato ? await msgExt({ type: 'avviaTab', tabId: id }) : null;
+    const st = stato ? await attendiFine(id) : null;
+    return { page, id, stato, av, st, buono: await conCodice(dominio, 'ESTATE20'), cattivo: await conCodice(dominio, 'PROVA99') };
+  }
+  const buonoOk = (r, sconto) => !!(r.st && r.st.concluso.tipo === 'ok' && r.st.concluso.code === 'ESTATE20' && r.buono && r.buono.esito === 'ok' && r.buono.sconto === sconto);
+
+  // ================= (e) Robustezza: pulsante spento finché non c'è testo =================
+  console.log('\n[e] Pulsante "Applica" spento finché il campo è vuoto (si accende dopo la scrittura)');
+  const rDis = await provaRapida(url('dis', '/'), 'dis.localhost');
+  verifica('Pulsante spento: codice trovato e applicato (-20,00)', buonoOk(rDis, 20), rDis.st && rDis.st.concluso);
+  verifica('Pulsante spento: totale finale 80,00 €', (await rDis.page.locator('#tot').textContent()) === '80,00 €');
+  verifica('Pulsante spento: codice sbagliato riconosciuto ("non valido")', rDis.cattivo && rDis.cattivo.esito === 'ko' && rDis.cattivo.motivo === 'non valido', rDis.cattivo);
+  await rDis.page.close();
+
+  // ================= (f) Pulsanti che non sono <button> =================
+  console.log('\n[f] Pulsante fatto con <a>, <div role=button>, <span onclick>');
+  for (const [v, nome] of [['a', '<a> senza ruolo'], ['div', '<div role=button>'], ['span', '<span onclick> (testo inglese "Apply")']]) {
+    const r = await provaRapida(url('btn', '/?v=' + v), 'btn.localhost');
+    verifica('Pulsante ' + nome + ': codice applicato (-20,00)', buonoOk(r, 20), r.st && r.st.concluso);
+    verifica('Pulsante ' + nome + ': totale finale 80,00 €', (await r.page.locator('#tot').textContent()) === '80,00 €');
+    await r.page.close();
+  }
+
+  // ================= (g) Campo e pulsante ricreati a ogni lettera =================
+  console.log('\n[g] Il sito ridisegna il campo (il riferimento all\'elemento diventa vecchio)');
+  const rRer = await provaRapida(url('rer', '/'), 'rer.localhost');
+  verifica('Campo ridisegnato: codice trovato e applicato (-20,00)', buonoOk(rRer, 20), rRer.st && rRer.st.concluso);
+  verifica('Campo ridisegnato: totale finale 80,00 €', (await rRer.page.locator('#tot').textContent()) === '80,00 €');
+  verifica('Campo ridisegnato: codice sbagliato riconosciuto', rRer.cattivo && rRer.cattivo.esito === 'ko' && rRer.cattivo.motivo === 'non valido', rRer.cattivo);
+  await rRer.page.close();
+
+  // ================= (h) Shadow DOM aperti =================
+  console.log('\n[h] Campo, pulsante, messaggio e totale dentro shadow DOM (anche annidati)');
+  const rShd = await provaRapida(url('shd', '/'), 'shd.localhost');
+  verifica('Shadow DOM: campo trovato, codice applicato (-20,00)', buonoOk(rShd, 20), rShd.st && rShd.st.concluso);
+  verifica('Shadow DOM: totale finale 80,00 € (letto nel componente annidato)', (await rShd.page.locator('#t').textContent()) === '80,00 €');
+  verifica('Shadow DOM: codice sbagliato riconosciuto', rShd.cattivo && rShd.cattivo.esito === 'ko' && rShd.cattivo.motivo === 'non valido', rShd.cattivo);
+  await rShd.page.close();
+
+  // ================= (i) Formati del totale =================
+  console.log('\n[i] Formati del totale e prezzi vecchi barrati (base 1250, ESTATE20 = -250)');
+  const FMT = [
+    ['"€ 1.250,00"', '€'], ['"1 250,00 €" con spazi unificati', '€'], ['"1 250,00 €" con spazio normale', '€'], ['"EUR 1,250.00"', '€'],
+    ['"CHF 1\'250.00"', 'CHF'], ['<del>vecchio</del> <ins>nuovo</ins>', '€'], ['nuovo, poi <s>vecchio</s> (vecchio per ultimo)', '€'],
+    ['nuovo, poi vecchio barrato con CSS', '€'], ['"$1,250.00"', '$'], ['"1,250.00 GBP"', '£']
+  ];
+  for (let i = 0; i < FMT.length; i++) {
+    const r = await provaRapida(url('fmt', '/?f=' + i), 'fmt.localhost', { fallito: false });
+    verifica('Totale ' + FMT[i][0] + ': sconto 250 e valuta ' + FMT[i][1], buonoOk(r, 250) && r.buono.simbolo === FMT[i][1] && r.st.concluso.simbolo === FMT[i][1], { st: r.st && r.st.concluso, buono: r.buono });
+    await r.page.close();
+  }
+
+  // ================= (l) Frame: campo coupon in un frame di un altro sito =================
+  console.log('\n[l] Campo coupon dentro un iframe di un altro sito (host e porta diversi); totale e pannello nella pagina principale');
+  await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: false, maxCodici: 8 } }));
+  await msgExt({ type: 'aggiungi', dominio: 'fr.localhost', codice: 'ESTATE20' });
+  await msgExt({ type: 'aggiungi', dominio: 'fr.localhost', codice: 'PROVA99' });
+  const srcFrame = url2('cp', '/coupon');
+  verifica('Il frame è davvero di un altro sito (origine diversa)', new URL(srcFrame).origin !== new URL(url('fr', '/')).origin);
+  const fr = await ctx.newPage();
+  await fr.goto(url('fr', '/?src=' + encodeURIComponent(srcFrame)));
+  const idFr = await idScheda('*://fr.localhost/*');
+  const stFr = await finche(async () => { const r = await msgExt({ type: 'statoTab', tabId: idFr }); return r && r.campo ? r : null; }, 12000, 300);
+  verifica('Il fondo vede il campo coupon in un frame secondario', stFr && stFr.frame.length === 1 && stFr.frame[0] !== 0, stFr);
+  verifica('Scheda "codici da provare" nella pagina principale (campo nel frame)', await finche(async () => (await testoScheda(fr)).includes('2 codici da provare'), 12000), await testoScheda(fr));
+  verifica('Nessuna scheda dentro il frame', !(await fr.frames().find((f) => f.url().includes('/coupon')).evaluate(() => !!document.getElementById('cacciasconti-scheda'))));
+  verifica('Badge della barra = 2', await finche(async () => (await badge(idFr)) === '2', 8000), await badge(idFr));
+  const pFr = await apriPopup(idFr);
+  verifica('Popup: "Genera sconto" attivo (campo nel frame)', await finche(async () => !(await pFr.locator('#genera').isDisabled()), 10000));
+  await pFr.locator('#genera').click();
+  const sFr = await attendiFine(idFr);
+  verifica('Test concluso con ESTATE20 (-40,00)', sFr && sFr.concluso.tipo === 'ok' && sFr.concluso.code === 'ESTATE20' && sFr.concluso.sconto === 40, sFr && sFr.concluso);
+  verifica('Il test ha lavorato nel frame (non nella pagina principale)', sFr && sFr.op && sFr.op.top === false, sFr && sFr.op);
+  verifica('Totale nella pagina principale: 160,00 €', (await fr.locator('#tot').textContent()) === '160,00 €');
+  verifica('Pannello "Risparmi 40,00 € con ESTATE20" nella pagina principale', await finche(async () => (await testoOverlay(fr)).includes('Risparmi 40,00 € con ESTATE20'), 6000), await testoOverlay(fr));
+  verifica('Nessun pannello dentro il frame', !(await fr.frames().find((f) => f.url().includes('/coupon')).evaluate(() => !!document.getElementById('cacciasconti-overlay'))));
+  verifica('Un solo pannello nella pagina', (await fr.locator('#cacciasconti-overlay').count()) === 1);
+  const aFr = (await archivio()).archivio;
+  verifica('Archivio sotto il sito principale (fr.localhost), non sotto quello del frame', aFr['fr.localhost'] && aFr['fr.localhost'].ESTATE20.esito === 'ok' && !aFr['cp.localhost'], Object.keys(aFr));
+  verifica('Codice sbagliato riconosciuto dal messaggio del frame', aFr['fr.localhost'].PROVA99.esito === 'ko' && aFr['fr.localhost'].PROVA99.motivo === 'non valido', aFr['fr.localhost'].PROVA99);
+  verifica('Popup mostra il risultato', await finche(async () => (await pFr.locator('#risultato').textContent()).includes('Risparmi 40,00'), 5000), await pFr.locator('#risultato').textContent());
+  await pFr.close(); await fr.close();
+
+  console.log('\n[m] Campo coupon in un iframe dello stesso sito (srcdoc, about:srcdoc)');
+  const rFs = await provaRapida(url('fs', '/'), 'fs.localhost');
+  verifica('Iframe srcdoc: campo trovato, codice applicato (-40,00)', buonoOk(rFs, 40), rFs.st && rFs.st.concluso);
+  verifica('Iframe srcdoc: ha lavorato il frame, non la pagina', rFs.st && rFs.st.op && rFs.st.op.top === false, rFs.st && rFs.st.op);
+  verifica('Iframe srcdoc: totale 160,00 €', (await rFs.page.locator('#tot').textContent()) === '160,00 €');
+  verifica('Iframe srcdoc: pannello nella pagina principale', (await testoOverlay(rFs.page)).includes('Risparmi 40,00 € con ESTATE20'), await testoOverlay(rFs.page));
+  verifica('Iframe srcdoc: codice sbagliato riconosciuto', rFs.cattivo && rFs.cattivo.esito === 'ko' && rFs.cattivo.motivo === 'non valido', rFs.cattivo);
+  await rFs.page.close();
+
+  console.log('\n[n] Campo coupon nella pagina, totale in un iframe di un altro sito');
+  const rFt = await provaRapida(url('ft', '/?src=' + encodeURIComponent(url2('cp', '/totale'))), 'ft.localhost');
+  verifica('Totale in un frame: codice applicato (-40,00)', buonoOk(rFt, 40), rFt.st && rFt.st.concluso);
+  verifica('Totale in un frame: ha lavorato la pagina principale', rFt.st && rFt.st.op && rFt.st.op.top === true, rFt.st && rFt.st.op);
+  verifica('Totale in un frame: il frame mostra 160,00 €', (await rFt.page.frames().find((f) => f.url().includes('/totale')).locator('#t').textContent()) === '160,00 €');
+  verifica('Totale in un frame: codice sbagliato riconosciuto', rFt.cattivo && rFt.cattivo.esito === 'ko', rFt.cattivo);
+  await rFt.page.close();
+
+  // ================= (o) Valute =================
+  console.log('\n[o] Valute: €, $, £, CHF nell\'elenco dei codici e nei risparmi');
+  const val = await ctx.newPage();
+  await val.goto(url('valute', '/'));
+  const idVal = await idScheda('*://valute.localhost/*');
+  for (const [c, sc, sim] of [['CODICEUSD', 12.4, '$'], ['CODICEGBP', 5, '£'], ['CODICECHF', 8, 'CHF'], ['CODICEEUR', 3, 'EUR'], ['CODICEVECCHIO', 4, undefined]]) {
+    await msgExt({ type: 'risultato', dominio: 'valute.localhost', codice: c, ok: true, sconto: sc, simbolo: sim });
+  }
+  await sw.evaluate(() => chrome.storage.local.set({ storico: [] }));
+  for (const [c, r, sim] of [['CODICEUSD', 12.4, '$'], ['CODICEUSD', 3, 'USD'], ['CODICEGBP', 5, '£'], ['CODICECHF', 8, 'CHF'], ['CODICEEUR', 10, '€'], ['CODICEEUR', 5, 'EUR'], ['CODICEVECCHIO', 2, undefined]]) {
+    await msgExt({ type: 'storico', dominio: 'valute.localhost', codice: c, risparmio: r, simbolo: sim });
+  }
+  const pVal = await apriPopup(idVal);
+  const lVal = await finche(async () => { const t = await pVal.locator('#lista').textContent(); return t.includes('CODICEUSD') ? t : null; }, 5000);
+  verifica('Elenco codici: dollari "-12,40 $"', lVal && lVal.includes('-12,40 $'), lVal);
+  verifica('Elenco codici: sterline "-5,00 £"', lVal && lVal.includes('-5,00 £'), lVal);
+  verifica('Elenco codici: franchi "-8,00 CHF"', lVal && lVal.includes('-8,00 CHF'), lVal);
+  verifica('Elenco codici: "EUR" mostrato come "-3,00 €"', lVal && lVal.includes('-3,00 €'), lVal);
+  verifica('Elenco codici: voce vecchia senza valuta mostrata in euro "-4,00 €"', lVal && lVal.includes('-4,00 €'), lVal);
+  await pVal.locator('.scheda[data-s=risparmi]').click();
+  const totVal = await finche(async () => { const t = await pVal.locator('#totale').textContent(); return t.includes('CHF') ? t : null; }, 5000);
+  verifica('Totale risparmiato raggruppato per valuta', totVal === '17,00 € + 15,40 $ + 5,00 £ + 8,00 CHF', totVal);
+  verifica('Elenco risparmi: ogni riga con la sua valuta', (await pVal.locator('#storico').textContent()).includes('12,40 $') && (await pVal.locator('#storico').textContent()).includes('8,00 CHF'), await pVal.locator('#storico').textContent());
+  await pVal.close(); await val.close();
+  await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: true, maxCodici: 8 } }));
+
   await ctx.close();
   server.close();
+  server2.close();
   console.log(`\nRISULTATO: ${ok} passati, ${ko} falliti`);
   process.exit(ko ? 1 : 0);
 })().catch((e) => { console.error('ERRORE NEL TEST', e); process.exit(2); });

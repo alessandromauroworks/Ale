@@ -123,6 +123,199 @@ $('#ap').onclick = () => {
 draw();
 </script></body></html>`;
 
+// ---------- Pagine per i casi difficili (robustezza e frame) ----------
+const HEAD = (t) => `<!doctype html><html lang="it"><head><meta charset="utf-8"><title>${t}</title></head><body>`;
+const BANNER = '<div class="banner">Solo oggi: usa il codice ESTATE20 per il 20% di sconto.</div>';
+const SCRIPT_V = "const V = { ESTATE20: 0.2, SCONTO10: 0.1 }; const virg = (n) => n.toFixed(2).replace('.', ',') + ' €';";
+
+// (d) il pulsante resta spento finché nel campo non c'è del testo; si riaccende con 150 ms di ritardo
+const PAGINA_DIS = HEAD('Pulsante spento') + BANNER + `<h1>Cassa</h1>
+<div class="coupon"><input name="coupon" placeholder="Codice sconto" id="c" autocomplete="off"><button id="ap" type="button" disabled>Applica</button></div>
+<div id="esito" class="notice"></div><div id="riga"></div>
+<div class="grand-total">Totale <span id="tot">100,00 €</span></div>
+<script>${SCRIPT_V}
+const c = document.getElementById('c'), ap = document.getElementById('ap'), tot = document.getElementById('tot'), es = document.getElementById('esito'), riga = document.getElementById('riga');
+c.addEventListener('input', () => setTimeout(() => { ap.disabled = !c.value.trim(); }, 150));
+ap.addEventListener('click', () => {
+  if (ap.disabled) return;
+  const code = c.value.trim().toUpperCase();
+  setTimeout(() => {
+    if (V[code]) { tot.textContent = virg(100 * (1 - V[code])); es.textContent = 'Codice applicato'; riga.innerHTML = '<a href="#" id="rm">Rimuovi codice</a>';
+      document.getElementById('rm').onclick = (e) => { e.preventDefault(); tot.textContent = '100,00 €'; riga.innerHTML = ''; es.textContent = ''; c.value = ''; ap.disabled = true; }; }
+    else es.textContent = 'Codice non valido';
+  }, 200);
+});
+</script></body></html>`;
+
+// (e) il "pulsante" non è un <button>: <a> senza ruolo, <div role=button> o <span onclick>
+function paginaBtn(v) {
+  const el = v === 'div' ? '<div role="button" class="cta" id="ap" tabindex="0">Applica</div>'
+    : v === 'span' ? '<span class="btn-apply" id="ap">Apply</span>'
+      : '<a href="#" class="apply-link" id="ap">Applica</a>';
+  return HEAD('Pulsante speciale') + BANNER + `<h1>Carrello</h1>
+<div class="coupon-box"><input name="coupon" placeholder="Hai un codice sconto?" id="c" autocomplete="off">${el}</div>
+<div id="esito" class="notice"></div><div id="riga"></div>
+<div class="order-total">Totale <span id="tot">100,00 €</span></div>
+<script>${SCRIPT_V}
+const c = document.getElementById('c'), tot = document.getElementById('tot'), es = document.getElementById('esito'), riga = document.getElementById('riga');
+document.getElementById('ap').addEventListener('click', (e) => {
+  e.preventDefault();
+  const code = c.value.trim().toUpperCase();
+  setTimeout(() => {
+    if (V[code]) { tot.textContent = virg(100 * (1 - V[code])); es.textContent = 'Codice applicato'; riga.innerHTML = '<a href="#" id="rm">Rimuovi codice</a>';
+      document.getElementById('rm').onclick = (e) => { e.preventDefault(); tot.textContent = '100,00 €'; riga.innerHTML = ''; es.textContent = ''; c.value = ''; }; }
+    else es.textContent = 'Codice non valido';
+  }, 200);
+});
+</script></body></html>`;
+}
+
+// (f) campo e pulsante vengono ricreati a ogni lettera (come un componente che si ridisegna); gli eventi delle vecchie copie vengono ignorati
+const PAGINA_RER = HEAD('Ridisegno') + BANNER + `<h1>Cassa</h1>
+<div id="host"></div><div id="esito" class="notice"></div><div id="riga"></div>
+<div class="order-total">Totale <span id="tot">100,00 €</span></div>
+<script>${SCRIPT_V}
+let stato = { code: '' }, pct = 0;
+const host = document.getElementById('host'), es = document.getElementById('esito'), tot = document.getElementById('tot'), riga = document.getElementById('riga');
+function disegna() { host.innerHTML = '<div class="cp"><input name="coupon" placeholder="Codice sconto" value="' + stato.code.replace(/"/g, '') + '"><button type="button" class="apply">Applica</button></div>'; }
+host.addEventListener('input', (e) => { stato.code = e.target.value; disegna(); });
+host.addEventListener('click', (e) => {
+  if (!e.target.classList || !e.target.classList.contains('apply')) return;
+  const code = stato.code.trim().toUpperCase();
+  setTimeout(() => {
+    if (V[code]) { tot.textContent = virg(100 * (1 - V[code])); es.textContent = 'Codice applicato'; riga.innerHTML = '<a href="#" id="rm">Rimuovi codice</a>';
+      document.getElementById('rm').onclick = (e) => { e.preventDefault(); tot.textContent = '100,00 €'; riga.innerHTML = ''; es.textContent = ''; stato.code = ''; disegna(); }; }
+    else es.textContent = 'Codice non valido';
+  }, 200);
+});
+disegna();
+</script></body></html>`;
+
+// (g) tutto dentro shadow DOM aperti (campo, pulsante, messaggio; il totale in un secondo componente annidato)
+const PAGINA_SHD = HEAD('Shadow DOM') + BANNER + `<h1>Cassa</h1><shop-cart></shop-cart>
+<script>${SCRIPT_V}
+class TotaleBox extends HTMLElement { constructor() { super(); this.attachShadow({ mode: 'open' }).innerHTML = '<div class="order-total">Totale <span id="t">100,00 €</span></div>'; } set(v) { this.shadowRoot.getElementById('t').textContent = v; } }
+customElements.define('total-box', TotaleBox);
+class Carrello extends HTMLElement {
+  constructor() {
+    super();
+    const r = this.attachShadow({ mode: 'open' });
+    r.innerHTML = '<div class="cp"><input name="coupon" placeholder="Codice sconto"><button type="button">Applica</button></div><div class="notice" id="e"></div><div id="riga"></div><total-box></total-box>';
+    const inp = r.querySelector('input'), es = r.getElementById('e'), box = r.querySelector('total-box'), riga = r.getElementById('riga');
+    r.querySelector('button').addEventListener('click', () => {
+      const code = inp.value.trim().toUpperCase();
+      setTimeout(() => {
+        if (V[code]) { box.set(virg(100 * (1 - V[code]))); es.textContent = 'Codice applicato'; riga.innerHTML = '<a href="#" id="rm">Rimuovi codice</a>';
+          r.getElementById('rm').onclick = (e) => { e.preventDefault(); box.set('100,00 €'); riga.innerHTML = ''; es.textContent = ''; inp.value = ''; }; }
+        else es.textContent = 'Codice non valido';
+      }, 200);
+    });
+  }
+}
+customElements.define('shop-cart', Carrello);
+</script></body></html>`;
+
+// (h) formati diversi del totale (?f=0..8), anche con il prezzo vecchio barrato
+const PAGINA_FMT = HEAD('Formati del totale') + BANNER + `<h1>Carrello</h1>
+<div class="cp"><input name="coupon" placeholder="Codice sconto" id="c"><button type="button" id="ap">Applica</button></div>
+<div id="esito" class="notice"></div><div id="riga"></div>
+<div class="cart-total" id="tot"></div>
+<script>${SCRIPT_V}
+const it = (n) => n.toFixed(2).replace('.', ',').replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.');
+const itSp = (n, sp) => n.toFixed(2).replace('.', ',').replace(/\\B(?=(\\d{3})+(?!\\d))/g, sp);
+const en = (n) => n.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');
+const ch = (n) => n.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, "'");
+const FORMATI = [
+  (n) => 'Totale € ' + it(n),
+  (n) => 'Totale ' + itSp(n, '\\u00a0') + '\\u00a0€',
+  (n) => 'Totale ' + itSp(n, ' ') + ' €',
+  (n) => 'Total EUR ' + en(n),
+  (n) => "Total CHF " + ch(n),
+  (n, vecchio) => 'Totale ' + (vecchio ? '<del>€ ' + it(1250) + '</del> <ins>€ ' + it(n) + '</ins>' : '€ ' + it(n)),
+  (n, vecchio) => 'Totale ' + (vecchio ? '<span>€ ' + it(n) + '</span> <s>€ ' + it(1250) + '</s>' : '€ ' + it(n)),
+  (n, vecchio) => 'Totale ' + (vecchio ? '<b>€ ' + it(n) + '</b> <span style="text-decoration:line-through">€ ' + it(1250) + '</span>' : '€ ' + it(n)),
+  (n) => 'Total $' + en(n),
+  (n) => 'Total ' + en(n) + ' GBP'
+];
+const f = parseInt(new URLSearchParams(location.search).get('f') || '0', 10);
+const tot = document.getElementById('tot'), es = document.getElementById('esito'), riga = document.getElementById('riga'), c = document.getElementById('c');
+const disegna = (n, vecchio) => { tot.innerHTML = FORMATI[f](n, vecchio); };
+disegna(1250, false);
+document.getElementById('ap').addEventListener('click', () => {
+  const code = c.value.trim().toUpperCase();
+  setTimeout(() => {
+    if (V[code]) { disegna(1250 * (1 - V[code]), true); es.textContent = 'Codice applicato'; riga.innerHTML = '<a href="#" id="rm">Rimuovi codice</a>';
+      document.getElementById('rm').onclick = (e) => { e.preventDefault(); disegna(1250, false); riga.innerHTML = ''; es.textContent = ''; c.value = ''; }; }
+    else es.textContent = 'Codice non valido';
+  }, 200);
+});
+</script></body></html>`;
+
+// ---------- Frame ----------
+const PAGINA_FORM_FRAME = HEAD('Form coupon') + `<style>body{font-family:system-ui;margin:8px}</style>
+<div class="cp"><input type="text" name="coupon_code" placeholder="Codice sconto" id="c" autocomplete="off"><button type="button" id="ap">Applica</button></div>
+<div id="esito" class="notice"></div>
+<script>${SCRIPT_V}
+const c = document.getElementById('c'), es = document.getElementById('esito');
+document.getElementById('ap').addEventListener('click', () => {
+  const code = c.value.trim().toUpperCase();
+  setTimeout(() => {
+    if (V[code]) { es.textContent = 'Codice applicato'; parent.postMessage({ tipo: 'sconto', pct: V[code], code }, '*'); }
+    else es.textContent = 'Codice non valido';
+  }, 200);
+});
+addEventListener('message', (e) => { if (e.data && e.data.tipo === 'reset') { c.value = ''; es.textContent = ''; } });
+</script></body></html>`;
+
+// Pagina principale: totale e riga sconto stanno qui, il campo coupon nel frame (?src= indirizzo del frame)
+const PAGINA_TOP_FRAME = HEAD('Negozio con frame') + BANNER + `<h1>Carrello</h1>
+<iframe id="fr" width="440" height="140" style="border:1px solid #ccc"></iframe>
+<div id="riga"></div>
+<div class="order-summary"><div class="grand-total">Totale <span id="tot">200,00 €</span></div></div>
+<script>
+const virg = (n) => n.toFixed(2).replace('.', ',') + ' €';
+const fr = document.getElementById('fr');
+fr.src = new URLSearchParams(location.search).get('src');
+window.aggiorna = (pct, code) => {
+  document.getElementById('tot').textContent = virg(200 * (1 - pct));
+  document.getElementById('riga').innerHTML = '<div class="discount-row">Sconto ' + code + ': -' + virg(200 * pct) + ' <a href="#" id="rm">Rimuovi codice</a></div>';
+  document.getElementById('rm').onclick = (e) => { e.preventDefault(); document.getElementById('tot').textContent = '200,00 €'; document.getElementById('riga').innerHTML = ''; fr.contentWindow.postMessage({ tipo: 'reset' }, '*'); };
+};
+addEventListener('message', (e) => { if (e.data && e.data.tipo === 'sconto') window.aggiorna(e.data.pct, e.data.code); });
+</script></body></html>`;
+
+// Frame con il campo coupon nello stesso sito (srcdoc, stessa origine)
+const PAGINA_TOP_SRCDOC = (() => {
+  const dentro = HEAD('x') + `<div class="cp"><input type="text" name="coupon_code" placeholder="Codice sconto" id="c" autocomplete="off"><button type="button" id="ap">Applica</button></div><div id="esito" class="notice"></div>
+<script>const V = { ESTATE20: 0.2, SCONTO10: 0.1 }; const c = document.getElementById('c'), es = document.getElementById('esito');
+document.getElementById('ap').addEventListener('click', () => { const code = c.value.trim().toUpperCase();
+  setTimeout(() => { if (V[code]) { es.textContent = 'Codice applicato'; parent.aggiorna(V[code], code); } else es.textContent = 'Codice non valido'; }, 200); });
+window.reset = () => { c.value = ''; es.textContent = ''; };
+<\/script></body></html>`;
+  return PAGINA_TOP_FRAME.replace('fr.src = new URLSearchParams(location.search).get(\'src\');', '')
+    .replace('<iframe id="fr" width="440" height="140" style="border:1px solid #ccc"></iframe>', '<iframe id="fr" width="440" height="140" srcdoc="' + dentro.replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '"></iframe>')
+    .replace("fr.contentWindow.postMessage({ tipo: 'reset' }, '*');", 'fr.contentWindow.reset();');
+})();
+
+// Il contrario: campo coupon nella pagina principale, totale in un frame di un altro sito
+const PAGINA_CAMPO_TOP = (src) => HEAD('Campo nella pagina') + BANNER + `<h1>Cassa</h1>
+<div class="coupon"><input name="coupon" placeholder="Codice sconto" id="c" autocomplete="off"><button id="ap" type="button">Applica</button></div>
+<div id="esito" class="notice"></div><div id="riga"></div>
+<iframe id="fr" src="${src}" width="440" height="80" style="border:1px solid #ccc"></iframe>
+<script>${SCRIPT_V}
+const fr = document.getElementById('fr'), c = document.getElementById('c'), es = document.getElementById('esito'), riga = document.getElementById('riga');
+document.getElementById('ap').addEventListener('click', () => {
+  const code = c.value.trim().toUpperCase();
+  setTimeout(() => {
+    if (V[code]) { es.textContent = 'Codice applicato'; fr.contentWindow.postMessage({ tipo: 'totale', v: virg(200 * (1 - V[code])) }, '*'); riga.innerHTML = '<a href="#" id="rm">Rimuovi codice</a>';
+      document.getElementById('rm').onclick = (e) => { e.preventDefault(); fr.contentWindow.postMessage({ tipo: 'totale', v: '200,00 €' }, '*'); riga.innerHTML = ''; es.textContent = ''; c.value = ''; }; }
+    else es.textContent = 'Codice non valido';
+  }, 200);
+});
+</script></body></html>`;
+const PAGINA_TOTALE_FRAME = HEAD('Riepilogo') + `<div class="order-total">Totale <span id="t">200,00 €</span></div>
+<script>addEventListener('message', (e) => { if (e.data && e.data.tipo === 'totale') document.getElementById('t').textContent = e.data.v; });</script></body></html>`;
+
 function crea() {
   return http.createServer(async (req, res) => {
     const host = (req.headers.host || '').split(':')[0];
@@ -158,6 +351,16 @@ function crea() {
       if (url.pathname === '/checkout') return html(PAGINA_CHECKOUT);
       return html(PAGINA_HOME);
     }
+    const q = url.searchParams;
+    if (host.startsWith('dis.')) return html(PAGINA_DIS);
+    if (host.startsWith('btn.')) return html(paginaBtn(q.get('v')));
+    if (host.startsWith('rer.')) return html(PAGINA_RER);
+    if (host.startsWith('shd.')) return html(PAGINA_SHD);
+    if (host.startsWith('fmt.')) return html(PAGINA_FMT);
+    if (host.startsWith('fr.')) return html(PAGINA_TOP_FRAME);
+    if (host.startsWith('fs.')) return html(PAGINA_TOP_SRCDOC);
+    if (host.startsWith('ft.')) return html(PAGINA_CAMPO_TOP(q.get('src')));
+    if (host.startsWith('cp.')) return html(url.pathname === '/totale' ? PAGINA_TOTALE_FRAME : PAGINA_FORM_FRAME);
     res.writeHead(404); res.end('no');
   });
 }
