@@ -336,7 +336,8 @@ const PAGINA_MAG = HEAD('Magento (simulato)') + BANNER + `<h1>Shopping Cart</h1>
 const V = { ESTATE20: 0.2, SCONTO10: 0.1 };
 const q = (s) => document.querySelector(s);
 q('[data-role=title]').addEventListener('click', () => { const c = q('[data-role=content]'); c.style.display = c.style.display === 'none' ? 'block' : 'none'; });
-q('button.action.apply').addEventListener('click', () => {
+document.addEventListener('click', (ev) => {
+  if (!ev.target.closest('button.action.apply')) return;
   const code = q('#coupon_code').value.trim().toUpperCase();
   setTimeout(() => {
     if (V[code]) {
