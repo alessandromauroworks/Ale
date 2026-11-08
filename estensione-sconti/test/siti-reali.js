@@ -45,6 +45,15 @@ if (process.env.WOO_BASE) {
   SITI.push(...woo);
 }
 
+// OpenCart VERO in locale (release da github.com/opencart/opencart, PHP integrato + MariaDB; coupon ESTATE20 = 20%, SCONTO10 = -10, MINIMO50 = -5 con minimo 500).
+// Si accende con: OC_BASE=http://127.0.0.1:9402 node test/siti-reali.js   (OC_SOLO=1 per provare solo questo)
+if (process.env.OC_BASE) {
+  const base = process.env.OC_BASE;
+  if (process.env.OC_SOLO) SITI.length = 0;
+  SITI.push({ nome: 'OpenCart vero (locale)', host: new URL(base).host, piattaforma: 'OpenCart', inizio: base + '/',
+    async vaiAlCarrello(p) { await p.goto(base + '/index.php?route=product/product&product_id=28&language=en-gb'); await p.locator('#button-cart').click(); await dorme(2500); await p.goto(base + '/index.php?route=checkout/cart&language=en-gb'); } });
+}
+
 (async () => {
   const proxy = process.env.HTTPS_PROXY || process.env.https_proxy;
   const ctx = await chromium.launchPersistentContext('', {

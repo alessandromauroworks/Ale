@@ -15,10 +15,14 @@ if (-not $Repo) {
   $file = Join-Path $Cartella 'repo.txt'
   if (Test-Path $file) { $Repo = (Get-Content $file -Raw).Trim() }
 }
+# Anche il ramo si ricorda: se non lo indichi (né con -Ramo né con CACCIASCONTI_RAMO) si usa quello dell'ultima volta.
+$fileRamo = Join-Path $Cartella 'ramo.txt'
+if (-not $PSBoundParameters.ContainsKey('Ramo') -and -not $env:CACCIASCONTI_RAMO -and (Test-Path $fileRamo)) { $Ramo = (Get-Content $fileRamo -Raw).Trim() }
 if (-not $Repo) { throw 'Indica il repository: .\aggiorna.ps1 -Repo https://github.com/UTENTE/REPO.git (viene ricordato per le volte dopo).' }
 
 New-Item -ItemType Directory -Force -Path $Cartella | Out-Null
 Set-Content -Path (Join-Path $Cartella 'repo.txt') -Value $Repo
+Set-Content -Path $fileRamo -Value $Ramo
 $copia = Join-Path $Cartella 'repo'
 
 if (-not (Test-Path (Join-Path $copia '.git'))) {
@@ -33,7 +37,7 @@ if (-not (Test-Path (Join-Path $copia '.git'))) {
   git -C $copia fetch origin $Ramo
   if ($LASTEXITCODE -ne 0) { throw 'git fetch non è riuscito (rete o credenziali).' }
   $prima = (git -C $copia rev-parse HEAD)
-  git -C $copia checkout $Ramo 2>$null
+  & { $ErrorActionPreference = 'Continue'; git -C $copia checkout $Ramo 2>&1 | Out-Null } # git scrive su stderr anche quando va bene: in Windows PowerShell 5.1 con 'Stop' sarebbe un errore
   git -C $copia reset --hard "origin/$Ramo"
   $dopo = (git -C $copia rev-parse HEAD)
   if ($prima -eq $dopo) { Scrivi 'Già aggiornato.' } else { Scrivi "Aggiornato: $($prima.Substring(0,7)) -> $($dopo.Substring(0,7))" }

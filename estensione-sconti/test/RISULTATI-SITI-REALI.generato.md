@@ -4,7 +4,4 @@ Data prova: 2026-11-08. Solo negozi DEMO, niente account, niente pagamenti, nien
 
 | Negozio | Raggiunto | Campo coupon | Pulsante applica | Totale letto | Messaggio di errore riconosciuto | Codice migliore applicato | Tempo | Note |
 |---|---|---|---|---|---|---|---|---|
-| WooCommerce vero (locale): carrello a blocchi (127.0.0.1:9401) | sì | sì (dietro un link) | no (uso Invio) | 30 € -> dopo il test 20 € | PROVA99: non valido; WELCOME10: non valido; SCONTO10: FUNZIONA; ESTATE20: FUNZIONA; BENVENUTO10: non valido | SCONTO10 (-10 €) | 23 s | ok |
-| WooCommerce vero (locale): cassa a blocchi (127.0.0.1:9401) | sì | sì (dietro un link) | no (uso Invio) | 30 € -> dopo il test 20 € | PROVA99: non valido; WELCOME10: non valido; SCONTO10: FUNZIONA; ESTATE20: FUNZIONA; BENVENUTO10: non valido | SCONTO10 (-10 €) | 23 s | ok |
-| WooCommerce vero (locale): carrello classico [woocommerce_cart] (127.0.0.1:9401) | sì | sì | sì: Apply coupon Apply coupon | 30 € -> dopo il test 20 € | PROVA99: non valido; WELCOME10: non valido; SCONTO10: FUNZIONA; ESTATE20: FUNZIONA; BENVENUTO10: non valido | SCONTO10 (-10 €) | 8 s | ok |
-| WooCommerce vero (locale): cassa classica (127.0.0.1:9401) | sì | sì (dietro un link) | no (uso Invio) | 30 € -> dopo il test 20 € | PROVA99: non valido; WELCOME10: non valido; SCONTO10: FUNZIONA; ESTATE20: FUNZIONA; BENVENUTO10: non valido | SCONTO10 (-10 €) | 9 s | ok |
+| OpenCart vero (locale) (127.0.0.1:9402) | sì | sì (dietro un link) | no (uso Invio) | 122 $ -> dopo il test 122 $ | PROVA99: nessuna reazione; WELCOME10: nessuna reazione; SCONTO10: nessuna reazione; ESTATE20: nessuna reazione; BENVENUTO10: nessuna reazione | - | 12 s | nessuno - Nessun codice funzionante trovato |
