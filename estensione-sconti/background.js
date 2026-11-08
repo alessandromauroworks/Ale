@@ -1,5 +1,7 @@
 // ARCHIVIO: salva i codici per sito e decide l'ordine di prova.
-importScripts('domain.js');
+// Chrome/Edge/Brave: service worker (importScripts). Firefox: pagina eventi, domain.js è già caricato da manifest (scripts).
+if (typeof importScripts === 'function') importScripts('domain.js');
+const api = globalThis.browser ?? chrome; // stessa API, con le promesse, anche in Firefox
 
 const SETTE_GIORNI = 7 * 24 * 3600 * 1000;
 const OPZIONI_BASE = { usaComuni: true, maxCodici: 20 };
