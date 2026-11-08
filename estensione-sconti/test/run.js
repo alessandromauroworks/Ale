@@ -429,6 +429,7 @@ async function finche(fn, ms, passo = 200) {
   verifica('OpenCart 4: campo dietro "Use Coupon Code", pulsante fuori dal form (form="form-coupon"): codice applicato (-20,00)', buonoOk(rOc, 20), rOc.st && rOc.st.concluso);
   verifica('OpenCart 4: "Warning: Coupon is either invalid..." = non valido', rOc.cattivo && rOc.cattivo.esito === 'ko' && rOc.cattivo.motivo === 'non valido', rOc.cattivo);
   verifica('OpenCart 4: il codice si toglie col suo "Remove" (nessuna nota) e alla fine resta ESTATE20: 80,00 €', !!(rOc.st && rOc.st.concluso && !rOc.st.concluso.nota) && (await rOc.page.locator('#tot').textContent()) === '80,00 €', rOc.st && rOc.st.concluso);
+  verifica('OpenCart 4: il "Remove" del PRODOTTO (solo title, formaction cart.remove, nome del prodotto con "sconto codice promo") non viene mai cliccato', !(await rOc.page.evaluate(() => window.__carrelloSvuotato === true)));
   await rOc.page.close();
 
   // --- B4: IVA inclusa, il totale non è l'importo dell'IVA

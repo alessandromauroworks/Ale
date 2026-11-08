@@ -418,7 +418,8 @@
   function motivoDa(testo) {
     const t = String(testo || '').toLowerCase();
     if (!t) return 'nessuna reazione';
-    if (/scadut|expired|abgelaufen|expiré|caducado/.test(t)) return 'scaduto';
+    // "Coupon is either invalid, expired or reached its usage limit" (OpenCart) non dice quale: vale "non valido"
+    if (/scadut|expired|abgelaufen|expiré|caducado/.test(t)) return /invalid|non valid|not valid|does not exist|non esist/.test(t) ? 'non valido' : 'scaduto';
     if (/troppi tentativi|too many/.test(t)) return 'troppi tentativi';
     if (/minim/.test(t)) return 'importo minimo';
     // "cannot be applied because it does not exist" (WooCommerce 10) è un codice inesistente, non un codice non applicabile
@@ -490,7 +491,13 @@
   const RE_RIMUOVI_CODICE = /(coupon|codice|code|sconto|discount|promo|voucher|buono)/i;
   // Una riga PRODOTTO del carrello (WooCommerce tr.cart_item, blocchi wc-block-cart-items, Shopify .cart-item, "line item"...): lì dentro non si clicca mai.
   const RE_RIGA_PRODOTTO = /(cart|line|order|basket|mini[_-]?cart|checkout)[_-]?items?(?![a-z])|product[_-]?(remove|row|line|item|name|list)|(^|[\s_-])(cart_item|cart__row)(?![a-z])/i;
+  // L'indirizzo/azione del pulsante dice che toglie o cambia un PRODOTTO (OpenCart cart.remove, WooCommerce ?remove_item=, Shopify /cart/change...)
+  const RE_AZIONE_PRODOTTO = /cart[./_-]?(remove|delete|edit|change|update)|remove[_-]?(item|from[_-]?cart|product)|[?&]remove_item=|\/cart\/change/i;
   function inRigaProdotto(el) {
+    for (const a of ['formaction', 'href', 'data-href', 'data-action', 'data-url', 'onclick', 'name']) {
+      const v = el.getAttribute && el.getAttribute(a);
+      if (v && RE_AZIONE_PRODOTTO.test(v)) return true;
+    }
     let x = el;
     for (let i = 0; i < 9 && x && x.nodeType === 1; i++, x = padre(x)) {
       if (RE_RIGA_PRODOTTO.test(classe(x) + ' ' + (x.id || ''))) return true;
@@ -614,7 +621,12 @@
       await salva(st);
       return;
     }
-    const el = trovaRimuovi();
+    let el = trovaRimuovi();
+    // Dopo aver applicato il codice alcune casse richiudono il riquadro (OpenCart 4: "Use Coupon Code") e il pulsante "Remove" non si vede: lo riapro e riprovo
+    if (!el) {
+      const tg = trovaInterruttore();
+      if (tg && !(await Promise.resolve(tg.click()))) { await dorme(600); fresco(); el = trovaRimuovi(); }
+    }
     const prima = snap(await leggi());
     st.rimuovi = 'cliccato';
     st.rimTot = prima.totale;

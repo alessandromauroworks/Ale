@@ -540,6 +540,7 @@ document.getElementById('go').onclick = () => { const code = document.getElement
 
 // ---------- OpenCart 4 (ricavato dal codice vero installato in locale): pulsanti FUORI dal <form> con form="form-coupon" + formaction ----------
 const PAGINA_OCF = HEAD('OpenCart 4 (simulato)') + BANNER + `<h1>Shopping Cart</h1>
+<table><tbody><tr><td>Mug sconto codice promo</td><td><button type="submit" formaction="/index.php?route=checkout/cart.remove&key=1" title="Remove" class="btn btn-danger" id="rmitem">x</button></td></tr></tbody></table>
 <div class="accordion-item"><h2 class="accordion-header"><button type="button" class="accordion-button collapsed" id="tg">Use Coupon Code</button></h2>
 <div id="collapse-coupon" class="accordion-collapse collapse" style="display:none"><div class="accordion-body">
 <form id="form-coupon"><div class="row mb-3"><label for="input-coupon" class="col-md-4">Enter your coupon here</label><div class="col-md-8"><input type="text" name="coupon" value="" placeholder="Enter your coupon here" id="input-coupon" class="form-control"></div></div></form>
@@ -547,11 +548,13 @@ const PAGINA_OCF = HEAD('OpenCart 4 (simulato)') + BANNER + `<h1>Shopping Cart</
 </div></div></div>
 <div id="alert"></div><table id="shopping-cart"><tfoot><tr><td><strong>Sub-Total</strong></td><td id="sub">100,00 €</td></tr><tr id="rigac"></tr><tr><td><strong>Total</strong></td><td id="tot">100,00 €</td></tr></tfoot></table>
 <script>${SCRIPT_V}
+document.getElementById('rmitem').onclick = (e) => { e.preventDefault(); window.__carrelloSvuotato = true; };
 document.getElementById('tg').onclick = () => { const c = document.getElementById('collapse-coupon'); c.style.display = c.style.display === 'none' ? 'block' : 'none'; };
 document.getElementById('form-coupon').addEventListener('submit', (e) => { e.preventDefault();
   const az = e.submitter && e.submitter.dataset.azione; if (!az) return; // come OpenCart: senza pulsante (Invio) il modulo non sa dove andare
   const code = document.getElementById('input-coupon').value.trim().toUpperCase(), al = document.getElementById('alert');
   setTimeout(() => {
+    document.getElementById('collapse-coupon').style.display = 'none'; // come OpenCart: dopo ogni azione il riquadro si richiude
     if (az === 'remove') { document.getElementById('tot').textContent = '100,00 €'; document.getElementById('rigac').innerHTML = ''; al.innerHTML = '<div class="alert alert-success">Success: Your coupon discount has been removed!</div>'; return; }
     if (V[code]) { document.getElementById('tot').textContent = virg(100 * (1 - V[code])); document.getElementById('rigac').innerHTML = '<td>Coupon (' + code + ')</td><td>-' + virg(100 * V[code]) + '</td>'; al.innerHTML = '<div class="alert alert-success">Success: Your coupon discount has been applied!</div>'; }
     else al.innerHTML = '<div class="alert alert-danger">Warning: Coupon is either invalid, expired or reached its usage limit!</div>';
