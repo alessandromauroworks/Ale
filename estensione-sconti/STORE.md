@@ -35,7 +35,10 @@ Trovare e provare i codici sconto sulla pagina del carrello o della cassa di un 
 - **Accesso a tutti i siti (host_permissions <all_urls>)**: i negozi online sono migliaia e non si possono elencare. Serve per cercare i codici sconto nelle pagine e per scrivere nel campo coupon della cassa. L'estensione non legge password, dati di pagamento o email.
 
 ## Uso dei dati (Data use disclosure)
-- Dati raccolti: **nessuno**.
+- Di base: dati raccolti **nessuno**.
+- **Solo se l'utente accende "Condividi codici funzionanti (anonimo)"** (spento di base) si inviano: sito (dominio), codice, se ha funzionato, percentuale di sconto. Nessun account, nessun IP salvato (solo un hash con sale giornaliero per limitare gli abusi, cancellato dopo 24 ore); le segnalazioni si cancellano dopo 90 giorni. Titolare: Alessandro Mauro, alessandromauro.works@gmail.com. I codici scritti a mano dall'utente non si inviano mai.
+- L'"esploratore del negozio" scarica poche pagine pubbliche (max 8, una volta al giorno) dello STESSO negozio che l'utente sta visitando, senza cookie, rispettando robots.txt; non scarica siti di terzi.
+- BOZZA da far controllare (privacy/legale) prima della pubblicazione: nella scheda dello store va dichiarata la raccolta opzionale di "attività di navigazione" (dominio).
 - I dati salvati (codici, risultati, risparmi, impostazioni) restano nel browser dell'utente.
 - Non vendiamo, non condividiamo e non trasferiamo dati a terzi.
 - Non usiamo i dati per scopi estranei alla funzione unica dell'estensione.
@@ -51,7 +54,7 @@ L'icona 128x128 è in `icons/icon128.png`. (Le schermate sono fatte su negozi fi
 ## Come pubblicare
 
 ### 1. Crea il pacchetto
-Dalla cartella `estensione-sconti` esegui `./pacchetto.sh`. Il file da caricare è `dist/cacciasconti-<versione>.zip`.
+Dalla cartella `estensione-sconti` esegui `./pacchetto.sh`. Crea DUE file: `dist/cacciasconti-<versione>-chrome.zip` (Chrome, Edge, Brave, Opera) e `dist/cacciasconti-<versione>-firefox.zip` (Firefox, con il manifest adattato).
 
 ### 2. Chrome Web Store (vale anche per Brave e Opera)
 1. Vai su https://chrome.google.com/webstore/devconsole e accedi con un account Google.
@@ -69,5 +72,13 @@ Dalla cartella `estensione-sconti` esegui `./pacchetto.sh`. Il file da caricare 
 3. Compila i testi, la categoria Shopping, le schermate e il link all'informativa.
 4. Scegli la visibilità (nascosta o pubblica) e invia. 
 
-### 4. Aggiornamenti
-Aumenta `version` in `manifest.json`, rilancia `./pacchetto.sh` e carica il nuovo zip.
+### 4. Firefox (AMO)
+1. Vai su https://addons.mozilla.org/developers/ e accedi (gratis).
+2. "Invia un nuovo componente aggiuntivo", carica lo zip `-firefox.zip`.
+3. Scegli **"Su questo sito"** (pubblico) oppure **"Da solo"** = distribuzione propria/non in elenco: Mozilla lo firma gratis e ti restituisce un `.xpi` da installare. La firma è obbligatoria per l'installazione permanente su Firefox.
+4. Id dell'estensione: `cacciasconti@alessandro.local` (nel manifest). Firefox richiede Firefox 121 o più nuovo.
+5. Per provarla subito senza firma: `about:debugging` > Questo Firefox > **Carica componente aggiuntivo temporaneo** > scegli `manifest.json` (sparisce alla chiusura di Firefox).
+6. In Firefox i permessi sui siti sono facoltativi: al primo avvio il popup mostra "Dai il permesso" per "tutti i siti".
+
+### 5. Aggiornamenti
+Aumenta `version` in `manifest.json`, aggiorna `CHANGELOG.md`, rilancia `./pacchetto.sh` e carica i nuovi zip. Gli aggiornamenti automatici arrivano agli utenti SOLO tramite Chrome Web Store, Edge Add-ons e AMO (Firefox).

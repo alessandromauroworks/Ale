@@ -1,10 +1,10 @@
 // ARCHIVIO: salva i codici per sito e decide l'ordine di prova.
 // Chrome/Edge/Brave: service worker (importScripts). Firefox: pagina eventi, domain.js è già caricato da manifest (scripts).
-if (typeof importScripts === 'function') importScripts('domain.js');
+if (typeof importScripts === 'function') importScripts('domain.js', 'estrattore.js');
 const api = globalThis.browser ?? chrome; // stessa API, con le promesse, anche in Firefox
 
 const SETTE_GIORNI = 7 * 24 * 3600 * 1000;
-const OPZIONI_BASE = { usaComuni: true, maxCodici: 20, esplora: true, condividi: false, fonti: [] };
+const OPZIONI_BASE = { usaComuni: true, maxCodici: 20, esplora: true, condividi: false, ricaricaAuto: false, fonti: [] };
 
 // Codici condivisi (anonimi, SPENTI di base). L'indirizzo e la chiave pubblica (anon) si mettono qui; senza chiave la funzione risponde lo stesso se non la richiede.
 const ENDPOINT_CONDIVISO = 'https://udubhzamghhlkxgepmmc.supabase.co/functions/v1/cacciasconti-codici';
@@ -52,7 +52,7 @@ function ordinaPerStato(lista) {
   const adesso = Date.now();
   const rango = (e) => {
     if (e.esito === 'ok') return adesso - (e.data || 0) < TRENTA_GIORNI ? 0 : 1.5;
-    if (e.source === 'pagina') return 1;
+    if (e.source === 'pagina' || ETICHETTE_FONTE.includes(e.source)) return 1;
     if (e.source === 'manuale') return 2;
     return 3;
   };
@@ -255,10 +255,10 @@ function linkPromo(html, origin) {
 async function esplora(dominio, origin) {
   const opz = await leggiOpzioni();
   const esito = { pagine: [], nuovi: 0, saltato: null };
-  if (!opz.esplora) { esito.saltato = 'spento'; return esito; }
   if (!/^https?:\/\//.test(origin || '')) { esito.saltato = 'indirizzo non valido'; return esito; }
   const trovati = new Set();
-  if (!(await giaFattoOggi('sito:' + dominio))) {
+  if (!opz.esplora) esito.saltato = 'spento';
+  else if (!(await giaFattoOggi('sito:' + dominio))) {
     const robots = await leggiRobots(origin);
     const percorsi = [];
     const aggiungi = (p) => { if (!percorsi.includes(p) && percorsi.length < MAX_PAGINE && consentito(robots, p.split('?')[0])) percorsi.push(p); };
@@ -351,7 +351,8 @@ async function controllaAggiornamento(soloControlla) {
     if (!versioneMaggiore(su_disco, attuale)) { await chrome.storage.local.remove('aggiornamentoPronto'); return { nuova: null, attuale }; }
     await chrome.storage.local.set({ aggiornamentoPronto: su_disco });
     const occupato = await testInCorso();
-    if (!occupato && !soloControlla) { setTimeout(() => chrome.runtime.reload(), 200); return { nuova: su_disco, attuale, ricarico: true }; }
+    const ricarica = (await leggiOpzioni()).ricaricaAuto === true;
+    if (!occupato && !soloControlla && ricarica) { setTimeout(() => chrome.runtime.reload(), 200); return { nuova: su_disco, attuale, ricarico: true }; }
     return { nuova: su_disco, attuale, ricarico: false };
   } catch (e) { return { errore: String(e) }; }
 }
@@ -485,6 +486,7 @@ async function gestisci(m, sender) {
         nuove.usaComuni = !!nuove.usaComuni;
         nuove.esplora = nuove.esplora !== false;
         nuove.condividi = nuove.condividi === true;
+        nuove.ricaricaAuto = nuove.ricaricaAuto === true;
         nuove.fonti = (Array.isArray(nuove.fonti) ? nuove.fonti : []).filter((f) => f && /^https?:\/\//.test(f.url || '') && f.dominio).slice(0, 10)
           .map((f) => ({ url: String(f.url).slice(0, 500), dominio: String(f.dominio).toLowerCase().slice(0, 253) }));
         await chrome.storage.local.set({ opzioni: nuove });

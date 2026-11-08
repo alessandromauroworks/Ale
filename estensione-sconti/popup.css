@@ -36,3 +36,9 @@ li .del{background:none;border:none;color:var(--mu);cursor:pointer;font-size:15p
 .riga2{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
 .totale{background:var(--ca);border:1px solid var(--li);border-radius:12px;padding:12px;text-align:center}
 .totale div:last-child{font-size:26px;font-weight:800;color:var(--ac)}
+
+.avviso-box{background:#fff3cd;color:#4a3b00;border:1px solid #f0d98a;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:13px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+.avviso-box[hidden]{display:none}
+#fonti{list-style:none;padding:0;margin:6px 0}#fonti li{display:flex;justify-content:space-between;gap:6px;font-size:12px;padding:2px 0;word-break:break-all}
+#fonte-form{flex-wrap:wrap}#fonte-form input{flex:1 1 100%}
+#novita-testo{white-space:pre-wrap;max-height:160px;overflow:auto}

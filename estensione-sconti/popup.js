@@ -39,7 +39,7 @@
       let sub;
       if (c.esito === 'ok') sub = 'Funziona' + (c.sconto ? ': -' + euro(c.sconto, c.simbolo) : '') + ' · provato il ' + dataBreve(c.data);
       else if (c.esito === 'ko') sub = 'Non funziona (' + (c.motivo || 'nessuna reazione') + ') · provato il ' + dataBreve(c.data);
-      else sub = 'Mai provato · ' + (c.source === 'manuale' ? 'aggiunto da te' : 'trovato nella pagina');
+      else sub = 'Mai provato · ' + ({ manuale: 'aggiunto da te', 'sito del negozio': 'trovato nel sito del negozio', 'fonte indicata da te': 'da una fonte che hai scelto', condivisi: 'condiviso da altri' }[c.source] || 'trovato nella pagina');
       li.innerHTML = '<span class="ico">' + (c.esito === 'ok' ? '✓' : c.esito === 'ko' ? '✗' : '○') + '</span><span class="t"><div class="cod"></div><div class="sub"></div></span><button class="del" title="Togli">×</button>';
       li.querySelector('.cod').textContent = c.code;
       li.querySelector('.sub').textContent = sub;
@@ -53,6 +53,21 @@
     $('comuni').checked = s.opzioni.usaComuni;
     $('max').value = s.opzioni.maxCodici;
     $('maxv').textContent = s.opzioni.maxCodici;
+    $('esplora').checked = s.opzioni.esplora !== false;
+    $('condividi').checked = !!s.opzioni.condividi;
+    $('ricaricaAuto').checked = !!s.opzioni.ricaricaAuto;
+    disegnaFonti(s.opzioni.fonti || []);
+  }
+  function disegnaFonti(fonti) {
+    const ul = $('fonti');
+    ul.innerHTML = '';
+    fonti.forEach((f, i) => {
+      const li = document.createElement('li');
+      li.innerHTML = '<span></span><button class="del" type="button" title="Togli">×</button>';
+      li.querySelector('span').textContent = f.dominio + ' ← ' + f.url;
+      li.querySelector('.del').onclick = async () => { const o = (await msg({ type: 'stato', dominio })).opzioni; o.fonti.splice(i, 1); await msg({ type: 'opzioni', opzioni: { fonti: o.fonti } }); caricaCodici(); };
+      ul.appendChild(li);
+    });
   }
 
   async function caricaStorico() {
@@ -129,6 +144,18 @@
     if (!r.errore) { $('nuovo').value = ''; caricaCodici(); }
   };
   $('comuni').onchange = async () => { await msg({ type: 'opzioni', opzioni: { usaComuni: $('comuni').checked } }); caricaCodici(); };
+  $('esplora').onchange = () => msg({ type: 'opzioni', opzioni: { esplora: $('esplora').checked } });
+  $('ricaricaAuto').onchange = () => msg({ type: 'opzioni', opzioni: { ricaricaAuto: $('ricaricaAuto').checked } });
+  $('condividi').onchange = () => msg({ type: 'opzioni', opzioni: { condividi: $('condividi').checked } });
+  $('fonte-form').onsubmit = async (e) => {
+    e.preventDefault();
+    let url = $('fonte-url').value.trim(), sito = $('fonte-sito').value.trim().toLowerCase();
+    try { if (!sito) sito = dominioDi(new URL(url).hostname); } catch (x) { return; }
+    const o = (await msg({ type: 'stato', dominio })).opzioni;
+    await msg({ type: 'opzioni', opzioni: { fonti: (o.fonti || []).concat([{ url, dominio: sito }]) } });
+    $('fonte-url').value = ''; $('fonte-sito').value = '';
+    caricaCodici();
+  };
   $('max').oninput = () => { $('maxv').textContent = $('max').value; };
   $('max').onchange = () => msg({ type: 'opzioni', opzioni: { maxCodici: $('max').value } });
   $('esporta').onclick = async () => {
@@ -148,5 +175,18 @@
     } catch (e) { $('errore').textContent = 'File non valido.'; }
     caricaCodici();
   };
+  // Versione, novità, permessi (Firefox chiede i permessi sui siti a parte) e aggiornamento pronto
+  (async function extra() {
+    const v = chrome.runtime.getManifest().version;
+    $('versione').textContent = v;
+    try { $('novita-testo').textContent = (await (await fetch(chrome.runtime.getURL('CHANGELOG.md'))).text()).replace(/^# .*\n+/, ''); } catch (e) {}
+    try {
+      if (!(await chrome.permissions.contains({ origins: ['<all_urls>'] }))) $('permessi').hidden = false;
+    } catch (e) {}
+    $('perm-btn').onclick = async () => { try { if (await chrome.permissions.request({ origins: ['<all_urls>'] })) { $('permessi').hidden = true; aggiorna(); } } catch (e) {} };
+    const ag = (await chrome.storage.local.get('aggiornamentoPronto')).aggiornamentoPronto;
+    if (ag && ag !== v) { $('agg-v').textContent = ag; $('aggiorna-banner').hidden = false; }
+    $('agg-btn').onclick = () => msg({ type: 'ricarica' });
+  })();
   init();
 })();

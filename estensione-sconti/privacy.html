@@ -12,7 +12,19 @@ h1{color:#0f9d78}
 </head>
 <body>
 <h1>Cacciasconti: informativa sulla privacy</h1>
-<p><b>Cacciasconti non raccoglie nessun dato.</b> Tutto quello che l'estensione salva resta nel tuo browser, sul tuo computer.</p>
+<p style="border:2px solid #d14343;padding:8px;border-radius:8px"><b>BOZZA:</b> questa informativa va controllata (legale/privacy) prima della distribuzione pubblica.</p>
+<p><b>Di base Cacciasconti non invia nessun dato.</b> Tutto quello che l'estensione salva resta nel tuo browser, sul tuo computer. Fa eccezione solo la funzione facoltativa descritta sotto, che è spenta finché non la accendi tu.</p>
+<h2>Condivisione anonima dei codici (facoltativa, spenta di base)</h2>
+<p>Se accendi "Condividi codici funzionanti (anonimo)" nelle Opzioni, dopo ogni prova l'estensione invia al servizio di Cacciasconti solo: <b>il sito (dominio), il codice, se ha funzionato e la percentuale di sconto</b>. Prima di una prova scarica i codici che altri hanno segnalato per quel sito.</p>
+<ul>
+<li>Nessun account, nessun identificativo, nessun cookie. I codici che scrivi tu a mano non vengono mai inviati.</li>
+<li>L'indirizzo IP non viene salvato. Per limitare gli abusi si conserva solo un hash dell'IP con un sale diverso ogni giorno, cancellato dopo 24 ore.</li>
+<li>Le segnalazioni vengono cancellate dopo 90 giorni.</li>
+<li>Titolare del trattamento: Alessandro Mauro, alessandromauro.works@gmail.com (per chiedere informazioni o la cancellazione). Il servizio è ospitato su Supabase (regione UE, Irlanda).</li>
+<li>Puoi spegnere la funzione in qualsiasi momento.</li>
+</ul>
+<h2>Esploratore del negozio</h2>
+<p>Quando sei su un negozio con il campo coupon, l'estensione può scaricare (senza cookie, una volta al giorno, al massimo 8 pagine, rispettando robots.txt) alcune pagine pubbliche dello stesso negozio (per esempio /promo, /offerte) per cercarvi codici. Si spegne dalle Opzioni. Le "Fonti aggiuntive" sono pagine che scegli tu: non ce ne sono di base.</p>
 <h2>Cosa salva (solo sul tuo computer)</h2>
 <ul>
 <li>I codici sconto trovati nelle pagine dei negozi che visiti e quelli che aggiungi tu.</li>
@@ -21,7 +33,7 @@ h1{color:#0f9d78}
 </ul>
 <h2>Cosa non fa</h2>
 <ul>
-<li>Non invia dati a nessun server: l'estensione non ha server e non fa richieste di rete proprie.</li>
+<li>Di base non invia dati a nessun server. Le uniche richieste di rete proprie sono quelle verso lo stesso negozio che stai visitando (esploratore) e, solo se lo accendi, il servizio dei codici condivisi.</li>
 <li>Non usa strumenti di analisi o statistiche, e non ha identificativi di tracciamento.</li>
 <li>Non legge né modifica i cookie e non usa link di affiliazione.</li>
 <li>Non legge dati di pagamento, password o email: tocca solo il campo del codice sconto.</li>

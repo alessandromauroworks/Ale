@@ -380,6 +380,18 @@ q('form').addEventListener('submit', (e) => {
 });
 </script></body></html>`;
 
+// ---------- Negozio con pagine promo, robots.txt e un servizio finto di codici condivisi ----------
+const hitsPrm = [], cookiesViste = [], logCond = [];
+const pagPrm = (corpo) => HEAD('Negozio promo') + corpo + '</body></html>';
+const PAGINE_PRM = {
+  '/': pagPrm('<h1>Carrello</h1><a href="/gold-deals">Offerte speciali</a> <a href="/chi-siamo">Chi siamo</a><div class="coupon"><input name="coupon" placeholder="Codice sconto" id="c"><button type="button">Applica</button></div><div class="order-total">Totale <span>100,00 €</span></div>'),
+  '/promo': pagPrm('<p>Solo per te: usa il codice SPECIALE15 al checkout.</p>'),
+  '/gold-deals': pagPrm('<p>Codice sconto: LINKATO30</p>'),
+  '/offerte': pagPrm('<p>Offerta riservata: codice VIETATO25</p>'),
+  '/lista-codici': pagPrm('<p>Promo del mese, codice FONTE40</p>'),
+  '/privato': pagPrm('<p>Codice PRIVATO50</p>')
+};
+
 function crea() {
   return http.createServer(async (req, res) => {
     const host = (req.headers.host || '').split(':')[0];
@@ -416,6 +428,31 @@ function crea() {
       return html(PAGINA_HOME);
     }
     const q = url.searchParams;
+    if (host.startsWith('prm.')) {
+      if (url.pathname === '/__hits') { res.writeHead(200, { 'content-type': 'application/json' }); return res.end(JSON.stringify({ hits: hitsPrm, cookies: cookiesViste })); }
+      if (url.pathname === '/__azzera') { hitsPrm.length = 0; res.writeHead(200); return res.end('ok'); }
+      hitsPrm.push(url.pathname);
+      if (req.headers.cookie) cookiesViste.push(req.headers.cookie);
+      if (url.pathname === '/robots.txt') { res.writeHead(200, { 'content-type': 'text/plain' }); return res.end('User-agent: Altro\nDisallow: /\n\nUser-agent: *\nDisallow: /offerte\nDisallow: /privato\n'); }
+      if (PAGINE_PRM[url.pathname]) return html(PAGINE_PRM[url.pathname], { 'set-cookie': 'sid=1; Path=/' });
+      res.writeHead(404); return res.end('no');
+    }
+    if (host.startsWith('rbx.')) { // robots.txt che dà errore del server: non si tocca niente
+      hitsPrm.push('rbx' + url.pathname);
+      if (url.pathname === '/robots.txt') { res.writeHead(500); return res.end('errore'); }
+      return html(pagPrm('<p>codice NONDOVREI10</p>'));
+    }
+    if (host.startsWith('cond.')) { // finto servizio dei codici condivisi
+      res.setHeader('access-control-allow-origin', '*');
+      res.setHeader('access-control-allow-headers', '*');
+      if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+      if (url.pathname === '/__log') { res.writeHead(200, { 'content-type': 'application/json' }); return res.end(JSON.stringify(logCond)); }
+      if (url.pathname === '/__azzera') { logCond.length = 0; res.writeHead(200); return res.end('ok'); }
+      if (req.method === 'POST') { logCond.push({ metodo: 'POST', corpo: JSON.parse((await leggiCorpo(req)) || '{}'), cookie: req.headers.cookie || null }); res.writeHead(201, { 'content-type': 'application/json' }); return res.end('{"ok":true}'); }
+      logCond.push({ metodo: 'GET', dominio: url.searchParams.get('domain') });
+      res.writeHead(200, { 'content-type': 'application/json' });
+      return res.end(JSON.stringify({ codici: [{ code: 'CONDIV25', n_report: 5, tasso_successo: 80 }] }));
+    }
     if (host.startsWith('mag.')) return html(PAGINA_MAG);
     if (host.startsWith('pre.')) return html(PAGINA_PRE);
     if (host.startsWith('dis.')) return html(PAGINA_DIS);

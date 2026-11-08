@@ -12,6 +12,9 @@ const verifica = (nome, cond, dettaglio) => {
   if (cond) { ok++; console.log('  PASS  ' + nome); }
   else { ko++; console.log('  FAIL  ' + nome + (dettaglio !== undefined ? '  -> ' + JSON.stringify(dettaglio) : '')); }
 };
+const http = require('http');
+// Node non risolve *.localhost: ci colleghiamo a 127.0.0.1 con l'intestazione Host giusta
+const leggiUrl = (u) => new Promise((ok, no) => { const x = new URL(u); http.get({ host: '127.0.0.1', port: x.port, path: x.pathname + x.search, headers: { host: x.host } }, (r) => { let b = ''; r.on('data', (d) => (b += d)); r.on('end', () => ok(b)); }).on('error', no); });
 const dorme = (ms) => new Promise((r) => setTimeout(r, ms));
 async function finche(fn, ms, passo = 200) {
   const fine = Date.now() + ms;
@@ -168,12 +171,13 @@ async function finche(fn, ms, passo = 200) {
   // ================= Aiuto per le prove rapide (un solo codice buono + uno sbagliato) =================
   async function provaRapida(urlPagina, dominio, opz = {}) {
     await sw.evaluate((d) => chrome.storage.local.get('archivio').then((r) => { const a = r.archivio || {}; delete a[d]; return chrome.storage.local.set({ archivio: a }); }), dominio);
-    await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: false, maxCodici: 8 } }));
+    await sw.evaluate(() => chrome.storage.local.get('opzioni').then((r) => chrome.storage.local.set({ opzioni: Object.assign({}, r.opzioni, { usaComuni: false, maxCodici: 8 }) })));
     const page = await ctx.newPage();
     await page.goto(urlPagina);
     const id = await sw.evaluate(async (u) => (await chrome.tabs.query({})).find((t) => t.url === u).id, urlPagina);
-    await msgExt({ type: 'aggiungi', dominio, codice: 'ESTATE20' });
-    if (opz.fallito !== false) await msgExt({ type: 'aggiungi', dominio, codice: 'PROVA99' });
+    if (opz.manuali !== false) await msgExt({ type: 'aggiungi', dominio, codice: 'ESTATE20' });
+    else await finche(async () => await conCodice(dominio, 'ESTATE20'), 10000);
+    if (opz.fallito !== false && opz.manuali !== false) await msgExt({ type: 'aggiungi', dominio, codice: 'PROVA99' });
     const stato = await finche(async () => { const r = await msgExt({ type: 'statoTab', tabId: id }); return r && r.campo ? r : null; }, 12000, 300);
     const av = stato ? await msgExt({ type: 'avviaTab', tabId: id }) : null;
     const st = stato ? await attendiFine(id) : null;
@@ -311,6 +315,118 @@ async function finche(fn, ms, passo = 200) {
   verifica('Elenco risparmi: ogni riga con la sua valuta', (await pVal.locator('#storico').textContent()).includes('12,40 $') && (await pVal.locator('#storico').textContent()).includes('8,00 CHF'), await pVal.locator('#storico').textContent());
   await pVal.close(); await val.close();
   await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: true, maxCodici: 8 } }));
+
+  // ================= (q) Esploratore del negozio =================
+  console.log('\n[q] Esploratore: pagine promo dello stesso negozio, robots.txt, una volta al giorno, fonti scelte dall\'utente');
+  const prmGet = async () => JSON.parse(await leggiUrl(url('prm', '/__hits')));
+  const prmAzzera = async () => { await leggiUrl(url('prm', '/__azzera')); };
+  const pulisciSito = (d) => sw.evaluate((dom) => chrome.storage.local.get(['archivio', 'esplorati']).then((r) => { const a = r.archivio || {}, e = r.esplorati || {}; delete a[dom]; for (const k of Object.keys(e)) delete e[k]; return chrome.storage.local.set({ archivio: a, esplorati: e }); }), d);
+  await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: false, maxCodici: 8, esplora: true, fonti: [] } }));
+  await pulisciSito('prm.localhost'); await prmAzzera();
+  const e1 = await msgExt({ type: 'esplora', dominio: 'prm.localhost', origin: url('prm', '').replace(/\/$/, ''), attendi: true });
+  const h1 = await prmGet();
+  verifica('Esploratore: trova il codice nella pagina /promo (sorgente "sito del negozio")', (await conCodice('prm.localhost', 'SPECIALE15') || {}).source === 'sito del negozio', await conCodice('prm.localhost', 'SPECIALE15'));
+  verifica('Esploratore: segue il link "Offerte speciali" dalla home e trova LINKATO30', !!(await conCodice('prm.localhost', 'LINKATO30')), e1);
+  verifica('Esploratore: /offerte è vietata da robots.txt, non viene scaricata e VIETATO25 non entra', !h1.hits.includes('/offerte') && !(await conCodice('prm.localhost', 'VIETATO25')), h1.hits);
+  verifica('Esploratore: legge robots.txt e al massimo 8 pagine', h1.hits.includes('/robots.txt') && e1.pagine.length <= 8, e1.pagine.length);
+  verifica('Esploratore: nessun cookie inviato (credenziali omesse)', h1.cookies.length === 0, h1.cookies);
+  await prmAzzera();
+  const e2 = await msgExt({ type: 'esplora', dominio: 'prm.localhost', origin: url('prm', '').replace(/\/$/, ''), attendi: true });
+  verifica('Esploratore: una sola volta ogni 24 ore (seconda chiamata non scarica niente)', e2.saltato && (await prmGet()).hits.length === 0, e2);
+  await pulisciSito('prm.localhost'); await prmAzzera();
+  await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: false, maxCodici: 8, esplora: false, fonti: [] } }));
+  const e3 = await msgExt({ type: 'esplora', dominio: 'prm.localhost', origin: url('prm', '').replace(/\/$/, ''), attendi: true });
+  verifica('Esploratore: spento dalle opzioni non scarica niente', e3.saltato === 'spento' && (await prmGet()).hits.length === 0, e3);
+  await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: false, maxCodici: 8, esplora: true, fonti: [] } }));
+  await pulisciSito('rbx.localhost'); await prmAzzera();
+  await msgExt({ type: 'esplora', dominio: 'rbx.localhost', origin: url('rbx', '').replace(/\/$/, ''), attendi: true });
+  verifica('Esploratore: se robots.txt dà errore del server non scarica nessuna pagina', (await prmGet()).hits.every((x) => x === 'rbx/robots.txt') && !(await conCodice('rbx.localhost', 'NONDOVREI10')), (await prmGet()).hits);
+  // partenza automatica quando la pagina ha il campo coupon
+  await pulisciSito('prm.localhost'); await prmAzzera();
+  const pPrm = await ctx.newPage();
+  await pPrm.goto(url('prm', '/'));
+  verifica('Esploratore: parte da solo quando la pagina ha il campo coupon', await finche(async () => (await prmGet()).hits.includes('/promo') && await conCodice('prm.localhost', 'SPECIALE15'), 15000), (await prmGet()).hits);
+  await pPrm.close();
+  // fonti aggiuntive
+  await pulisciSito('prm.localhost'); await prmAzzera();
+  await sw.evaluate((u) => chrome.storage.local.set({ opzioni: { usaComuni: false, maxCodici: 8, esplora: false, fonti: [{ url: u + '/lista-codici', dominio: 'prm.localhost' }, { url: u + '/privato', dominio: 'prm.localhost' }] } }), url('prm', '').replace(/\/$/, ''));
+  const e4 = await msgExt({ type: 'esplora', dominio: 'prm.localhost', origin: url('prm', '').replace(/\/$/, ''), attendi: true });
+  verifica('Fonti aggiuntive: una pagina scelta dall\'utente viene letta (FONTE40)', (await conCodice('prm.localhost', 'FONTE40') || {}).source === 'fonte indicata da te', e4);
+  verifica('Fonti aggiuntive: la pagina vietata da robots.txt non viene letta (PRIVATO50)', !(await conCodice('prm.localhost', 'PRIVATO50')) && !(await prmGet()).hits.includes('/privato'), e4);
+  const pOpz = await apriPopup(await idScheda('*://valute.localhost/*').catch(() => null) || idWoo);
+  await pOpz.locator('.scheda[data-s=opzioni]').click();
+  await pOpz.locator('#fonte-url').fill(url('prm', '/promo'));
+  await pOpz.locator('#fonte-form button').click();
+  verifica('Popup: si può aggiungere una fonte (sito ricavato dall\'indirizzo)', await finche(async () => (await pOpz.locator('#fonti').textContent()).includes('/promo'), 4000), await pOpz.locator('#fonti').textContent());
+  await pOpz.close();
+  await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: true, maxCodici: 8, esplora: false, fonti: [] } }));
+
+  // ================= (r) Codici condivisi (anonimi) =================
+  console.log('\n[r] Codici condivisi: spenti di base, accendibili; si invia solo sito, codice, esito, percentuale');
+  const logCond = async () => JSON.parse(await leggiUrl(url('cond', '/__log')));
+  const pOp2 = await apriPopup(idWoo);
+  await pOp2.locator('.scheda[data-s=opzioni]').click();
+  verifica('Condivisione: la casella c\'è, è spenta di base e si può accendere', (await pOp2.locator('#condividi').count()) === 1 && !(await pOp2.locator('#condividi').isChecked()) && !(await pOp2.locator('#condividi').isDisabled()));
+  await pOp2.close();
+  await leggiUrl(url('cond', '/__azzera'));
+  await sw.evaluate((u) => chrome.storage.local.set({ opzioni: { usaComuni: false, maxCodici: 8, esplora: false, condividi: false, endpoint: u } }), url('cond', '/fn'));
+  const rOff = await provaRapida(url('dis', '/'), 'dis.localhost', { manuali: false, fallito: false });
+  verifica('Condivisione spenta: il test funziona e non parte nessuna chiamata', buonoOk(rOff, 20) && (await logCond()).length === 0, await logCond());
+  await rOff.page.close();
+  await sw.evaluate((u) => chrome.storage.local.set({ opzioni: { usaComuni: false, maxCodici: 8, esplora: false, condividi: true, endpoint: u } }), url('cond', '/fn'));
+  const rOn = await provaRapida(url('dis', '/'), 'dis.localhost', { manuali: false, fallito: false });
+  const lg = await finche(async () => { const l = await logCond(); return l.filter((x) => x.metodo === 'POST').length >= 2 ? l : null; }, 8000);
+  const lgTutto = await logCond();
+  verifica('Condivisione accesa: prima del test scarica i codici condivisi del sito', !!lg && lg.some((x) => x.metodo === 'GET' && x.dominio === 'dis.localhost'), { log: lgTutto, st: rOn.st && rOn.st.concluso, coda: rOn.st && rOn.st.coda, opz: (await sw.evaluate(() => chrome.storage.local.get('opzioni'))).opzioni });
+  const cond25 = await conCodice('dis.localhost', 'CONDIV25');
+  verifica('Condivisione accesa: CONDIV25 entra con sorgente "condivisi" e viene provato', cond25 && cond25.origine === 'condivisi' && cond25.esito === 'ko', cond25);
+  const postOk = lg && lg.find((x) => x.metodo === 'POST' && x.corpo.code === 'ESTATE20');
+  verifica('Condivisione accesa: invia solo domain, code, worked, saving_pct', postOk && JSON.stringify(Object.keys(postOk.corpo).sort()) === '["code","domain","saving_pct","worked"]' && postOk.corpo.domain === 'dis.localhost' && postOk.corpo.worked === true && postOk.corpo.saving_pct === 20, postOk);
+  verifica('Condivisione accesa: segnala anche i codici che non funzionano', !!(lg && lg.find((x) => x.metodo === 'POST' && x.corpo.code === 'CONDIV25' && x.corpo.worked === false)), lg);
+  verifica('Condivisione: nessun cookie inviato', !!lg && lg.every((x) => !x.cookie));
+  await rOn.page.close();
+  await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: true, maxCodici: 8, esplora: false, condividi: false, endpoint: null, fonti: [] } }));
+
+  // ================= (s) Versione, novità, permessi =================
+  console.log('\n[s] Popup: versione, novità, permessi');
+  const pVer = await apriPopup(idWoo);
+  await pVer.locator('.scheda[data-s=opzioni]').click();
+  const verMan = JSON.parse(fs.readFileSync(path.join(EXT, 'manifest.json'), 'utf8')).version;
+  verifica('Popup mostra la versione del manifest (' + verMan + ')', (await pVer.locator('#versione').textContent()) === verMan);
+  verifica('Popup mostra le novità dal CHANGELOG', await finche(async () => (await pVer.locator('#novita-testo').textContent()).includes('## ' + verMan), 3000));
+  verifica('Popup: nessun avviso di permessi mancanti (Chromium li ha già)', await pVer.locator('#permessi').isHidden());
+  await pVer.close();
+
+  // ================= (t) Aggiornamento da cartella =================
+  console.log('\n[t] Aggiornamento da cartella: il manifest su disco cambia e l\'estensione si ricarica');
+  const os = require('os');
+  const cartella = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-upd-'));
+  for (const f of fs.readdirSync(EXT)) { if (!['test', 'dist', 'store', 'node_modules', 'supabase', 'strumenti'].includes(f)) fs.cpSync(path.join(EXT, f), path.join(cartella, f), { recursive: true }); }
+  const ctx2 = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true, args: ['--headless=new', '--no-proxy-server', `--disable-extensions-except=${cartella}`, `--load-extension=${cartella}`] });
+  let sw2 = ctx2.serviceWorkers()[0] || (await ctx2.waitForEvent('serviceworker'));
+  const ext2 = new URL(sw2.url()).host;
+  const u2 = await ctx2.newPage();
+  await u2.goto(`chrome-extension://${ext2}/domain.js`);
+  const m2 = (x) => u2.evaluate((y) => new Promise((r) => chrome.runtime.sendMessage(y, r)), x);
+  const vecchia = await sw2.evaluate(() => chrome.runtime.getManifest().version);
+  const senza = await m2({ type: 'controllaAggiornamento' });
+  verifica('Aggiornamento: stessa versione su disco = niente da fare', senza && senza.nuova === null, senza);
+  const mf = JSON.parse(fs.readFileSync(path.join(cartella, 'manifest.json'), 'utf8'));
+  mf.version = '9.9.9';
+  fs.writeFileSync(path.join(cartella, 'manifest.json'), JSON.stringify(mf));
+  const solo = await m2({ type: 'controllaAggiornamento', soloControlla: true });
+  verifica('Aggiornamento: vede la versione nuova su disco senza ricaricare (modalità "solo controlla")', solo && solo.nuova === '9.9.9' && solo.ricarico === false, solo);
+  const pAgg = await ctx2.newPage();
+  await pAgg.goto(`chrome-extension://${ext2}/popup.html`);
+  verifica('Aggiornamento: il popup mostra "Nuova versione pronta"', await finche(async () => await pAgg.locator('#aggiorna-banner').isVisible(), 4000));
+  await pAgg.close();
+  const senzaAuto = await m2({ type: 'controllaAggiornamento' });
+  await dorme(1500);
+  const ancoraViva = await u2.evaluate(() => chrome.runtime.getManifest().version).catch(() => null);
+  verifica('Aggiornamento: la ricarica automatica è spenta di base (l\'estensione resta viva, resta l\'avviso)', senzaAuto && senzaAuto.nuova === '9.9.9' && senzaAuto.ricarico === false && ancoraViva === vecchia, senzaAuto);
+  // NOTA: chrome.runtime.reload() non si può provare qui: in Chromium con --load-extension (Playwright) l'estensione sparisce dopo il reload.
+  await ctx2.close();
+  fs.rmSync(cartella, { recursive: true, force: true });
 
   await ctx.close();
   server.close();
