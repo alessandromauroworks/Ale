@@ -20,7 +20,7 @@
     if (r && r.n === 0 && !iniettato) { // scheda aperta prima dell'installazione: carico gli script in tutti i frame
       iniettato = true;
       try {
-        await chrome.scripting.executeScript({ target: { tabId: tab.id, allFrames: true }, files: ['domain.js', 'cercatore.js', 'tester.js'] });
+        await chrome.scripting.executeScript({ target: { tabId: tab.id, allFrames: true }, files: ['domain.js', 'estrattore.js', 'cercatore.js', 'tester.js'] });
         await new Promise((x) => setTimeout(x, 500));
         r = await msg({ type: 'statoTab', tabId: tab.id });
       } catch (e) {}

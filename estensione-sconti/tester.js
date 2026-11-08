@@ -422,7 +422,7 @@
       if (v.ok) st.ultimoApplicato = { code: p.code, sconto: v.sconto, simbolo };
     } else {
       st.risultati.push({ code: p.code, ok: v.ok, sconto: v.sconto || null, motivo: v.motivo || null, simbolo });
-      await msg({ type: 'risultato', dominio, codice: p.code, ok: v.ok, sconto: v.sconto || null, motivo: v.motivo || null, simbolo });
+      await msg({ type: 'risultato', dominio, codice: p.code, ok: v.ok, sconto: v.sconto || null, motivo: v.motivo || null, simbolo, pct: v.ok && v.sconto && p.prima.totale ? (v.sconto / p.prima.totale) * 100 : null });
       if (v.ok) { st.rimuovi = 'da-fare'; st.ultimoApplicato = { code: p.code, sconto: v.sconto, simbolo }; }
     }
     await salva(st);
@@ -598,7 +598,7 @@
   }
 
   // ---------- Scheda "consiglio" automatica e badge (solo nel frame principale) ----------
-  let schedaMostrata = false;
+  let schedaMostrata = false, esplorato = false;
   const haCampoQui = () => !!trovaCampo().input || !!trovaInterruttore();
   async function aggiornaStato() {
     if (CS.inEsecuzione) return;
@@ -613,6 +613,7 @@
     let campo = mio;
     if (!campo) { const a = await msg({ type: 'campoAltrove' }); campo = !!(a && a.campo); }
     const b = await msg({ type: 'badge', dominio, campo });
+    if (campo && !esplorato) { esplorato = true; msg({ type: 'esplora', dominio }); }
     if (!campo || schedaMostrata) return;
     const nasc = await msg({ type: 'cardNascosta', dominio });
     if (nasc && nasc.nascosta) return;
@@ -632,7 +633,7 @@
     if (CS.inEsecuzione) return { ok: false, errore: 'Già in corso.' };
     await ricetteProntE;
     await prontoE;
-    const r = await msg({ type: 'coda', dominio, riprova: !!opz.riprova });
+    const r = await msg({ type: 'coda', dominio, riprova: !!opz.riprova, avvio: true });
     const coda = (r && r.coda) || [];
     const st = {
       dominio, url: location.href, op: { top: eTop, origin: location.origin }, fase: 'prova', coda, idx: 0, risultati: [], stop: false, pending: null, rimuovi: null,

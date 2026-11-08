@@ -6,7 +6,8 @@
   "permissions": [
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "alarms"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -15,6 +16,7 @@
     "service_worker": "background.js",
     "scripts": [
       "domain.js",
+      "estrattore.js",
       "background.js"
     ]
   },
@@ -41,6 +43,7 @@
       ],
       "js": [
         "domain.js",
+        "estrattore.js",
         "cercatore.js",
         "tester.js"
       ],
@@ -53,7 +56,15 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "cacciasconti@alessandro.local",
-      "strict_min_version": "121.0"
+      "strict_min_version": "121.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ],
+        "optional": [
+          "browsingActivity"
+        ]
+      }
     }
   }
 }

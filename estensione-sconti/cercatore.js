@@ -8,44 +8,8 @@
   if (window.top !== window) return;
   const dominio = dominioDi(location.hostname);
 
-  const PAROLE_VIETATE = new Set((
-    'CODICE CODE CODES PROMO PROMOZIONE PROMOZIONI COUPON COUPONS SCONTO SCONTI DISCOUNT VOUCHER OFFERTA OFFERTE ' +
-    'GRATIS FREE SPEDIZIONE SHIPPING CARRELLO CART CHECKOUT PAGAMENTO TOTALE TOTAL ORDINE ORDER APPLICA APPLY ' +
-    'INVIA SUBMIT FINO TUTTI TUTTO ONLINE SOLO ORDINI ACQUISTI NEWSLETTER EMAIL NULL NONE TRUE FALSE UNDEFINED ' +
-    'INSERISCI ENTER NOME CLIENTE SALE SALDI HTTP HTTPS WWW HTML REGALO GIFT CARD PROMOCODE SUBTOTALE ' +
-    'SUBTOTAL ACCEDI LOGIN PASSWORD CERCA SEARCH MENU HOME SHOP NEGOZIO PRODOTTI OFFERS DEALS DEAL'
-  ).split(' '));
-
-  function valido(t) {
-    if (typeof t !== 'string') return false;
-    if (t !== t.toUpperCase() || t.length < 4 || t.length > 20) return false;
-    if (!/^[A-Z0-9]+(-[A-Z0-9]+)*$/.test(t) || !/[A-Z]/.test(t)) return false;
-    if (t.split('-').every((p) => PAROLE_VIETATE.has(p))) return false;
-    if (/^[0-9A-F]{6}([0-9A-F]{2})?$/.test(t)) return false; // colori CSS
-    return true;
-  }
+  const valido = self.CS_valido, dalTesto = self.CS_dalTesto;
   const haCifra = (t) => /[0-9]/.test(t);
-
-  // Parola chiave "forte" + codice (accetta anche solo lettere)
-  const RE_A = new RegExp(
-    '\\b(?:codice(?:\\s+(?:sconto|promozionale|promo|coupon|regalo))?|coupon(?:\\s+code)?|promo\\s?code|' +
-      'discount\\s+code|voucher(?:\\s+code)?|gift\\s+code|code)\\s*[:=\\-–]?\\s*["“”«»\'`]?\\s*' +
-      '([A-Za-z0-9][A-Za-z0-9-]{2,19})(?![A-Za-z0-9])', 'gi');
-  // Parola chiave "debole" + due punti: serve almeno una cifra nel codice
-  const RE_B = /\b(?:sconto|promo|promozione|discount|offerta|offer)\s*[:=]\s*["“”«»'`]?\s*([A-Za-z0-9][A-Za-z0-9-]{2,19})(?![A-Za-z0-9])/gi;
-  // "usa ESTATE20", "use SUMMER25": tutto maiuscolo con cifra
-  const RE_C = /\b(?:usa|use|inserisci|enter|applica|apply)\s+(?:il\s+|the\s+|il\s+codice\s+|code\s+)?([A-Z][A-Z0-9-]{3,19})(?![A-Za-z0-9])/g;
-
-  function dalTesto(testo, trovati) {
-    let m;
-    for (const [re, serveCifra] of [[RE_A, false], [RE_B, true], [RE_C, true]]) {
-      re.lastIndex = 0;
-      while ((m = re.exec(testo))) {
-        const t = m[1];
-        if (valido(t) && (!serveCifra || haCifra(t))) trovati.add(t);
-      }
-    }
-  }
 
   function testoPagina() {
     const parti = [];
