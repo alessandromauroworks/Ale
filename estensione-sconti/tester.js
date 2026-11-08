@@ -143,6 +143,13 @@
       try { v = tutti(selCache.bottone).find((x) => visibile(x) && x !== input); } catch (e) {}
       if (v) return v;
     }
+    // Pulsanti collegati al modulo con l'attributo form="..." ma messi FUORI dal modulo (OpenCart 4: "Apply Coupon" e "Remove" stanno accanto al <form>)
+    if (input.form && input.form.id) {
+      let esterni = [];
+      try { esterni = tutti('button[form="' + String(input.form.id).replace(/["\\]/g, '') + '"],input[type=submit][form="' + String(input.form.id).replace(/["\\]/g, '') + '"]'); } catch (e) {}
+      const buoni = esterni.filter((b) => visibile(b) && !RE_NO_BOTTONE.test(testoBottone(b)) && RE_APPLICA.test(testoBottone(b)));
+      if (buoni.length) return buoni[0];
+    }
     let cont = padre(input);
     for (let i = 0; i < 5 && cont; i++) {
       const bs = [...cont.querySelectorAll(SEL_BTN)].filter((b) => visibile(b) && b !== input);

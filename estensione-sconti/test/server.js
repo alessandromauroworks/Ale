@@ -538,6 +538,26 @@ document.getElementById('go').onclick = () => { const code = document.getElement
   if (V[code]) document.getElementById('tot').textContent = virg(100 * (1 - V[code])); else document.getElementById('esito').textContent = 'Codice non valido'; }, 150); };
 </script></body></html>`;
 
+// ---------- OpenCart 4 (ricavato dal codice vero installato in locale): pulsanti FUORI dal <form> con form="form-coupon" + formaction ----------
+const PAGINA_OCF = HEAD('OpenCart 4 (simulato)') + BANNER + `<h1>Shopping Cart</h1>
+<div class="accordion-item"><h2 class="accordion-header"><button type="button" class="accordion-button collapsed" id="tg">Use Coupon Code</button></h2>
+<div id="collapse-coupon" class="accordion-collapse collapse" style="display:none"><div class="accordion-body">
+<form id="form-coupon"><div class="row mb-3"><label for="input-coupon" class="col-md-4">Enter your coupon here</label><div class="col-md-8"><input type="text" name="coupon" value="" placeholder="Enter your coupon here" id="input-coupon" class="form-control"></div></div></form>
+<div class="text-end"><button type="submit" form="form-coupon" data-azione="save" class="btn btn-primary">Apply Coupon</button> <button type="submit" form="form-coupon" data-azione="remove" class="btn btn-danger">Remove</button></div>
+</div></div></div>
+<div id="alert"></div><table id="shopping-cart"><tfoot><tr><td><strong>Sub-Total</strong></td><td id="sub">100,00 €</td></tr><tr id="rigac"></tr><tr><td><strong>Total</strong></td><td id="tot">100,00 €</td></tr></tfoot></table>
+<script>${SCRIPT_V}
+document.getElementById('tg').onclick = () => { const c = document.getElementById('collapse-coupon'); c.style.display = c.style.display === 'none' ? 'block' : 'none'; };
+document.getElementById('form-coupon').addEventListener('submit', (e) => { e.preventDefault();
+  const az = e.submitter && e.submitter.dataset.azione; if (!az) return; // come OpenCart: senza pulsante (Invio) il modulo non sa dove andare
+  const code = document.getElementById('input-coupon').value.trim().toUpperCase(), al = document.getElementById('alert');
+  setTimeout(() => {
+    if (az === 'remove') { document.getElementById('tot').textContent = '100,00 €'; document.getElementById('rigac').innerHTML = ''; al.innerHTML = '<div class="alert alert-success">Success: Your coupon discount has been removed!</div>'; return; }
+    if (V[code]) { document.getElementById('tot').textContent = virg(100 * (1 - V[code])); document.getElementById('rigac').innerHTML = '<td>Coupon (' + code + ')</td><td>-' + virg(100 * V[code]) + '</td>'; al.innerHTML = '<div class="alert alert-success">Success: Your coupon discount has been applied!</div>'; }
+    else al.innerHTML = '<div class="alert alert-danger">Warning: Coupon is either invalid, expired or reached its usage limit!</div>';
+  }, 200); });
+</script></body></html>`;
+
 function crea() {
   return http.createServer(async (req, res) => {
     const host = (req.headers.host || '').split(':')[0];
@@ -599,6 +619,7 @@ function crea() {
       res.writeHead(200, { 'content-type': 'application/json' });
       return res.end(JSON.stringify({ codici: [{ code: 'CONDIV25', n_report: 5, tasso_successo: 80 }] }));
     }
+    if (host.startsWith('ocf.')) return html(PAGINA_OCF);
     if (host.startsWith('rmv.')) return html(PAGINA_RMV);
     if (host.startsWith('vat.')) return html(paginaVat(q.get('b') === '1'));
     if (host.startsWith('jnk.')) return html(PAGINA_JNK);

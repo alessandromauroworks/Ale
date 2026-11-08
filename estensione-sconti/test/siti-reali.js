@@ -108,7 +108,7 @@ if (process.env.OC_BASE) {
         const tot2 = dg2 && (dg2.frame || []).find((f) => f.totale != null);
         if (tot2) r.totale += ' -> dopo il test ' + tot2.totale + ' ' + tot2.simbolo;
         r.migliore = st && st.concluso && st.concluso.code ? st.concluso.code + (st.concluso.sconto ? ' (-' + st.concluso.sconto + ' ' + st.concluso.simbolo + ')' : '') : '-';
-        r.nota = st ? st.concluso.tipo + (st.concluso.testo ? ' - ' + st.concluso.testo : '') : 'il test non è finito in 60 s';
+        r.coda = st && st.coda; r.nota = st ? st.concluso.tipo + (st.concluso.testo ? ' - ' + st.concluso.testo : '') + (st.concluso.nota ? ' - ' + st.concluso.nota : '') + ' [coda: ' + (st.coda || []).join(',') + ' | provati: ' + st.risultati.map((x) => x.code + (x.ok ? '+' : '-')).join(',') + ']' : 'il test non è finito in 60 s';
       }
     } catch (e) { r.nota = 'Errore nei passi: ' + String(e.message).split('\n')[0]; }
     righe.push(r);

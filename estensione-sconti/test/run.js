@@ -424,6 +424,13 @@ async function finche(fn, ms, passo = 200) {
   verifica('B2: totale finale 40,00 €', (await rRmv.page.locator('#tot').textContent()) === '40,00 €');
   await rRmv.page.close();
 
+  // --- OpenCart 4 vero: i pulsanti "Apply Coupon" / "Remove" stanno FUORI dal <form> (attributo form= e formaction)
+  const rOc = await provaRapida(url('ocf', '/'), 'ocf.localhost');
+  verifica('OpenCart 4: campo dietro "Use Coupon Code", pulsante fuori dal form (form="form-coupon"): codice applicato (-20,00)', buonoOk(rOc, 20), rOc.st && rOc.st.concluso);
+  verifica('OpenCart 4: "Warning: Coupon is either invalid..." = non valido', rOc.cattivo && rOc.cattivo.esito === 'ko' && rOc.cattivo.motivo === 'non valido', rOc.cattivo);
+  verifica('OpenCart 4: il codice si toglie col suo "Remove" (nessuna nota) e alla fine resta ESTATE20: 80,00 €', !!(rOc.st && rOc.st.concluso && !rOc.st.concluso.nota) && (await rOc.page.locator('#tot').textContent()) === '80,00 €', rOc.st && rOc.st.concluso);
+  await rOc.page.close();
+
   // --- B4: IVA inclusa, il totale non è l'importo dell'IVA
   const rVat = await provaRapida(url('vat', '/'), 'vat.localhost', { fallito: false });
   verifica('B4: WooCommerce classico, IVA inclusa "(include 18,03 € IVA)": sconto 20,00 (non la differenza dell\'IVA 3,61)', buonoOk(rVat, 20), { st: rVat.st && rVat.st.concluso, buono: rVat.buono });
