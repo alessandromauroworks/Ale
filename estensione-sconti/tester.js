@@ -15,7 +15,14 @@
 
   // ---------- Ricette dei siti (file statici nel pacchetto) ----------
   let ricette = [];
-  const ricetteProntE = msg({ type: 'ricette' }).then((r) => { ricette = (r && r.ricette) || []; });
+  // Selettori che su questo sito hanno già funzionato (campo e pulsante): si provano per primi. Si salvano solo dopo un codice riuscito.
+  let selCache = { input: null, bottone: null };
+  const ricetteProntE = msg({ type: 'ricette' }).then(async (r) => {
+    ricette = (r && r.ricette) || [];
+    await prontoE;
+    const c = await msg({ type: 'selLeggi', dominio });
+    if (c && c.sel) selCache = c.sel;
+  });
   const selDa = (chiave) => ricette.reduce((a, r) => a.concat(r[chiave] || []), []);
 
   // ---------- Utilità sulla pagina (con shadow DOM aperti) ----------
@@ -77,6 +84,11 @@
   function trovaCampo() {
     const ric = primoVisibile(selDa('input'));
     if (ric) return { input: ric };
+    if (selCache.input) {
+      let v = null;
+      try { v = tutti(selCache.input).find((x) => visibile(x) && x.tagName === 'INPUT'); } catch (e) {}
+      if (v) return { input: v };
+    }
     const inputs = tutti('input').filter((el) => {
       const tipo = (el.getAttribute('type') || 'text').toLowerCase();
       return tipo === 'text' || tipo === '';
@@ -126,6 +138,11 @@
   function trovaBottone(input) {
     const ric = primoVisibile(selDa('bottone'));
     if (ric) return ric;
+    if (selCache.bottone) {
+      let v = null;
+      try { v = tutti(selCache.bottone).find((x) => visibile(x) && x !== input); } catch (e) {}
+      if (v) return v;
+    }
     let cont = padre(input);
     for (let i = 0; i < 5 && cont; i++) {
       const bs = [...cont.querySelectorAll(SEL_BTN)].filter((b) => visibile(b) && b !== input);
@@ -221,12 +238,30 @@
 
   // Testo di un elemento SENZA i prezzi vecchi: <del>, <s>, <strike>, testo barrato, classi "old/was/compare" e parti nascoste.
   const RE_VECCHIO = /(^|[\s_-])(old|was|original|compare|strike|strikethrough|line-through|crossed|before|prima|regular-price)([\s_-]|$)/i;
-  function testoUtile(radice) {
+  // Note sulle tasse ("(include 5,41 € IVA)", "Including 5,41 € in taxes"): NON sono il totale. Classi tipiche: includes_tax, tax_label,
+  // WooCommerce a blocchi: ...totals-item__description e ...footer-item-tax (la classe ...footer-item-tax-value invece sta anche sul totale vero).
+  const RE_TOKEN_TASSE = /^(includes?[_-]?tax|tax[_-]?label|tax[_-]?total|tax[_-]?rate|tax|vat|iva)$|item__description$|footer-item-tax$|(^|[_-])includes[_-]tax$/i;
+  const classiTasse = (x) => classe(x).split(/\s+/).some((t) => t && RE_TOKEN_TASSE.test(t));
+  const eNotaTasse = (x) => x.tagName === 'SMALL' || classiTasse(x);
+  // Il testo "(di cui IVA 22%: 5,41 €)" scritto senza classi
+  const RE_TESTO_TASSE = /\([^)]*(?:\biva\b|\bvat\b|\btax(?:es)?\b|\btva\b|mwst|imposte|\bttc\b)[^)]*\)|(?:di cui|of which|including|includes|inclusa|incluso|incl\.?)\s+(?:iva|vat|tax(?:es)?)[^\d€$£]{0,25}[€$£]?\s*\d[\d.,]*\s*[€$£]?/gi;
+  // L'elemento sta dentro una nota sulle tasse o dentro un prezzo vecchio (<del>, barrato, classe old/was...)? Si guardano pochi genitori.
+  // `limite`: fino a quell'elemento si guardano anche le classi tipo old/was/compare; sopra di lui solo tag <del>/<s> e note sulle tasse.
+  function inNotaOVecchio(el, limite) {
+    let x = el, dentroLimite = true;
+    for (let i = 0; i < 6 && x && x.nodeType === 1; i++, x = padre(x)) {
+      if (eNotaTasse(x) || /^(DEL|S|STRIKE)$/.test(x.tagName) || (dentroLimite && RE_VECCHIO.test(classe(x)))) return true;
+      if (x === limite) dentroLimite = false;
+    }
+    return false;
+  }
+  function testoUtile(radice, senzaTasse) {
     const memo = new Map();
     const scartaEl = (x) => {
       if (memo.has(x)) return memo.get(x);
       let r = false;
       if (/^(DEL|S|STRIKE|SCRIPT|STYLE)$/.test(x.tagName)) r = true;
+      else if (senzaTasse && x !== radice && eNotaTasse(x)) r = true;
       else {
         const cs = getComputedStyle(x);
         r = cs.display === 'none' || cs.visibility === 'hidden' || /line-through/.test(cs.textDecorationLine || '') || RE_VECCHIO.test(classe(x));
@@ -260,17 +295,28 @@
       return false;
     });
   }
+  // Il prezzo del TOTALE in un elemento: prima un importo "forte" (strong, bdi, .amount) che non sta in una nota sulle tasse né è un prezzo vecchio,
+  // altrimenti l'ultimo importo del testo dopo aver tolto vecchi prezzi e note sulle tasse.
+  function prezzoTotale(el) {
+    if (!el || inNotaOVecchio(el, el)) return null;
+    const pulito = (e) => testoUtile(e, true).replace(RE_TESTO_TASSE, ' ');
+    for (const f of el.querySelectorAll('strong,bdi,[class*="amount" i]')) {
+      if (!visibile(f) || inNotaOVecchio(f, el)) continue;
+      const p = ultimoPrezzo(pulito(f));
+      if (p) return p;
+    }
+    return ultimoPrezzo(pulito(el));
+  }
   function leggiTotaleLocale() {
     if (totaliInCaricamento()) return null;
     for (const sel of selDa('totale')) {
-      const els = tutti(sel).filter(visibile);
-      if (els.length) { const p = ultimoPrezzo(testoUtile(els[els.length - 1])); if (p) return p; }
+      for (const el of tutti(sel).filter(visibile)) { const p = prezzoTotale(el); if (p) return p; }
     }
     const cand = tutti('[class*="total" i],[id*="total" i]').filter((el) =>
       !RE_ESCLUDI_TOT.test(classe(el) + ' ' + el.id) &&
-      visibile(el) && el.textContent.length < 200 && ultimoPrezzo(testoUtile(el)));
+      visibile(el) && el.textContent.length < 200 && prezzoTotale(el));
     const foglie = cand.filter((el) => !cand.some((o) => o !== el && el.contains(o)));
-    if (foglie.length) return ultimoPrezzo(testoUtile(foglie[foglie.length - 1]));
+    if (foglie.length) return prezzoTotale(foglie[foglie.length - 1]);
     // Cerca per testo: "Totale" accanto a un prezzo (anche dentro gli shadow DOM)
     let ultimo = null;
     for (const r of radici()) {
@@ -284,7 +330,7 @@
         let box = n.parentElement;
         if (!visibile(box)) continue;
         for (let i = 0; i < 3 && box; i++) {
-          const p = box.textContent.length < 200 ? ultimoPrezzo(testoUtile(box)) : null;
+          const p = box.textContent.length < 200 ? prezzoTotale(box) : null;
           if (p) { ultimo = p; break; }
           box = padre(box);
         }
@@ -295,21 +341,40 @@
 
   // ---------- Messaggi della pagina ----------
   const RE_ERR = /non valid|invalid|scadut|expired|non applicabil|not valid|not applicable|non esist|does not exist|non riconosciut|not recogni|errore|error|cannot be applied|non può essere|not found|già utilizzat|already (been )?used|minim|unknown|ungültig|abgelaufen|invalide|expiré|n'est pas valide|no es válido|no válido|caducado|inválido/i;
-  const RE_OK = /applicat|applied|riscattat|redeemed|you saved|hai risparmiato|aggiunto|accettato|congratulazioni|congratulations|success|angewendet|appliqué|aplicado/i;
+  // Un messaggio di successo vale solo se parla di coupon/codice/sconto (RE_PAROLA_COUPON): "Prodotto aggiunto al carrello" NON è un codice applicato.
+  const RE_OK = /applicat|applied|riscattat|redeemed|you saved|hai risparmiato|aggiunto|added|accettato|accepted|congratulazioni|congratulations|success|angewendet|appliqué|aplicado/i;
+  const RE_PAROLA_COUPON = /coupon|codice|\bcode\b|sconto|discount|promo|voucher|buono|gutschein|rabatt|r[ée]duction|descuento|cup[oó]n|gift|regalo/i;
+  const RE_PRODOTTO_AGGIUNTO = /(al|nel|in)\s+(tuo\s+)?carrello|to\s+(your\s+|the\s+)?(cart|basket|bag)|in\s+(your\s+)?(cart|basket)|wishlist|lista desideri|panier|warenkorb/i;
   const RE_TROPPI = /troppi tentativi|too many (attempts|requests|tries)|riprova più tardi|try again later|rate limit/i;
   const SEL_MSG = '[role="alert"],[aria-live],[class*="error" i],[class*="notice" i],[class*="message" i],[class*="alert" i],[class*="feedback" i],[class*="invalid" i],[class*="success" i],[class*="msg" i]';
   const RE_RIGA_SCONTO = /discount|sconto|coupon|promo|saving|risparm/i;
 
+  // Il riquadro del campo coupon (pochi genitori sopra il campo): lì ogni errore riguarda il codice.
+  function zonaCoupon() {
+    const inp = trovaCampo().input;
+    if (!inp) return null;
+    let c = padre(inp);
+    for (let i = 0; i < 4 && c && padre(c) && !/^(BODY|HTML)$/.test(padre(c).tagName || ''); i++) c = padre(c);
+    return c;
+  }
+  const dentro = (el, zona) => { for (let x = el; x; x = padre(x)) if (x === zona) return true; return false; };
+  // Messaggi: un errore conta se parla di coupon/codice/sconto, oppure se sta nel riquadro del campo coupon.
+  // Un successo conta SOLO se parla di coupon/codice/sconto (e non di "aggiunto al carrello").
+  // "Troppi tentativi" si cerca in qualunque messaggio visibile.
   function leggiMessaggi() {
     const err = new Set(), ok = new Set();
+    let troppi = false;
+    const zona = zonaCoupon();
     for (const el of tutti(SEL_MSG)) {
       if (!visibile(el)) continue;
       const t = pulisci(el.textContent).toLowerCase();
       if (!t || t.length > 200) continue;
-      if (RE_ERR.test(t)) err.add(t);
-      else if (RE_OK.test(t)) ok.add(t);
+      if (RE_TROPPI.test(t)) { troppi = true; continue; }
+      const cup = RE_PAROLA_COUPON.test(t);
+      if (RE_ERR.test(t)) { if (cup || (zona && dentro(el, zona))) err.add(t); }
+      else if (RE_OK.test(t) && cup && !RE_PRODOTTO_AGGIUNTO.test(t)) ok.add(t);
     }
-    return { err: [...err], ok: [...ok] };
+    return { err: [...err], ok: [...ok], troppi };
   }
   // Righe "sconto" con un importo negativo (es. "Sconto: -20,00 €")
   function leggiRigheSconto() {
@@ -327,7 +392,7 @@
   function leggiLocale() {
     const t = leggiTotaleLocale();
     const m = leggiMessaggi();
-    return { totale: t ? t.v : null, simbolo: t ? t.s : null, err: m.err, ok: m.ok, righe: leggiRigheSconto() };
+    return { totale: t ? t.v : null, simbolo: t ? t.s : null, err: m.err, ok: m.ok, troppi: m.troppi, righe: leggiRigheSconto() };
   }
   // Lettura della scheda: questo frame, più (se serve) gli altri frame, perché il totale può stare altrove.
   async function leggi() {
@@ -336,16 +401,18 @@
     const r = await msg({ type: 'leggiAltrove' });
     for (const f of (r && r.frame) || []) {
       if (l.totale == null && f.totale != null) { l.totale = f.totale; l.simbolo = f.simbolo; }
+      if (f.troppi) l.troppi = true;
       for (const k of ['err', 'ok', 'righe']) for (const t of f[k] || []) if (!l[k].includes(t)) l[k].push(t);
     }
     return l;
   }
-  const snap = (x) => ({ totale: x.totale, simbolo: x.simbolo, err: x.err, ok: x.ok, righe: x.righe });
+  const snap = (x) => ({ totale: x.totale, simbolo: x.simbolo, err: x.err, ok: x.ok, troppi: !!x.troppi, righe: x.righe });
 
   function motivoDa(testo) {
     const t = String(testo || '').toLowerCase();
     if (!t) return 'nessuna reazione';
     if (/scadut|expired|abgelaufen|expiré|caducado/.test(t)) return 'scaduto';
+    if (/troppi tentativi|too many/.test(t)) return 'troppi tentativi';
     if (/minim/.test(t)) return 'importo minimo';
     // "cannot be applied because it does not exist" (WooCommerce 10) è un codice inesistente, non un codice non applicabile
     if (/non esist|does not exist|doesn't exist|non riconosciut|not recogni/.test(t)) return 'non valido';
@@ -355,8 +422,10 @@
   }
 
   function valuta(prima, dopo) {
+    // "Troppi tentativi" (in qualunque messaggio visibile): il sito non ha giudicato il codice, quindi niente "non funziona"
+    const trop = !!dopo.troppi;
     const errNuovi = dopo.err.filter((t) => !prima.err.includes(t));
-    if (errNuovi.length) return { ok: false, motivo: motivoDa(errNuovi[0]), testo: errNuovi[0] };
+    if (!trop && errNuovi.length) return { ok: false, motivo: motivoDa(errNuovi[0]), testo: errNuovi[0] };
     const calo = prima.totale != null && dopo.totale != null ? prima.totale - dopo.totale : null;
     if (calo != null && calo > 0.004) return { ok: true, sconto: Math.round(calo * 100) / 100 };
     const righeNuove = dopo.righe.filter((t) => !prima.righe.includes(t));
@@ -364,6 +433,7 @@
       const imp = Math.max(0, ...righeNuove.map((t) => (ultimoPrezzo(t.replace(/[-−–]/g, '')) || { v: 0 }).v));
       return { ok: true, sconto: imp || null };
     }
+    if (trop) return { ok: false, motivo: 'troppi tentativi', riprova: true };
     if (dopo.ok.some((t) => !prima.ok.includes(t)) && !dopo.err.length) return { ok: true, sconto: null };
     if (dopo.err.length) return { ok: false, motivo: motivoDa(dopo.err[0]), testo: dopo.err[0] };
     return { ok: false, motivo: 'nessuna reazione' };
@@ -383,7 +453,7 @@
   }
   function segnale(prima, ora) {
     return (ora.totale != null && prima.totale != null && Math.abs(ora.totale - prima.totale) > 0.004) ||
-      ora.err.some((t) => !prima.err.includes(t)) || ora.ok.some((t) => !prima.ok.includes(t)) ||
+      (ora.troppi && !prima.troppi) || ora.err.some((t) => !prima.err.includes(t)) || ora.ok.some((t) => !prima.ok.includes(t)) ||
       ora.righe.some((t) => !prima.righe.includes(t)) || prima.righe.some((t) => !ora.righe.includes(t));
   }
   async function attendiEsito(prima) {
@@ -409,17 +479,27 @@
 
   // ---------- Rimuovere il codice ----------
   const RE_RIMUOVI = /^(rimuovi|remove|elimina|togli)\b|rimuovi (il )?(codice|coupon)|remove (coupon|code|discount)|^\[?\s*(rimuovi|remove)\s*\]?$/i;
-  const RE_NO_RIMUOVI = /\b(item|items|product|products|articol[oi]|prodott[oi]|quantity|quantit[àa]|line item|panier|warenkorb)\b|from (the |your )?cart|dal carrello|del carrello/i;
+  const RE_NO_RIMUOVI = /\b(item|items|product|products|articol[oi]|prodott[oi]|quantity|quantit[àa]|line item|panier|warenkorb)\b|from (the |this |your )?(cart|basket|bag)|dal carrello|del carrello|dalla borsa/i;
   const RE_RIMUOVI_CODICE = /(coupon|codice|code|sconto|discount|promo|voucher|buono)/i;
+  // Una riga PRODOTTO del carrello (WooCommerce tr.cart_item, blocchi wc-block-cart-items, Shopify .cart-item, "line item"...): lì dentro non si clicca mai.
+  const RE_RIGA_PRODOTTO = /(cart|line|order|basket|mini[_-]?cart|checkout)[_-]?items?(?![a-z])|product[_-]?(remove|row|line|item|name|list)|(^|[\s_-])(cart_item|cart__row)(?![a-z])/i;
+  function inRigaProdotto(el) {
+    let x = el;
+    for (let i = 0; i < 9 && x && x.nodeType === 1; i++, x = padre(x)) {
+      if (RE_RIGA_PRODOTTO.test(classe(x) + ' ' + (x.id || ''))) return true;
+      if (x.getAttributeNames && x.getAttributeNames().some((a) => /^data-(cart[-_]?item|line[-_]?item|item[-_]?key|line-key|product-id|cart-item-key)/.test(a))) return true;
+    }
+    return false;
+  }
   function trovaRimuovi() {
     fresco();
-    // I selettori delle ricette sono tutti insieme: scarto quelli che toglierebbero un PRODOTTO ("Remove Maglia from cart")
+    // I selettori delle ricette sono tutti insieme: scarto quelli che toglierebbero un PRODOTTO ("Remove Maglia from cart") o che stanno in una riga prodotto
     for (const sel of selDa('rimuovi')) {
-      const el = tutti(sel).find((x) => visibile(x) && !RE_NO_RIMUOVI.test(pulisci(x.textContent + ' ' + (x.getAttribute('aria-label') || '') + ' ' + (x.title || ''))));
+      const el = tutti(sel).find((x) => visibile(x) && !inRigaProdotto(x) && !RE_NO_RIMUOVI.test(pulisci(x.textContent + ' ' + (x.getAttribute('aria-label') || '') + ' ' + (x.title || ''))));
       if (el) return el;
     }
     for (const el of tutti('a,button,[role="button"]')) {
-      if (!visibile(el)) continue;
+      if (!visibile(el) || inRigaProdotto(el)) continue;
       const t = pulisci(el.textContent + ' ' + (el.getAttribute('aria-label') || '') + ' ' + (el.title || ''));
       if (t.length >= 60 || !RE_RIMUOVI.test(t)) continue;
       // MAI il pulsante che toglie un PRODOTTO dal carrello ("Remove item", "Rimuovi articolo"...)
@@ -448,14 +528,48 @@
     });
   }
 
+  const RE_VUOTO = /cart is (currently )?empty|your cart is empty|carrello (è|e') vuoto|il tuo carrello è vuoto|nessun prodotto nel carrello|panier est vide|warenkorb ist leer|carrito est[aá] vac[ií]o/i;
+  const carrelloVuoto = () => { try { return RE_VUOTO.test((document.body && document.body.innerText || '').slice(0, 60000)); } catch (e) { return false; } };
+
+  // Un selettore corto e unico per un elemento (serve a ritrovare campo e pulsante la volta dopo)
+  function selettoreDi(el) {
+    if (!el || !el.isConnected) return null;
+    const tag = el.tagName.toLowerCase(), cand = [];
+    if (el.id && !/\d{4,}/.test(el.id)) cand.push('#' + CSS.escape(el.id));
+    const nome = el.getAttribute('name');
+    if (nome) cand.push(tag + '[name="' + nome.replace(/["\\]/g, '') + '"]');
+    const cl = [...el.classList].filter((c) => !/\d{3,}/.test(c)).slice(0, 3);
+    if (cl.length) cand.push(tag + '.' + cl.map((c) => CSS.escape(c)).join('.'));
+    for (const sel of cand) { try { const t = tutti(sel); if (t.length === 1 && t[0] === el) return sel; } catch (e) {} }
+    return null;
+  }
+  // Dopo un codice riuscito il campo e il pulsante usati erano quelli giusti: li ricordo per questo sito.
+  async function ricordaSelettori() {
+    try {
+      fresco();
+      const inp = trovaCampo().input;
+      if (!inp) return;
+      const bt = trovaBottone(inp);
+      const nuovo = { input: selettoreDi(inp), bottone: bt ? selettoreDi(bt) : null };
+      if (!nuovo.input || (nuovo.input === selCache.input && nuovo.bottone === selCache.bottone)) return;
+      selCache = nuovo;
+      await msg({ type: 'selSalva', dominio, input: nuovo.input, bottone: nuovo.bottone });
+    } catch (e) {}
+  }
+
   async function valutaPending(st, dopoRicarica) {
     const p = st.pending;
     if (dopoRicarica) await dorme(500);
     fresco();
     const dopo = await leggi();
-    const v = valuta(p.prima, dopo);
+    let v = valuta(p.prima, dopo);
+    // Nessuna reazione: se il carrello è vuoto o il totale non si legge, il codice NON è sbagliato, va riprovato un'altra volta
+    if (!v.ok && v.motivo === 'nessuna reazione') {
+      if (carrelloVuoto()) v = { ok: false, motivo: 'carrello vuoto', riprova: true };
+      else if (p.prima.totale == null || dopo.totale == null) v = { ok: false, motivo: 'totale non leggibile', riprova: true };
+    }
     st.pending = null;
-    if (RE_TROPPI.test(dopo.err.join(' '))) st.consecutiviTroppi++;
+    if (dopo.troppi || dopo.err.some((t) => RE_TROPPI.test(t))) st.consecutiviTroppi++;
     else st.consecutiviTroppi = 0;
     const simbolo = dopo.simbolo || p.prima.simbolo || '€';
     if (p.finale) {
@@ -463,9 +577,9 @@
       st.finaleOk = v.ok;
       if (v.ok) st.ultimoApplicato = { code: p.code, sconto: v.sconto, simbolo };
     } else {
-      st.risultati.push({ code: p.code, ok: v.ok, sconto: v.sconto || null, motivo: v.motivo || null, simbolo });
-      await msg({ type: 'risultato', dominio, codice: p.code, ok: v.ok, sconto: v.sconto || null, motivo: v.motivo || null, simbolo, pct: v.ok && v.sconto && p.prima.totale ? (v.sconto / p.prima.totale) * 100 : null });
-      if (v.ok) { st.rimuovi = 'da-fare'; st.ultimoApplicato = { code: p.code, sconto: v.sconto, simbolo }; }
+      st.risultati.push({ code: p.code, ok: v.ok, sconto: v.sconto || null, motivo: v.motivo || null, simbolo, riprova: !!v.riprova });
+      await msg({ type: 'risultato', dominio, codice: p.code, ok: v.ok, riprova: !!v.riprova, totale: p.prima.totale, sconto: v.sconto || null, motivo: v.motivo || null, simbolo, pct: v.ok && v.sconto && p.prima.totale ? (v.sconto / p.prima.totale) * 100 : null });
+      if (v.ok) { st.rimuovi = 'da-fare'; st.ultimoApplicato = { code: p.code, sconto: v.sconto, simbolo }; await ricordaSelettori(); }
     }
     await salva(st);
     renderOverlay(st);
@@ -654,12 +768,12 @@
     }
     let campo = mio;
     if (!campo) { const a = await msg({ type: 'campoAltrove' }); campo = !!(a && a.campo); }
-    const b = await msg({ type: 'badge', dominio, campo });
+    const b = await msg({ type: 'badge', dominio, campo, totale: leggiLocale().totale });
     if (campo && !esplorato) { esplorato = true; msg({ type: 'esplora', dominio }); }
     if (!campo || schedaMostrata) return;
     const nasc = await msg({ type: 'cardNascosta', dominio });
     if (nasc && nasc.nascosta) return;
-    const c = await msg({ type: 'coda', dominio });
+    const c = await msg({ type: 'coda', dominio, totale: leggiLocale().totale });
     const n = c && c.coda ? c.coda.length : (b && b.n) || 0;
     if (!n) return;
     schedaMostrata = true;
@@ -672,10 +786,16 @@
 
   // ---------- Avvio, messaggi dal fondo, ripresa dopo il ricaricamento ----------
   async function avvia(opz) {
+    // Il segno "in corso" si mette SUBITO, prima di ogni attesa: due clic veloci non fanno partire due prove insieme.
     if (CS.inEsecuzione) return { ok: false, errore: 'Già in corso.' };
+    CS.inEsecuzione = true;
+    try { return await avviaDavvero(opz); } catch (e) { CS.inEsecuzione = false; throw e; }
+  }
+  async function avviaDavvero(opz) {
     await ricetteProntE;
     await prontoE;
-    const r = await msg({ type: 'coda', dominio, riprova: !!opz.riprova, avvio: true });
+    const tot = await leggi().then((l) => l.totale).catch(() => null);
+    const r = await msg({ type: 'coda', dominio, riprova: !!opz.riprova, avvio: true, totale: tot });
     const coda = (r && r.coda) || [];
     const st = {
       dominio, url: location.href, op: { top: eTop, origin: location.origin }, fase: 'prova', coda, idx: 0, risultati: [], stop: false, pending: null, rimuovi: null,
@@ -686,6 +806,7 @@
       await salva(st);
       creaOverlay();
       renderOverlay(st);
+      CS.inEsecuzione = false;
       return { ok: true };
     }
     await salva(st);

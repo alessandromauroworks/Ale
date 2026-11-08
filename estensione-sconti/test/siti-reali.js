@@ -13,15 +13,26 @@ const dorme = (ms) => new Promise((r) => setTimeout(r, ms));
 const SITI = [
   { nome: 'WooCommerce Storefront (demo ufficiale)', host: 'themes.woocommerce.com', piattaforma: 'WooCommerce', inizio: 'https://themes.woocommerce.com/storefront/',
     async vaiAlCarrello(p) { await p.locator('a.add_to_cart_button.ajax_add_to_cart, a.add_to_cart_button').first().click(); await dorme(2500); await p.goto(new URL('/storefront/cart/', p.url()).href); } },
-  { nome: 'Shopify tema Dawn (anteprima ufficiale)', host: 'themes.shopify.com', piattaforma: 'Shopify', inizio: 'https://themes.shopify.com/themes/dawn/styles/default/preview',
-    async vaiAlCarrello(p) { const f = p.frames().find((x) => /myshopify|shopify/.test(x.url())) || p; await f.goto ? 0 : 0; await p.goto(new URL('/collections/all', p.url()).href); await p.locator('a[href*="/products/"]').first().click(); await p.locator('button[name="add"]').first().click(); await dorme(2500); await p.goto(new URL('/cart', p.url()).href); } },
+  // Dawn demo (negozio Shopify vero di demo). Il prodotto "Louise Slide Sandal" è disponibile (altri sono "Sold out"). cdn.shopify.com è rifiutato dal proxy: le pagine arrivano senza i loro script.
+  { nome: 'Shopify Dawn demo: pagina carrello', host: 'theme-dawn-demo.myshopify.com', piattaforma: 'Shopify', inizio: 'https://theme-dawn-demo.myshopify.com/',
+    async vaiAlCarrello(p) { await p.goto('https://theme-dawn-demo.myshopify.com/products/louise-slide-sandal'); await p.locator('button[name="add"]').first().click(); await dorme(4000); await p.goto('https://theme-dawn-demo.myshopify.com/cart'); } },
+  { nome: 'Shopify Dawn demo: cassa (prima di inserire email o indirizzo)', host: 'theme-dawn-demo.myshopify.com', piattaforma: 'Shopify', inizio: 'https://theme-dawn-demo.myshopify.com/',
+    async vaiAlCarrello(p) { await p.goto('https://theme-dawn-demo.myshopify.com/products/louise-slide-sandal'); await p.locator('button[name="add"]').first().click(); await dorme(4000); await p.goto('https://theme-dawn-demo.myshopify.com/checkout'); await dorme(7000); } },
   { nome: 'Magento Luma (demo pubblica)', host: 'magento.softwaretestingboard.com', piattaforma: 'Magento', inizio: 'https://magento.softwaretestingboard.com/',
     async vaiAlCarrello(p) { await p.locator('a.product-item-link').first().click(); await p.locator('.swatch-option').first().click().catch(() => {}); await p.locator('.swatch-attribute.color .swatch-option').first().click().catch(() => {}); await p.locator('#product-addtocart-button').click(); await dorme(4000); await p.goto(new URL('/checkout/cart/', p.url()).href); } },
+  // demo.prestashop.com è solo la pagina di ingresso: crea un negozio su un sottodominio CASUALE (es. goofy-wine.demo.prestashop.com) che il proxy rifiuta; fo.demo.prestashop.com risponde 502.
   { nome: 'PrestaShop (demo ufficiale)', host: 'demo.prestashop.com', piattaforma: 'PrestaShop', inizio: 'https://demo.prestashop.com/',
-    async vaiAlCarrello(p) { await dorme(6000); const f = p.frames().find((x) => x !== p.mainFrame() && /prestashop/.test(x.url())) || p; await f.locator('.product-miniature a').first().click(); await f.locator('button.add-to-cart').click(); await dorme(2500); await f.goto ? 0 : 0; await f.locator('a:has-text("Proceed to checkout"), a.btn-primary:has-text("checkout")').first().click(); } },
+    async vaiAlCarrello(p) {
+      await dorme(15000);
+      const fr = p.frames().find((x) => x !== p.mainFrame() && /\.demo\.prestashop\.com/.test(x.url()));
+      if (!fr) throw new Error('il negozio demo non si apre: crea un sottodominio casuale xxx.demo.prestashop.com (proxy: 403 / ERR_TUNNEL_CONNECTION_FAILED) e fo.demo.prestashop.com risponde 502');
+      await fr.locator('.product-miniature a').first().click(); await fr.locator('button.add-to-cart').click(); await dorme(2500); await fr.locator('a:has-text("Proceed to checkout"), a.btn-primary:has-text("checkout")').first().click(); } },
   { nome: 'OpenCart (demo ufficiale, extra)', host: 'demo.opencart.com', piattaforma: 'OpenCart', inizio: 'https://demo.opencart.com/',
     async vaiAlCarrello(p) { await p.locator('button[formaction*="cart.add"], button[onclick*="cart.add"]').first().click(); await dorme(2500); await p.goto(new URL('/index.php?route=checkout/cart', p.url()).href); } }
 ];
+
+// SOLO=shopify,prestashop prova solo i siti il cui nome contiene una di queste parole
+if (process.env.SOLO) { const k = process.env.SOLO.toLowerCase().split(','); for (let i = SITI.length - 1; i >= 0; i--) if (!k.some((w) => SITI[i].nome.toLowerCase().includes(w))) SITI.splice(i, 1); }
 
 // WooCommerce VERO in locale (WordPress + plugin WooCommerce da wordpress.org, SQLite, php -S; vedi RISULTATI-SITI-REALI.md).
 // Si accende con: WOO_BASE=http://127.0.0.1:9401 WOO_PID=11 node test/siti-reali.js   (WOO_SOLO=1 per provare solo questi)
@@ -65,7 +76,7 @@ if (process.env.WOO_BASE) {
       await sito.vaiAlCarrello(p);
       await dorme(2500);
       const u = new URL(p.url());
-      const id = await sw.evaluate(async (h) => (await chrome.tabs.query({})).find((t) => t.url && t.url.includes(h)).id, u.hostname);
+      const id = await sw.evaluate(async (h) => (await chrome.tabs.query({})).find((t) => t.url && t.url.includes(h) && !t.url.startsWith('chrome-extension')).id, u.hostname);
       const dom = await msgExt({ type: 'chiSono', dominio: u.hostname }).catch(() => null);
       const dominio = (await sw.evaluate((h) => dominioDi(h), u.hostname));
       await sw.evaluate((d) => chrome.storage.local.get('archivio').then((x) => { const a = x.archivio || {}; delete a[d]; return chrome.storage.local.set({ archivio: a }); }), dominio);

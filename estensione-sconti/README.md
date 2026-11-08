@@ -19,7 +19,7 @@ Estensione per Chrome, Edge, Brave, Opera e Firefox (stesso codice, Manifest V3)
 4. **Brave**: apri `brave://extensions`, stesso procedimento. (Opera: `opera://extensions`.)
 5. Fissa l'icona alla barra del browser per vederla comoda.
 
-### Firefox (121 o più nuovo)
+### Firefox (128 o più nuovo)
 - **Prova subito**: apri `about:debugging`, scegli **Questo Firefox** > **Carica componente aggiuntivo temporaneo** e seleziona `manifest.json` (sparisce alla chiusura di Firefox).
 - **Permanente**: Firefox accetta solo estensioni firmate. La firma di Mozilla è gratuita anche per la distribuzione "da solo / non in elenco" (AMO, vedi `STORE.md`): carichi `dist/cacciasconti-<versione>-firefox.zip` e ricevi un `.xpi` da installare.
 - In Firefox i permessi sui siti sono facoltativi: la prima volta il popup mostra **Dai il permesso** (tutti i siti). Senza, l'estensione non vede i negozi.
@@ -33,7 +33,7 @@ Per pubblicarla negli store guarda `STORE.md`.
   1. `aggiorna.ps1 -Repo <indirizzo del repository>` scarica SOLO la cartella `estensione-sconti` in `%LOCALAPPDATA%\Cacciasconti` (sparse checkout, ramo `main` o quello che indichi con `-Ramo`, con le tue credenziali git).
   2. `installa-aggiornamento-automatico.ps1 -Repo <indirizzo>` crea un'attività pianificata (solo per te, senza amministratore) che lancia l'aggiornamento ogni giorno e a ogni accesso.
   3. Carica **una volta** nel browser la cartella `%LOCALAPPDATA%\Cacciasconti\estensione-sconti`. Dopo, i file su disco si aggiornano da soli.
-- L'estensione controlla ogni 6 ore (e all'avvio) se il `manifest.json` su disco ha una versione più nuova. Se sì, il popup mostra **"Nuova versione pronta: clicca per ricaricare"**. Nelle Opzioni c'è la casella *Ricarica da sola* (spenta di base, in prova): vedi "Limiti" qui sotto.
+- L'estensione controlla all'avvio del browser, all'installazione e ogni volta che apri la finestra se il `manifest.json` su disco ha una versione più nuova (senza il permesso `alarms`). Se sì, il popup mostra **"Nuova versione pronta: clicca per ricaricare"**. Nelle Opzioni c'è la casella *Ricarica da sola* (spenta di base, in prova): vedi "Limiti" qui sotto.
 - Il popup mostra la versione e le **Novità** (`CHANGELOG.md`).
 
 ## Altre fonti di codici
@@ -44,7 +44,7 @@ Per pubblicarla negli store guarda `STORE.md`.
 La funzione è nel codice, **spenta di base** (casella "Condividi codici funzionanti (anonimo)" nelle Opzioni). Quando è accesa invia solo sito, codice, esito e percentuale (mai i codici scritti a mano) e prima di una prova scarica i codici condivisi (fonte "condivisi").
 Cosa serve per attivarla in produzione:
 1. **Database**: applica `supabase/migrations/20261108120000_cacciasconti.sql` al progetto Supabase (tabelle `cacciasconti_*`, RLS accesa senza policy pubbliche, vista `cacciasconti_stats_30g`, pulizia notturna con pg_cron: segnalazioni dopo 90 giorni, hash dopo 24 ore).
-2. **Funzione**: pubblica `supabase/functions/cacciasconti-codici` (`verify_jwt = false` in `supabase/config.toml`; segreti: `CACCIASCONTI_SALE` casuale lungo, opzionale `CACCIASCONTI_APIKEY`). Valida dominio e codice, limite 60 segnalazioni/ora per hash IP, corpo massimo 2 KB, GET max 20 codici con almeno un successo nei 30 giorni.
+2. **Funzione**: pubblica `supabase/functions/cacciasconti-codici` (`verify_jwt = false` in `supabase/config.toml`; segreti: `CACCIASCONTI_SALE` casuale lungo, opzionale `CACCIASCONTI_APIKEY`). Valida dominio e codice, limite 60 segnalazioni/ora per hash IP (indirizzo = `cf-connecting-ip`, altrimenti l'ULTIMO elemento di `x-forwarded-for`), senza `CACCIASCONTI_SALE` risponde 503, corpo massimo 2 KB, GET max 20 codici con almeno 2 successi e almeno il 50% di successi nei 30 giorni (contro i codici avvelenati).
 3. **Estensione**: in `background.js` la costante `ENDPOINT_CONDIVISO` punta già a `https://udubhzamghhlkxgepmmc.supabase.co/functions/v1/cacciasconti-codici`; metti la chiave pubblica nella costante `SUPABASE_ANON_KEY` (oggi vuota) se la funzione richiede `apikey`.
 4. **Informativa**: `privacy.html` e la scheda degli store (`STORE.md`) descrivono già l'invio, ma sono una **BOZZA**: falle controllare (privacy/legale) prima della distribuzione pubblica.
 Niente è stato pubblicato da questa cartella.
@@ -59,26 +59,28 @@ Niente è stato pubblicato da questa cartella.
 2. Vai al carrello o alla cassa. Se c'è un campo codice sconto, compare la scheda in basso a destra.
 3. Premi **Genera sconto** (sulla scheda o nella finestra dell'estensione). Guarda il pannello sulla pagina: mostra il codice in prova, ✓/✗ per ognuno e il pulsante **Stop**. Non toccare la pagina mentre lavora.
 4. Alla fine vedi ad esempio "Risparmi 12,40 € con SCONTO15 (12 codici provati in 9 s)" oppure "Nessun codice funzionante trovato".
-5. Puoi aggiungere un codice a mano, regolare quanti codici provare al massimo (predefinito 20) e usare **Riprova anche i codici che non funzionavano** (di norma i codici falliti da meno di 7 giorni vengono saltati).
+5. Puoi aggiungere un codice a mano, regolare quanti codici provare al massimo (predefinito 20) e usare **Riprova anche i codici che non funzionavano** (di norma i codici falliti da meno di 7 giorni vengono saltati). I codici che non funzionano solo per colpa del carrello (importo minimo, non applicabile a questo carrello, carrello vuoto, totale non leggibile, troppi tentativi) sono "da riprovare" e non vengono saltati; quello con importo minimo torna in coda quando il carrello cresce.
 
-Ordine di prova: prima i codici che hanno funzionato di recente (risparmio più alto prima), poi quelli trovati nelle pagine del sito (i più nuovi), i codici che non funzionano da più di 30 giorni, quelli aggiunti a mano e infine i comuni.
+Ordine di prova: prima i codici che hanno funzionato di recente (risparmio più alto prima), poi quelli trovati nelle pagine del sito (i più nuovi), i codici che non funzionano da più di 30 giorni, quelli aggiunti a mano, quelli trovati solo dal nome di una classe della pagina (poco sicuri) e infine i comuni. I codici con una scadenza passata scritta nella pagina ("scade il 30/11", "valido fino al...", "expires...") non si provano. L'archivio si ripulisce da solo: massimo 40 codici per sito e 200 siti, via i codici di pagina mai provati da più di 60 giorni. Per ogni sito si ricordano il campo e il pulsante che hanno funzionato.
 
 Sicurezze: massimo di codici per prova, pausa di 150-400 ms tra un tentativo e l'altro, stop se compare un captcha o se il sito risponde "troppi tentativi" 3 volte di seguito. L'estensione tocca solo il campo del codice e il suo pulsante: mai i campi di pagamento, email o indirizzo.
 
 ## Permessi (e perché)
 - `storage`: salva sul tuo computer codici, risultati, risparmi e impostazioni.
-- `activeTab`: agisce sulla scheda che stai guardando quando premi il pulsante.
-- `scripting`: carica lo script in una scheda già aperta prima dell'installazione.
-- `host_permissions: <all_urls>`: serve per cercare i codici e scrivere nel campo coupon su qualsiasi negozio (non si possono elencare tutti i siti). Non legge password né dati di pagamento.
-Non c'è il permesso `cookies`: l'estensione non legge né modifica i cookie.
+- `scripting`: quando apri la finestra su una scheda aperta prima dell'installazione, carica lo script in quella scheda.
+- `host_permissions: <all_urls>`: serve per leggere il testo delle pagine alla ricerca di codici e per scrivere nel campo coupon su qualsiasi negozio (non si possono elencare tutti i siti), e per scaricare le poche pagine promo dello stesso negozio e, se accendi la condivisione, parlare con il servizio dei codici condivisi. Il testo delle pagine si legge solo sul tuo computer per trovare codici; l'estensione non salva e non invia altro.
+Non ci sono i permessi `cookies`, `activeTab` (con `<all_urls>` sarebbe ridondante) e `alarms` (il controllo degli aggiornamenti da cartella parte all'avvio e all'apertura della finestra). L'estensione non legge né modifica i cookie.
 
 ## Privacy
-Di base niente lascia il tuo computer (salvo le pagine promo dello stesso negozio che l'esploratore scarica; solo se accendi la condivisione, sito/codice/esito/percentuale). Nessuna statistica, nessun server, nessun codice scaricato da internet. **Nessun link di affiliazione, nessuna modifica ai cookie, nessun identificativo di tracciamento.** Vedi `privacy.html`.
+- **Di base** (condivisione spenta) non viene inviato nulla a Cacciasconti: nessuna statistica, nessun account. Le uniche richieste di rete sono quelle dell'esploratore verso lo STESSO negozio che stai visitando (poche pagine pubbliche, senza cookie).
+- **Se accendi "Condividi codici funzionanti (anonimo)"** (Opzioni, spenta di base) l'estensione parla con un servizio di Cacciasconti ospitato su Supabase: prima di una prova **scarica** i codici segnalati per il sito che stai visitando (la richiesta contiene il dominio del negozio) e dopo ogni prova **invia** solo sito (dominio), codice, se ha funzionato e la percentuale di sconto. Mai i codici scritti a mano. L'indirizzo IP non viene salvato: si tiene solo un hash con sale giornaliero, cancellato dopo 24 ore; le segnalazioni si cancellano dopo 90 giorni. Il servizio è una BOZZA da far controllare (vedi sotto).
+- Il testo delle pagine che visiti si legge solo sul tuo computer per trovare codici; non si salva e non si invia altro che i codici trovati (e solo sul tuo computer).
+- Nessun codice eseguibile scaricato da internet. **Nessun link di affiliazione, nessuna modifica ai cookie, nessun identificativo di tracciamento.** Vedi `privacy.html`.
 
 ## Perché è diversa da Honey e CouponBirds
 Onestà prima di tutto:
 - Honey e CouponBirds hanno grandi database condivisi di codici, aggiornati da milioni di utenti. **Noi no**: abbiamo solo i codici che trovi tu, quelli che aggiungi e una piccola lista di codici comuni. Su molti negozi troveranno più codici di noi.
-- Cacciasconti è locale e trasparente: il codice è tutto in questa cartella e si può leggere, non invia nulla a nessuno e non ha affiliazioni.
+- Cacciasconti è locale e trasparente: il codice è tutto in questa cartella e si può leggere, di base non invia nulla a nessuno (la condivisione anonima è facoltativa e spenta) e non ha affiliazioni.
 - Nel dicembre 2024 un'inchiesta pubblica ha sostenuto che Honey, durante gli acquisti, sostituiva i cookie di affiliazione dei creatori di contenuti con i propri. Cacciasconti non tocca i cookie e non usa link di affiliazione, quindi non può farlo: per questo non chiede il permesso `cookies`.
 - Non copiamo né nome né grafica di altre estensioni.
 
@@ -91,4 +93,4 @@ Onestà prima di tutto:
 - Il risparmio mostrato è quello che il sito indica sul totale: controlla sempre il totale prima di pagare.
 
 ## Prove automatiche
-`node test/run.js` avvia tre negozi finti (WooCommerce con ricarica, negozio tipo React con risposta lenta, campo nascosto dietro un link) e Chromium con l'estensione. Serve Playwright. Con `--screenshot` rifà le immagini in `store/`.
+`node test/run.js` avvia i negozi finti (WooCommerce con ricarica, negozio tipo React, campo nascosto dietro un link, IVA inclusa, riga prodotto con pulsante "rimuovi" ingannevole, messaggi estranei, ecc.), Chromium con l'estensione e una prova della Edge Function con Node. Serve Playwright. Con `--screenshot` rifà le immagini in `store/`.

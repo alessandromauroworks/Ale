@@ -17,7 +17,6 @@ m = json.load(open(path))
 if tipo == "chrome":
     m["background"] = {"service_worker": "background.js"}
     m.pop("browser_specific_settings", None)
-    m["content_scripts"][0].pop("match_origin_as_fallback", None) if False else None
 else:
     m["background"] = {"scripts": m["background"]["scripts"]}
 json.dump(m, open(path, "w"), indent=2, ensure_ascii=False)
@@ -28,7 +27,8 @@ PY
   rm -rf "$TMP"
   echo "Creato $ZIP"
 }
-rm -f dist/cacciasconti-${VERSIONE}.zip
+# Tengo solo i pacchetti della versione attuale: via gli zip vecchi
+find dist -maxdepth 1 -name 'cacciasconti-*.zip' ! -name "cacciasconti-${VERSIONE}-*.zip" -delete
 costruisci chrome
 costruisci firefox
 unzip -l "dist/cacciasconti-${VERSIONE}-chrome.zip" | tail -25

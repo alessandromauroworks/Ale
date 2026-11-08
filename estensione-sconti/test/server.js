@@ -454,6 +454,90 @@ document.querySelector('[name=apply_coupon]').onclick = () => {
 };
 </script></body></html>`;
 
+
+// ---------- Pagine per la revisione 1.3.0 ----------
+// (B2) riga PRODOTTO con un pulsante "Remove ..." che nel testo ha parole da coupon ("Promo") ma NON dice "from cart"; viene PRIMA del vero pulsante del codice
+const PAGINA_RMV = HEAD('Rimuovi: prodotto con parole da coupon') + BANNER + `<h1>Carrello</h1>
+<div class="cart-item cart-item--discounted" id="line"><span>Mug Promo 50,00 €</span> <button type="button" id="rmitem" aria-label="Remove Mug Promo">Remove</button></div>
+<table><tr class="cart_item"><td class="product-remove"><a href="#" class="remove" id="rmitem2" aria-label="Rimuovi Codice Sconto Mug">x</a></td><td>Mug</td></tr></table>
+<main><div class="coupon"><input name="coupon_code" placeholder="Codice sconto" id="c"><button id="ap" type="button">Applica</button></div></main>
+<div id="esito" class="notice"></div><div id="riga"></div>
+<div class="order-total">Totale <span id="tot">50,00 €</span></div>
+<script>${SCRIPT_V}
+const tot = document.getElementById('tot'), es = document.getElementById('esito'), riga = document.getElementById('riga'), c = document.getElementById('c');
+for (const id of ['rmitem', 'rmitem2']) document.getElementById(id).onclick = (e) => { e.preventDefault(); window.__carrelloSvuotato = true; };
+document.getElementById('ap').onclick = () => {
+  const code = c.value.trim().toUpperCase();
+  setTimeout(() => {
+    if (V[code]) { tot.textContent = virg(50 * (1 - V[code])); es.textContent = 'Codice sconto applicato'; riga.innerHTML = '<div class="cart-discount">Sconto codice ' + code + ' <button type="button" id="rmc" aria-label="Remove code">Remove</button></div>';
+      document.getElementById('rmc').onclick = () => { tot.textContent = '50,00 €'; riga.innerHTML = ''; es.textContent = ''; c.value = ''; }; }
+    else es.textContent = 'Codice non valido';
+  }, 150);
+};
+</script></body></html>`;
+
+// (B4) WooCommerce classico con IVA inclusa nei prezzi: il totale ha la nota "(include X IVA)" DOPO l'importo. ?b=1 = stesso caso nel markup dei blocchi ("Including X in taxes")
+const paginaVat = (blocchi) => HEAD('IVA inclusa') + BANNER + `<h1>Carrello</h1>
+<div class="coupon"><input name="coupon_code" id="coupon_code" placeholder="Codice coupon"><button type="button" name="apply_coupon" id="ap">Applica coupon</button></div>
+<div class="woocommerce-notices-wrapper" id="esito"></div>
+` + (blocchi
+  ? `<div class="wc-block-components-totals-item wc-block-components-totals-footer-item"><span class="wc-block-components-totals-item__label">Total</span><div class="wc-block-components-totals-item__value"><span class="wc-block-formatted-money-amount wc-block-components-formatted-money-amount wc-block-components-totals-footer-item-tax-value" id="tot"><bdi>100,00 <span>€</span></bdi></span></div><div class="wc-block-components-totals-item__description"><p class="wc-block-components-totals-footer-item-tax">Including <span class="wc-block-formatted-money-amount wc-block-components-formatted-money-amount wc-block-components-totals-footer-item-tax-value" id="iva"><bdi>18,03 <span>€</span></bdi></span> in taxes</p></div></div>`
+  : `<table><tr class="order-total"><th>Totale</th><td><strong><span class="woocommerce-Price-amount amount" id="tot"><bdi>100,00&nbsp;<span class="woocommerce-Price-currencySymbol">€</span></bdi></span></strong> <small class="includes_tax">(include <span class="woocommerce-Price-amount amount" id="iva">18,03&nbsp;€</span> IVA)</small></td></tr></table>`) + `
+<script>${SCRIPT_V}
+const V2 = V, ap = document.getElementById('ap'), c = document.getElementById('coupon_code'), es = document.getElementById('esito');
+const cifre = (n) => n.toFixed(2).replace('.', ',');
+function mostra(t) { const iva = t * 22 / 122; document.getElementById('tot').innerHTML = '<bdi>' + cifre(t) + '&nbsp;<span>€</span></bdi>'; document.getElementById('iva').innerHTML = '<bdi>' + cifre(iva) + '&nbsp;<span>€</span></bdi>'; }
+ap.onclick = () => { const code = c.value.trim().toUpperCase(); setTimeout(() => {
+  if (V2[code]) { mostra(100 * (1 - V2[code])); es.innerHTML = '<div class="woocommerce-message" role="alert">Codice coupon applicato con successo.</div>'; }
+  else es.innerHTML = '<div class="woocommerce-error" role="alert">Il coupon "' + code + '" non esiste!</div>';
+}, 150); };
+</script></body></html>`;
+
+// (I9) codici "spazzatura": parole maiuscole dentro elementi con class promo/code che NON sono codici
+const PAGINA_JNK = HEAD('Spazzatura') + `<h1>Negozio</h1>
+<ul><li class="country-code">ITALIA</li><li class="country-code">GERMANIA</li></ul>
+<span class="promo-tag">NUOVO</span> <span class="code-label">ARRIVI</span> <span class="promo-badge">SPRING25</span>
+<span class="coupon-box">FREEBIE</span> <button data-code="FRANCIA">Copia</button> <button data-coupon="SOMMER">Copia</button> <button data-promo="OFFERTONE">x</button>
+<p>Nessun testo con "usa il codice".</p></body></html>`;
+
+// (scadenza) un codice scaduto e uno ancora valido scritti nel testo
+const PAGINA_EXP = HEAD('Scadenze') + `<div class="banner">Codice VECCHIO10 valido fino al 31/12/2020. Poi: usa il codice NUOVO30 valido fino al 31/12/2099.</div></body></html>`;
+
+// (I5) "troppi tentativi" in un messaggio che non ha parole da errore; (I7) "aggiunto al carrello" e un errore estraneo FUORI dal riquadro coupon
+const paginaFinto = (modo) => HEAD('Messaggi: ' + modo) + BANNER + `<h1>Cassa</h1>
+<main><div class="coupon"><input name="coupon" placeholder="Codice sconto" id="c"><button id="ap" type="button">Applica</button></div>
+<div class="order-total">Totale <span id="tot">${modo === 'min' ? '0,00 €' : '100,00 €'}</span></div></main>
+<footer id="piede"></footer>
+<script>${SCRIPT_V}
+const modo = ${JSON.stringify(modo)}, base = ${modo === 'min' ? "parseFloat(new URLSearchParams(location.search).get('t') || '50')" : '100'};
+const tot = document.getElementById('tot'), piede = document.getElementById('piede'), c = document.getElementById('c');
+tot.textContent = virg(base);
+document.getElementById('ap').onclick = () => { const code = c.value.trim().toUpperCase(); setTimeout(() => {
+  if (modo === 'troppi') { piede.innerHTML = '<div class="notice">Troppi tentativi, riprova più tardi</div>'; return; }
+  if (modo === 'min') {
+    if (V[code] && base < 100) { document.querySelector('main').insertAdjacentHTML('beforeend', '<div class="notice" role="alert">Spesa minima di 100 € richiesta per questo coupon</div>'); return; }
+    if (V[code]) tot.textContent = virg(base * (1 - V[code])); else document.querySelector('main').insertAdjacentHTML('beforeend', '<div class="notice" role="alert">Codice non valido</div>');
+    return;
+  }
+  // modo 'estraneo': per OGNI codice compare un avviso estraneo fuori dal riquadro; solo i codici buoni abbassano il totale
+  piede.innerHTML = '<div class="alert" role="alert">Prodotto aggiunto al carrello</div><div class="alert" role="alert">Errore di rete nel caricamento dei consigli</div>';
+  if (V[code]) {
+    tot.textContent = virg(base * (1 - V[code]));
+    document.querySelector('main').insertAdjacentHTML('beforeend', '<a href="#" id="rm">Rimuovi codice</a>');
+    document.getElementById('rm').onclick = (e) => { e.preventDefault(); tot.textContent = virg(base); e.target.remove(); c.value = ''; };
+  }
+}, 150); };
+</script></body></html>`;
+
+// (cache selettori) campo e pulsante senza nessun indizio (niente "coupon", "codice", "applica" ...)
+const PAGINA_SEL = HEAD('Campo anonimo') + BANNER + `<h1>Cassa</h1>
+<div><input id="zq" type="text"><button id="go" type="button">Vai</button></div>
+<div id="esito" class="notice"></div><div class="order-total">Totale <span id="tot">100,00 €</span></div>
+<script>${SCRIPT_V}
+document.getElementById('go').onclick = () => { const code = document.getElementById('zq').value.trim().toUpperCase(); setTimeout(() => {
+  if (V[code]) document.getElementById('tot').textContent = virg(100 * (1 - V[code])); else document.getElementById('esito').textContent = 'Codice non valido'; }, 150); };
+</script></body></html>`;
+
 function crea() {
   return http.createServer(async (req, res) => {
     const host = (req.headers.host || '').split(':')[0];
@@ -515,6 +599,14 @@ function crea() {
       res.writeHead(200, { 'content-type': 'application/json' });
       return res.end(JSON.stringify({ codici: [{ code: 'CONDIV25', n_report: 5, tasso_successo: 80 }] }));
     }
+    if (host.startsWith('rmv.')) return html(PAGINA_RMV);
+    if (host.startsWith('vat.')) return html(paginaVat(q.get('b') === '1'));
+    if (host.startsWith('jnk.')) return html(PAGINA_JNK);
+    if (host.startsWith('exp.')) return html(PAGINA_EXP);
+    if (host.startsWith('tro.')) return html(paginaFinto('troppi'));
+    if (host.startsWith('min.')) return html(paginaFinto('min'));
+    if (host.startsWith('est.')) return html(paginaFinto('estraneo'));
+    if (host.startsWith('sel.')) return html(PAGINA_SEL);
     if (host.startsWith('wcb.')) return html(PAGINA_WCB);
     if (host.startsWith('wcc.')) return html(PAGINA_WCC);
     if (host.startsWith('mag.')) return html(PAGINA_MAG);

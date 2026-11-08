@@ -4,6 +4,7 @@ if (typeof importScripts === 'function') importScripts('domain.js', 'estrattore.
 const api = globalThis.browser ?? chrome; // stessa API, con le promesse, anche in Firefox
 
 const SETTE_GIORNI = 7 * 24 * 3600 * 1000;
+const avviiInCorso = new Set(); // schede dove una prova sta partendo
 const OPZIONI_BASE = { usaComuni: true, maxCodici: 20, esplora: true, condividi: false, ricaricaAuto: false, fonti: [] };
 
 // Codici condivisi (anonimi, SPENTI di base). L'indirizzo e la chiave pubblica (anon) si mettono qui; senza chiave la funzione risponde lo stesso se non la richiede.
@@ -54,6 +55,7 @@ function ordinaPerStato(lista) {
     if (e.esito === 'ok') return adesso - (e.data || 0) < TRENTA_GIORNI ? 0 : 1.5;
     if (e.source === 'pagina' || ETICHETTE_FONTE.includes(e.source)) return 1;
     if (e.source === 'manuale') return 2;
+    if (e.source === FONTE_DEBOLE) return 2.5; // trovato solo dal nome di una classe: dopo quelli aggiunti a mano
     return 3;
   };
   return lista
@@ -68,23 +70,63 @@ function ordinaPerStato(lista) {
     .map((x) => x[0]);
 }
 
-function costruisciCoda(archivio, dominio, opz, riprova) {
+// Motivi che dipendono dal carrello e non dal codice: il codice NON è "ko", è "da riprovare".
+const MOTIVI_CARRELLO = ['importo minimo', 'non applicabile', 'carrello vuoto', 'troppi tentativi', 'totale non leggibile'];
+const inizioOggi = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
+
+function costruisciCoda(archivio, dominio, opz, riprova, totale) {
   const adesso = Date.now();
   const mappa = archivio[dominio] || {};
   let lista = Object.values(mappa).filter((e) => opz.usaComuni || e.source !== 'comune');
   if (opz.usaComuni) {
     for (const c of COMUNI) if (!mappa[c]) lista.push({ code: c, source: 'comune', esito: 'mai' });
   }
+  // Codici con una scadenza passata (scritta nella pagina) non si provano.
+  lista = lista.filter((e) => !(e.scade && e.scade < inizioOggi()));
   // Salta i codici che hanno fallito da meno di 7 giorni (a meno che l'utente scelga "riprova tutti").
   if (!riprova) lista = lista.filter((e) => !(e.esito === 'ko' && adesso - (e.data || 0) < SETTE_GIORNI));
+  // "Importo minimo": si riprova solo quando il carrello è cresciuto rispetto all'ultima prova (stesso totale = stesso risultato).
+  if (!riprova) {
+    lista = lista.filter((e) => !(e.esito === 'riprova' && e.motivo === 'importo minimo' && totale != null && e.totaleAl != null && totale <= e.totaleAl + 0.004));
+  }
   return ordinaPerStato(lista).slice(0, Math.max(1, opz.maxCodici)).map((e) => e.code);
 }
 
-async function aggiornaBadge(tabId, dominio, campo) {
+// Pulizia dell'archivio, per restare molto sotto il limite di spazio del browser:
+// al massimo MAX_PER_SITO codici per sito (restano prima quelli che funzionano, poi i tuoi, poi i più recenti),
+// via i codici trovati nelle pagine e mai provati da più di 60 giorni, via quelli scaduti, al massimo MAX_SITI siti.
+const MAX_PER_SITO = 40, MAX_SITI = 200, SESSANTA_GIORNI = 60 * 24 * 3600 * 1000;
+function potatura(arch) {
+  const adesso = Date.now();
+  const peso = (e) => (e.esito === 'ok' ? 0 : e.source === 'manuale' ? 1 : e.esito === 'riprova' ? 2 : e.esito === 'ko' ? 3 : 4);
+  for (const dom of Object.keys(arch)) {
+    const sito = arch[dom];
+    for (const [c, e] of Object.entries(sito)) {
+      if (e.esito === 'mai' && e.source !== 'manuale' && adesso - (e.trovato || 0) > SESSANTA_GIORNI) delete sito[c];
+      else if (e.scade && e.scade < adesso - 24 * 3600 * 1000) delete sito[c];
+    }
+    const voci = Object.values(sito);
+    if (voci.length > MAX_PER_SITO) {
+      voci.sort((a, b) => peso(a) - peso(b) || (b.data || b.trovato || 0) - (a.data || a.trovato || 0));
+      for (const e of voci.slice(MAX_PER_SITO)) delete sito[e.code];
+    }
+    if (!Object.keys(sito).length) delete arch[dom];
+  }
+  const doms = Object.keys(arch);
+  if (doms.length > MAX_SITI) {
+    const ultima = (d) => Math.max(0, ...Object.values(arch[d]).map((e) => e.data || e.trovato || 0));
+    const caro = (d) => (Object.values(arch[d]).some((e) => e.esito === 'ok' || e.source === 'manuale') ? 1 : 0);
+    doms.sort((a, b) => caro(b) - caro(a) || ultima(b) - ultima(a));
+    for (const d of doms.slice(MAX_SITI)) delete arch[d];
+  }
+  return arch;
+}
+
+async function aggiornaBadge(tabId, dominio, campo, totale) {
   if (tabId == null) return;
   const [arch, opz] = [await leggiArchivio(), await leggiOpzioni()];
   const n = campo
-    ? costruisciCoda(arch, dominio, opz, false).length
+    ? costruisciCoda(arch, dominio, opz, false, totale).length
     : Object.values(arch[dominio] || {}).filter((e) => e.esito !== 'ko').length;
   try {
     await chrome.action.setBadgeText({ tabId, text: n ? String(n) : '' });
@@ -147,19 +189,30 @@ const aUnFrame = async (tabId, frameId, m) => {
 };
 
 // ---------- Salvataggio dei codici trovati (da pagina, sito del negozio, fonti, condivisi) ----------
+const FONTE_DEBOLE = 'pagina (classe)';
 const ETICHETTE_FONTE = ['pagina', 'sito del negozio', 'fonte indicata da te', 'condivisi'];
-function salvaTrovati(dominio, codici, fonte) {
+// scadenze: { CODICE: timestamp } quando la pagina scrive fino a quando vale il codice.
+function salvaTrovati(dominio, codici, fonte, scadenze) {
+  scadenze = scadenze || (codici && codici.scad) || {};
   return inFila(async () => {
     const arch = await leggiArchivio();
     const sito = (arch[dominio] = arch[dominio] || {});
     let nuovi = 0;
     for (const grezzo of codici || []) {
       const c = normalizza(grezzo);
-      if (!c || sito[c]) continue;
+      if (!c) continue;
+      const sc = Number(scadenze[grezzo]) || Number(scadenze[c]) || null;
+      if (sc && sc < inizioOggi()) continue;
+      if (sito[c]) {
+        // già noto: aggiorno solo la scadenza, se la pagina ne scrive una
+        if (sc && sito[c].scade !== sc) { sito[c].scade = sc; nuovi++; }
+        continue;
+      }
       sito[c] = { code: c, source: fonte, origine: fonte, esito: 'mai', sconto: null, data: null, trovato: Date.now() };
+      if (sc) sito[c].scade = sc;
       nuovi++;
     }
-    if (nuovi) await scriviArchivio(arch);
+    if (nuovi) await scriviArchivio(potatura(arch));
     return { nuovi };
   });
 }
@@ -221,13 +274,18 @@ const RE_LINK_PROMO = /promo|offert|sconti|coupon|codice/i;
 const MAX_PAGINE = 8;
 const UN_GIORNO = 24 * 3600 * 1000;
 
+// Si segna "fatto" solo DOPO uno scarico riuscito: se la rete cade, si riprova alla prossima visita.
+const esplorazioniInCorso = new Set(); // evita due scarichi insieme dallo stesso sito (due schede)
 async function giaFattoOggi(chiave) {
+  if (esplorazioniInCorso.has(chiave)) return true;
+  const r = (await chrome.storage.local.get('esplorati')).esplorati || {};
+  return !!(r[chiave] && Date.now() - r[chiave] < UN_GIORNO);
+}
+function segnaFatto(chiave) {
   return inFila(async () => {
     const r = (await chrome.storage.local.get('esplorati')).esplorati || {};
-    if (r[chiave] && Date.now() - r[chiave] < UN_GIORNO) return true;
     r[chiave] = Date.now();
     await chrome.storage.local.set({ esplorati: r });
-    return false;
   });
 }
 async function paginaHtml(url) {
@@ -256,9 +314,13 @@ async function esplora(dominio, origin) {
   const opz = await leggiOpzioni();
   const esito = { pagine: [], nuovi: 0, saltato: null };
   if (!/^https?:\/\//.test(origin || '')) { esito.saltato = 'indirizzo non valido'; return esito; }
-  const trovati = new Set();
+  const trovati = new Set(), scadenzeTrovate = {};
+  const raccogli = (lista) => { Object.assign(scadenzeTrovate, lista.scad || {}); return lista; };
   if (!opz.esplora) esito.saltato = 'spento';
   else if (!(await giaFattoOggi('sito:' + dominio))) {
+    esplorazioniInCorso.add('sito:' + dominio);
+    try {
+    let ottenuto = false;
     const robots = await leggiRobots(origin);
     const percorsi = [];
     const aggiungi = (p) => { if (!percorsi.includes(p) && percorsi.length < MAX_PAGINE && consentito(robots, p.split('?')[0])) percorsi.push(p); };
@@ -267,7 +329,8 @@ async function esplora(dominio, origin) {
     if (percorsi.includes('/')) {
       htmlHome = await paginaHtml(origin + '/');
       esito.pagine.push(origin + '/');
-      if (htmlHome) for (const c of self.CS_dalHtml(htmlHome)) trovati.add(c);
+      if (htmlHome) ottenuto = true;
+      if (htmlHome) for (const c of raccogli(self.CS_dalHtml(htmlHome))) trovati.add(c);
     }
     if (htmlHome) for (const p of linkPromo(htmlHome, origin).slice(0, 4)) aggiungi(p);
     for (const p of PERCORSI_PROMO) aggiungi(p);
@@ -276,10 +339,15 @@ async function esplora(dominio, origin) {
       await Promise.all(altre.slice(i, i + 3).map(async (p) => {
         esito.pagine.push(origin + p);
         const h = await paginaHtml(origin + p);
-        if (h) for (const c of self.CS_dalHtml(h)) trovati.add(c);
+        if (h) ottenuto = true;
+        if (h) for (const c of raccogli(self.CS_dalHtml(h))) trovati.add(c);
       }));
     }
-    esito.nuovi += (await salvaTrovati(dominio, [...trovati], 'sito del negozio')).nuovi;
+    const lista = [...trovati];
+    lista.scad = scadenzeTrovate;
+    esito.nuovi += (await salvaTrovati(dominio, lista, 'sito del negozio')).nuovi;
+    if (ottenuto) await segnaFatto('sito:' + dominio);
+    } finally { esplorazioniInCorso.delete('sito:' + dominio); }
   } else esito.saltato = 'già fatto nelle ultime 24 ore';
 
   // Fonti aggiuntive scelte dall'utente per questo sito (stessa regola di robots.txt)
@@ -291,8 +359,11 @@ async function esplora(dominio, origin) {
     const robots = await leggiRobots(u.origin);
     if (!consentito(robots, u.pathname)) { esito.fonteVietata = (esito.fonteVietata || []).concat(f.url); continue; }
     esito.pagine.push(f.url);
-    const h = await paginaHtml(f.url);
-    if (h) esito.nuovi += (await salvaTrovati(dominio, self.CS_dalHtml(h), 'fonte indicata da te')).nuovi;
+    esplorazioniInCorso.add('fonte:' + f.url);
+    try {
+      const h = await paginaHtml(f.url);
+      if (h) { esito.nuovi += (await salvaTrovati(dominio, self.CS_dalHtml(h), 'fonte indicata da te')).nuovi; await segnaFatto('fonte:' + f.url); }
+    } finally { esplorazioniInCorso.delete('fonte:' + f.url); }
   }
   return esito;
 }
@@ -356,9 +427,9 @@ async function controllaAggiornamento(soloControlla) {
     return { nuova: su_disco, attuale, ricarico: false };
   } catch (e) { return { errore: String(e) }; }
 }
+// Niente permesso "alarms": il controllo parte all'avvio del browser, all'installazione e ogni volta che si apre il popup.
+// (Ha senso solo per la cartella caricata a mano; con gli store aggiornano gli store.)
 try {
-  chrome.alarms.create('cacciasconti-aggiornamento', { periodInMinutes: 360 });
-  chrome.alarms.onAlarm.addListener((a) => { if (a.name === 'cacciasconti-aggiornamento') controllaAggiornamento(); });
   chrome.runtime.onStartup.addListener(() => controllaAggiornamento());
   chrome.runtime.onInstalled.addListener(() => controllaAggiornamento());
 } catch (e) {}
@@ -370,8 +441,11 @@ async function gestisci(m, sender) {
     try { m.dominio = dominioDi(new URL(sender.tab.url).hostname); } catch (e) {}
   }
   switch (m.type) {
-    case 'trovati':
-      return salvaTrovati(m.dominio, m.codici, 'pagina');
+    case 'trovati': {
+      const a = await salvaTrovati(m.dominio, m.codici, 'pagina', m.scadenze);
+      const b = (m.deboli && m.deboli.length) ? await salvaTrovati(m.dominio, m.deboli, FONTE_DEBOLE, m.scadenze) : { nuovi: 0 };
+      return { nuovi: a.nuovi + b.nuovi };
+    }
     case 'aggiungi':
       return inFila(async () => {
         const c = normalizza(m.codice);
@@ -379,11 +453,11 @@ async function gestisci(m, sender) {
         const arch = await leggiArchivio();
         const sito = (arch[m.dominio] = arch[m.dominio] || {});
         if (sito[c]) {
-          if (sito[c].esito === 'ko') sito[c].esito = 'mai'; // l'utente vuole riprovarlo
+          if (sito[c].esito === 'ko' || sito[c].esito === 'riprova') sito[c].esito = 'mai'; // l'utente vuole riprovarlo
         } else {
           sito[c] = { code: c, source: 'manuale', origine: 'manuale', esito: 'mai', sconto: null, data: null, trovato: Date.now() };
         }
-        await scriviArchivio(arch);
+        await scriviArchivio(potatura(arch));
         return { ok: true };
       });
     case 'rimuovi':
@@ -399,15 +473,19 @@ async function gestisci(m, sender) {
         const sito = (arch[m.dominio] = arch[m.dominio] || {});
         const c = m.codice;
         const e = sito[c] || { code: c, source: 'comune', origine: 'comune', trovato: Date.now() };
-        e.esito = m.ok ? 'ok' : 'ko';
+        // "da riprovare" = il motivo dipende dal carrello (importo minimo, non applicabile, carrello vuoto, troppi tentativi, totale non leggibile), non dal codice
+        const daRiprovare = !m.ok && (m.riprova === true || MOTIVI_CARRELLO.includes(m.motivo));
+        e.esito = m.ok ? 'ok' : daRiprovare ? 'riprova' : 'ko';
+        e.totaleAl = typeof m.totale === 'number' && isFinite(m.totale) ? m.totale : null;
         e.sconto = m.ok ? m.sconto : null;
         e.simbolo = simboloValuta(m.simbolo);
         e.data = Date.now();
         e.motivo = m.ok ? null : m.motivo || 'nessuna reazione';
         e.source = m.ok ? 'funzionato' : e.origine || 'comune';
         sito[c] = e;
-        await scriviArchivio(arch);
-        if (e.origine !== 'manuale') inviaRisultato(await leggiOpzioni(), m.dominio, c, m.ok, m.ok ? m.pct : null);
+        await scriviArchivio(potatura(arch));
+        // Si segnala solo ciò che dice qualcosa sul CODICE: "funziona" o "non esiste/non vale". Mai i motivi che dipendono dal carrello.
+        if (e.origine !== 'manuale' && e.esito !== 'riprova') inviaRisultato(await leggiOpzioni(), m.dominio, c, m.ok, m.ok ? m.pct : null);
         return { ok: true };
       });
     case 'stato': {
@@ -420,10 +498,10 @@ async function gestisci(m, sender) {
     case 'coda': {
       await scaricaCondivisi(m.dominio, await leggiOpzioni(), !!m.avvio);
       const [arch, opz] = [await leggiArchivio(), await leggiOpzioni()];
-      return { coda: costruisciCoda(arch, m.dominio, opz, !!m.riprova), opzioni: opz };
+      return { coda: costruisciCoda(arch, m.dominio, opz, !!m.riprova, typeof m.totale === 'number' ? m.totale : null), opzioni: opz };
     }
     case 'badge':
-      return { n: await aggiornaBadge(tabId, m.dominio, m.campo) };
+      return { n: await aggiornaBadge(tabId, m.dominio, m.campo, typeof m.totale === 'number' ? m.totale : null) };
     case 'ricette':
       return { ricette: await leggiRicette() };
     case 'storico':
@@ -465,11 +543,11 @@ async function gestisci(m, sender) {
             const vecchio = sito[c];
             if (!vecchio || (e.data || 0) > (vecchio.data || 0)) {
               sito[c] = { code: c, source: e.source || 'manuale', origine: e.origine || 'manuale', esito: e.esito || 'mai',
-                sconto: e.sconto || null, simbolo: e.simbolo ? simboloValuta(e.simbolo) : '€', data: e.data || null, trovato: e.trovato || Date.now(), motivo: e.motivo || null };
+                sconto: e.sconto || null, simbolo: e.simbolo ? simboloValuta(e.simbolo) : '€', data: e.data || null, trovato: e.trovato || Date.now(), motivo: e.motivo || null, scade: Number(e.scade) || null, totaleAl: typeof e.totaleAl === 'number' ? e.totaleAl : null };
             }
           }
         }
-        await scriviArchivio(arch);
+        await scriviArchivio(potatura(arch));
         if (Array.isArray(d.storico)) {
           const r = await chrome.storage.local.get('storico');
           const chiavi = new Set((r.storico || []).map((x) => x.dominio + x.codice + x.data));
@@ -538,11 +616,29 @@ async function gestisci(m, sender) {
       return { ok: true };
     // Avvia il test nel frame giusto: quello che ha il campo (meglio se c'è proprio l'input visibile).
     case 'avviaTab': {
-      const r = await aiFrame(tabId, { type: 'haCampo' });
-      const c = r.filter((x) => x.r.campo).sort((a, b) => (b.r.input - a.r.input) || (a.frameId - b.frameId))[0];
-      if (!c) return { ok: false, errore: 'Non trovo il campo del codice.' };
-      return (await aUnFrame(tabId, c.frameId, { type: 'avvia', riprova: !!m.riprova })) || { ok: false, errore: 'Il frame non risponde.' };
+      // Un solo avvio alla volta per scheda, deciso subito (prima di ogni attesa): due clic veloci non fanno partire due prove.
+      if (avviiInCorso.has(tabId)) return { ok: false, errore: 'Già in corso.' };
+      avviiInCorso.add(tabId);
+      try {
+        const r = await aiFrame(tabId, { type: 'haCampo' });
+        if (r.some((x) => x.r.inEsecuzione)) return { ok: false, errore: 'Già in corso.' };
+        const c = r.filter((x) => x.r.campo).sort((a, b) => (b.r.input - a.r.input) || (a.frameId - b.frameId))[0];
+        if (!c) return { ok: false, errore: 'Non trovo il campo del codice.' };
+        return (await aUnFrame(tabId, c.frameId, { type: 'avvia', riprova: !!m.riprova })) || { ok: false, errore: 'Il frame non risponde.' };
+      } finally { avviiInCorso.delete(tabId); }
     }
+    // Selettori che hanno funzionato su questo sito (campo e pulsante): la prossima volta si provano per primi.
+    case 'selLeggi':
+      return { sel: ((await chrome.storage.local.get('selettori')).selettori || {})[m.dominio] || null };
+    case 'selSalva':
+      return inFila(async () => {
+        const t = (await chrome.storage.local.get('selettori')).selettori || {};
+        t[m.dominio] = { input: String(m.input || '').slice(0, 300) || null, bottone: String(m.bottone || '').slice(0, 300) || null, ts: Date.now() };
+        const chiavi = Object.keys(t);
+        if (chiavi.length > 200) chiavi.sort((a, b) => (t[a].ts || 0) - (t[b].ts || 0)).slice(0, chiavi.length - 200).forEach((k) => delete t[k]);
+        await chrome.storage.local.set({ selettori: t });
+        return { ok: true };
+      });
     case 'diagnosiTab':
       return { frame: (await aiFrame(tabId, { type: 'diagnosi' })).map((x) => Object.assign({ frameId: x.frameId }, x.r)) };
     case 'fermaTab':

@@ -6,7 +6,7 @@ Testi pronti da copiare per Chrome Web Store e Microsoft Edge Add-ons.
 Shopping
 
 ## Descrizione breve (max 132 caratteri)
-Al pagamento prova i codici sconto per te e applica il migliore. Tutto resta sul tuo computer, nessun link di affiliazione.
+Al pagamento prova i codici sconto per te e applica il migliore. Di base tutto resta sul tuo computer, nessun affiliato.
 
 ## Descrizione lunga
 Cacciasconti ti fa risparmiare al momento del pagamento, senza trucchi.
@@ -19,9 +19,10 @@ Come funziona:
 - Tiene lo storico dei tuoi risparmi e puoi salvare o ricaricare i tuoi codici in un file.
 
 Rispetto alle altre estensioni di coupon:
-- Nessun dato lascia il tuo computer. Niente server, niente statistiche.
+- Di base non invia nulla a nessuno: niente account, niente statistiche. Il testo delle pagine si legge solo sul tuo computer per trovare codici.
+- Condivisione anonima FACOLTATIVA (spenta di base, la accendi tu nelle Opzioni): se la accendi, prima di una prova scarica i codici segnalati per il sito che visiti e dopo ogni prova invia solo dominio del sito, codice, se ha funzionato e percentuale di sconto (mai i codici scritti a mano, nessun IP salvato). Puoi spegnerla quando vuoi.
 - Nessun link di affiliazione. Non legge e non modifica i cookie.
-- Nessun database condiviso: i codici sono quelli trovati da te sui siti che visiti, più una piccola lista di codici comuni che puoi disattivare.
+- Di base i codici sono quelli trovati da te sui siti che visiti, quelli delle pagine promo dello stesso negozio, più una piccola lista di codici comuni che puoi disattivare.
 
 Limiti onesti: non esistono codici per tutti i negozi, non funziona su ogni cassa, alcuni siti bloccano i troppi tentativi (in quel caso l'estensione si ferma) e i codici personali non funzionano per altri.
 
@@ -30,9 +31,9 @@ Trovare e provare i codici sconto sulla pagina del carrello o della cassa di un 
 
 ## Motivazione dei permessi
 - **storage**: salva sul computer i codici, i risultati delle prove, lo storico dei risparmi e le impostazioni.
-- **activeTab**: permette al pulsante dell'estensione di agire sulla scheda che l'utente sta guardando.
-- **scripting**: permette di caricare lo script nella scheda già aperta prima dell'installazione, quando l'utente preme "Genera sconto".
-- **Accesso a tutti i siti (host_permissions <all_urls>)**: i negozi online sono migliaia e non si possono elencare. Serve per cercare i codici sconto nelle pagine e per scrivere nel campo coupon della cassa. L'estensione non legge password, dati di pagamento o email.
+- **scripting**: permette di caricare lo script nella scheda già aperta prima dell'installazione, quando l'utente apre la finestra dell'estensione.
+- **Accesso a tutti i siti (host_permissions <all_urls>)**: i negozi online sono migliaia e non si possono elencare. Serve per leggere il testo delle pagine alla ricerca di codici sconto (solo sul computer dell'utente), per scrivere nel campo coupon della cassa, per scaricare le poche pagine promo dello stesso negozio e, solo se l'utente accende la condivisione, per parlare con il servizio dei codici condivisi. Il testo letto non viene salvato né inviato, a parte i codici trovati (salvati solo sul computer).
+- Non sono richiesti `activeTab` (ridondante con l'accesso a tutti i siti), `alarms`, `cookies`.
 
 ## Uso dei dati (Data use disclosure)
 - Di base: dati raccolti **nessuno**.
@@ -76,7 +77,7 @@ Dalla cartella `estensione-sconti` esegui `./pacchetto.sh`. Crea DUE file: `dist
 1. Vai su https://addons.mozilla.org/developers/ e accedi (gratis).
 2. "Invia un nuovo componente aggiuntivo", carica lo zip `-firefox.zip`.
 3. Scegli **"Su questo sito"** (pubblico) oppure **"Da solo"** = distribuzione propria/non in elenco: Mozilla lo firma gratis e ti restituisce un `.xpi` da installare. La firma è obbligatoria per l'installazione permanente su Firefox.
-4. Id dell'estensione: `cacciasconti@alessandro.local` (nel manifest). Firefox richiede Firefox 121 o più nuovo.
+4. Id dell'estensione: `cacciasconti@alessandro.local` (nel manifest). Firefox richiede Firefox 128 o più nuovo (serve per `match_origin_as_fallback`).
 5. Per provarla subito senza firma: `about:debugging` > Questo Firefox > **Carica componente aggiuntivo temporaneo** > scegli `manifest.json` (sparisce alla chiusura di Firefox).
 6. In Firefox i permessi sui siti sono facoltativi: al primo avvio il popup mostra "Dai il permesso" per "tutti i siti".
 

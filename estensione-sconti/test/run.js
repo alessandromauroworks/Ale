@@ -3,6 +3,7 @@
 const path = require('path');
 const fs = require('fs');
 const { chromium } = require('playwright');
+global.self = global; require('../estrattore.js'); // per provare l'estrattore anche senza browser
 const { crea } = require('./server');
 
 const EXT = path.resolve(__dirname, '..');
@@ -400,6 +401,220 @@ async function finche(fn, ms, passo = 200) {
   verifica('Condivisione: nessun cookie inviato', !!lg && lg.every((x) => !x.cookie));
   await rOn.page.close();
   await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: true, maxCodici: 8, esplora: false, condividi: false, endpoint: null, fonti: [] } }));
+
+  // ================= (v) Revisione 1.3.0 =================
+  console.log('\n[v] Revisione indipendente: pulsante "rimuovi", IVA inclusa, messaggi, "da riprovare", doppio avvio, codici spazzatura, archivio, scadenze, cache');
+  await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: false, maxCodici: 8, esplora: false, condividi: false } }));
+  // Apre una pagina con i codici scritti a mano e aspetta il campo (senza avviare)
+  async function apriPronta(urlPagina, dominio, codici) {
+    await sw.evaluate((d) => chrome.storage.local.get('archivio').then((r) => { const a = r.archivio || {}; delete a[d]; return chrome.storage.local.set({ archivio: a }); }), dominio);
+    const page = await ctx.newPage();
+    await page.goto(urlPagina);
+    const id = await sw.evaluate(async (u) => (await chrome.tabs.query({})).find((t) => t.url === u).id, urlPagina);
+    for (const c of codici) await msgExt({ type: 'aggiungi', dominio, codice: c });
+    const stato = await finche(async () => { const r = await msgExt({ type: 'statoTab', tabId: id }); return r && r.campo ? r : null; }, 12000, 300);
+    return { page, id, stato };
+  }
+
+  // --- B2: il pulsante "rimuovi" non tocca mai le righe prodotto, nemmeno con parole da coupon nel testo
+  const rRmv = await provaRapida(url('rmv', '/'), 'rmv.localhost');
+  verifica('B2: riga prodotto con "Remove Mug Promo" (senza "from cart") e "Rimuovi Codice Sconto Mug": codice applicato (-10,00)', buonoOk(rRmv, 10), rRmv.st && rRmv.st.concluso);
+  verifica('B2: il prodotto NON è stato tolto dal carrello', !(await rRmv.page.evaluate(() => window.__carrelloSvuotato === true)));
+  verifica('B2: il codice si toglie davvero col suo pulsante (nessuna nota "non riesco a togliere")', !!(rRmv.st && rRmv.st.concluso && !rRmv.st.concluso.nota), rRmv.st && rRmv.st.concluso);
+  verifica('B2: totale finale 40,00 €', (await rRmv.page.locator('#tot').textContent()) === '40,00 €');
+  await rRmv.page.close();
+
+  // --- B4: IVA inclusa, il totale non è l'importo dell'IVA
+  const rVat = await provaRapida(url('vat', '/'), 'vat.localhost', { fallito: false });
+  verifica('B4: WooCommerce classico, IVA inclusa "(include 18,03 € IVA)": sconto 20,00 (non la differenza dell\'IVA 3,61)', buonoOk(rVat, 20), { st: rVat.st && rVat.st.concluso, buono: rVat.buono });
+  await rVat.page.close();
+  const rVatB = await provaRapida(url('vat', '/?b=1'), 'vat.localhost', { fallito: false });
+  verifica('B4: markup dei blocchi "Including 18,03 € in taxes" (classe tax-value anche sul totale): sconto 20,00', buonoOk(rVatB, 20), { st: rVatB.st && rVatB.st.concluso, buono: rVatB.buono });
+  await rVatB.page.close();
+
+  // --- I5/I6: "troppi tentativi" senza parole da errore; i codici "da riprovare" non diventano "ko"
+  const rTro = await provaRapida(url('tro', '/'), 'tro.localhost');
+  verifica('I5: "Troppi tentativi, riprova più tardi" (fuori da ogni parola da errore): ESTATE20 NON è ko ma "da riprovare"', rTro.buono && rTro.buono.esito === 'riprova' && rTro.buono.motivo === 'troppi tentativi', rTro.buono);
+  verifica('I5: anche PROVA99 è "da riprovare", non "ko"', rTro.cattivo && rTro.cattivo.esito === 'riprova' && rTro.cattivo.motivo === 'troppi tentativi', rTro.cattivo);
+  const cTro = await msgExt({ type: 'coda', dominio: 'tro.localhost' });
+  verifica('I6: i codici "da riprovare" restano nella coda (non si saltano per 7 giorni)', cTro.coda.includes('ESTATE20') && cTro.coda.includes('PROVA99'), cTro.coda);
+  await rTro.page.close();
+  const rMin = await provaRapida(url('min', '/?t=50'), 'min.localhost', { fallito: false });
+  verifica('I6: "Spesa minima di 100 €" = "da riprovare" con motivo "importo minimo" e totale del carrello (50)', rMin.buono && rMin.buono.esito === 'riprova' && rMin.buono.motivo === 'importo minimo' && rMin.buono.totaleAl === 50, rMin.buono);
+  await rMin.page.close();
+  const cMin = async (t, ripr) => (await msgExt({ type: 'coda', dominio: 'min.localhost', totale: t, riprova: ripr })).coda;
+  verifica('I6: carrello uguale (50): "importo minimo" non si riprova', !(await cMin(50)).includes('ESTATE20'), await cMin(50));
+  verifica('I6: carrello cresciuto (120): il codice torna in coda', (await cMin(120)).includes('ESTATE20'), await cMin(120));
+  verifica('I6: "riprova tutti" lo include comunque', (await cMin(50, true)).includes('ESTATE20'));
+  const pMin2 = await ctx.newPage();
+  await pMin2.goto(url('min', '/?t=150'));
+  const idMin2 = await sw.evaluate(async (u) => (await chrome.tabs.query({})).find((t) => t.url === u).id, url('min', '/?t=150'));
+  await finche(async () => { const r = await msgExt({ type: 'statoTab', tabId: idMin2 }); return r && r.campo ? r : null; }, 12000, 300);
+  await msgExt({ type: 'avviaTab', tabId: idMin2 });
+  const sMin2 = await attendiFine(idMin2);
+  const eMin2 = await conCodice('min.localhost', 'ESTATE20');
+  verifica('I6: con il carrello da 150 il codice viene riprovato e funziona (-30,00)', sMin2 && sMin2.concluso.tipo === 'ok' && eMin2.esito === 'ok' && eMin2.sconto === 30, { c: sMin2 && sMin2.concluso, e: eMin2 });
+  await pMin2.close();
+  // "Da riprovare" non si invia ai condivisi: solo "funziona" o "non vale"
+  await leggiUrl(url('cond', '/__azzera'));
+  await sw.evaluate((u) => chrome.storage.local.set({ opzioni: { usaComuni: false, maxCodici: 8, esplora: false, condividi: true, endpoint: u } }), url('cond', '/fn'));
+  await msgExt({ type: 'risultato', dominio: 'cnd.localhost', codice: 'MINIMO50', ok: false, motivo: 'importo minimo', totale: 10 });
+  await msgExt({ type: 'risultato', dominio: 'cnd.localhost', codice: 'FALSO99', ok: false, motivo: 'non valido', totale: 10 });
+  await dorme(800);
+  const lgR = await logCond();
+  verifica('I6: "importo minimo" NON viene segnalato ai codici condivisi, "non valido" sì', !lgR.some((x) => x.corpo && x.corpo.code === 'MINIMO50') && lgR.some((x) => x.corpo && x.corpo.code === 'FALSO99'), lgR);
+  await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: false, maxCodici: 8, esplora: false, condividi: false, endpoint: null } }));
+
+  // --- I7: messaggi estranei
+  const rEst = await provaRapida(url('est', '/'), 'est.localhost');
+  verifica('I7: "Prodotto aggiunto al carrello" + "Errore di rete..." fuori dal riquadro coupon: ESTATE20 funziona comunque (-20,00)', buonoOk(rEst, 20), { st: rEst.st && rEst.st.concluso, buono: rEst.buono });
+  verifica('I7: "aggiunto al carrello" non conta come codice applicato: PROVA99 = ko "nessuna reazione"', rEst.cattivo && rEst.cattivo.esito === 'ko' && rEst.cattivo.motivo === 'nessuna reazione', rEst.cattivo);
+  await rEst.page.close();
+
+  // --- I8: doppio avvio
+  const dbl = await apriPronta(url('dis', '/'), 'dis.localhost', ['ESTATE20', 'PROVA99']);
+  const [av1, av2] = await Promise.all([msgExt({ type: 'avviaTab', tabId: dbl.id }), msgExt({ type: 'avviaTab', tabId: dbl.id })]);
+  verifica('I8: due "Genera sconto" insieme: parte una sola prova', [av1, av2].filter((x) => x && x.ok).length === 1, [av1, av2]);
+  const sDbl = await attendiFine(dbl.id);
+  verifica('I8: nessun codice provato due volte, risultato corretto', sDbl && sDbl.concluso.tipo === 'ok' && new Set(sDbl.risultati.map((r) => r.code)).size === sDbl.risultati.length && sDbl.risultati.length === 2, sDbl && sDbl.risultati);
+  await dbl.page.close();
+  const dbl2 = await apriPronta(url('dis', '/'), 'dis.localhost', ['ESTATE20', 'PROVA99']);
+  const [fr1, fr2] = await sw.evaluate((id) => Promise.all([chrome.tabs.sendMessage(id, { type: 'avvia' }, { frameId: 0 }), chrome.tabs.sendMessage(id, { type: 'avvia' }, { frameId: 0 })]), dbl2.id);
+  verifica('I8: due messaggi "avvia" diretti allo stesso frame: il secondo è rifiutato subito', [fr1, fr2].filter((x) => x && x.ok).length === 1 && [fr1, fr2].some((x) => x && x.errore === 'Già in corso.'), [fr1, fr2]);
+  await attendiFine(dbl2.id);
+  await dbl2.page.close();
+
+  // --- I9: codici spazzatura
+  const pJnk = await ctx.newPage();
+  await pJnk.goto(url('jnk', '/'));
+  await finche(async () => await conCodice('jnk.localhost', 'SPRING25'), 8000);
+  await dorme(500);
+  const cJ = async (c) => await conCodice('jnk.localhost', c);
+  verifica('I9: parole in elementi con classe promo/code ma senza cifra e senza contesto coupon NON si salvano (ITALIA, GERMANIA, NUOVO, ARRIVI)', !(await cJ('ITALIA')) && !(await cJ('GERMANIA')) && !(await cJ('NUOVO')) && !(await cJ('ARRIVI')), Object.keys((await archivio()).archivio['jnk.localhost'] || {}));
+  verifica('I9: data-code="FRANCIA" e data-promo="OFFERTONE" senza cifra NON si salvano', !(await cJ('FRANCIA')) && !(await cJ('OFFERTONE')));
+  verifica('I9: con una cifra (SPRING25) o con contesto coupon (FREEBIE, data-coupon SOMMER) si salvano', !!(await cJ('SPRING25')) && !!(await cJ('FREEBIE')) && !!(await cJ('SOMMER')));
+  verifica('I9: i codici trovati solo dalla classe hanno la sorgente "pagina (classe)"', (await cJ('FREEBIE') || {}).source === 'pagina (classe)', await cJ('FREEBIE'));
+  await pJnk.close();
+  const ordine = await sw.evaluate(() => ordinaPerStato([{ code: 'CCC1', source: 'comune', esito: 'mai' }, { code: 'AAA1', source: 'pagina (classe)', esito: 'mai' }, { code: 'BBB1', source: 'manuale', esito: 'mai' }, { code: 'DDD1', source: 'pagina', esito: 'mai', trovato: 5 }]).map((e) => e.code));
+  verifica('I9: ordine di prova: pagina > manuale > classe debole > comune', JSON.stringify(ordine) === '["DDD1","BBB1","AAA1","CCC1"]', ordine);
+
+  // --- I9: pulizia dell'archivio
+  const pot = await sw.evaluate(() => {
+    const adesso = Date.now(), G = 24 * 3600 * 1000, a = {};
+    a['grande.it'] = {};
+    for (let i = 0; i < 30; i++) a['grande.it']['VECCHIO' + i] = { code: 'VECCHIO' + i, source: 'pagina', esito: 'mai', trovato: adesso - 100 * G };
+    for (let i = 0; i < 70; i++) a['grande.it']['NUOVO' + i] = { code: 'NUOVO' + i, source: 'pagina', esito: 'mai', trovato: adesso - i * 1000 };
+    for (let i = 0; i < 5; i++) a['grande.it']['BUONO' + i] = { code: 'BUONO' + i, source: 'funzionato', esito: 'ok', data: adesso - 90 * G, trovato: adesso - 120 * G };
+    a['grande.it'].MIO1 = { code: 'MIO1', source: 'manuale', esito: 'mai', trovato: adesso - 200 * G };
+    a['grande.it'].SCADUTO1 = { code: 'SCADUTO1', source: 'pagina', esito: 'mai', trovato: adesso, scade: adesso - 5 * G };
+    for (let i = 0; i < 260; i++) a['sito' + i + '.it'] = { ['COD' + i]: { code: 'COD' + i, source: 'pagina', esito: i === 7 ? 'ok' : 'mai', data: i === 7 ? 1 : null, trovato: adesso - i * 1000 } };
+    potatura(a);
+    return { n: Object.keys(a['grande.it']).length, vecchi: Object.keys(a['grande.it']).filter((k) => k.startsWith('VECCHIO')).length, buoni: Object.keys(a['grande.it']).filter((k) => k.startsWith('BUONO')).length, mio: !!a['grande.it'].MIO1, scaduto: !!a['grande.it'].SCADUTO1, siti: Object.keys(a).length, sito7: !!a['sito7.it'], byte: JSON.stringify(a).length };
+  });
+  verifica('Archivio: al massimo 40 codici per sito', pot.n <= 40, pot);
+  verifica('Archivio: via i codici di pagina mai provati da più di 60 giorni e quelli scaduti', pot.vecchi === 0 && !pot.scaduto, pot);
+  verifica('Archivio: restano quelli che funzionano e quelli scritti a mano', pot.buoni === 5 && pot.mio, pot);
+  verifica('Archivio: al massimo 200 siti, resta il sito con un codice che funziona', pot.siti <= 200 && pot.sito7, pot);
+  verifica('Archivio: nel caso peggiore pesa meno di 1,5 MB (limite del browser 5-10 MB)', pot.byte < 1500000, pot.byte);
+
+  // --- Scadenze scritte nella pagina
+  const stu = new Set();
+  const oggiT = new Date(2026, 10, 8).getTime();
+  self.CS_dalTesto('Usa il codice SAVE20 scade il 30/11. Codice OLD10 valido fino al 01/11. Code UK25 expires Dec 5. Code PAST25 valid until October 31, 2026. Codice FINITO15 valido fino al 5 novembre 2026.', stu, oggiT);
+  verifica('Scadenza (testo): "scade il 30/11" tenuto con la scadenza, "fino al 01/11" scartato (oggi 8/11/2026)', stu.has('SAVE20') && !stu.has('OLD10') && new Date(stu.scad.SAVE20).getDate() === 30, [...stu]);
+  verifica('Scadenza (testo): "expires Dec 5" tenuto, "valid until October 31, 2026" e "fino al 5 novembre 2026" scartati', stu.has('UK25') && !stu.has('PAST25') && !stu.has('FINITO15'), [...stu]);
+  const pExp = await ctx.newPage();
+  await pExp.goto(url('exp', '/'));
+  await finche(async () => await conCodice('exp.localhost', 'NUOVO30'), 8000);
+  await dorme(400);
+  verifica('Scadenza (pagina): codice "valido fino al 31/12/2020" non salvato', !(await conCodice('exp.localhost', 'VECCHIO10')));
+  const nu30 = await conCodice('exp.localhost', 'NUOVO30');
+  verifica('Scadenza (pagina): "valido fino al 31/12/2099" salvato con la scadenza', nu30 && nu30.scade > Date.UTC(2099, 0, 1), nu30);
+  await pExp.close();
+  await sw.evaluate(() => chrome.storage.local.get('archivio').then((r) => { const a = r.archivio; a['exp.localhost'].PASSATO10 = { code: 'PASSATO10', source: 'pagina', esito: 'mai', trovato: Date.now(), scade: Date.now() - 3 * 24 * 3600 * 1000 }; return chrome.storage.local.set({ archivio: a }); }));
+  const cExp = await msgExt({ type: 'coda', dominio: 'exp.localhost' });
+  verifica('Scadenza: un codice scaduto già salvato non entra nella coda, quello valido sì', !cExp.coda.includes('PASSATO10') && cExp.coda.includes('NUOVO30'), cExp.coda);
+
+  // --- Cache dei selettori che hanno funzionato
+  const selDis = (await sw.evaluate(() => chrome.storage.local.get('selettori'))).selettori || {};
+  verifica('Cache: dopo un codice riuscito si ricordano campo e pulsante del sito (#c e #ap)', selDis['dis.localhost'] && selDis['dis.localhost'].input === '#c' && selDis['dis.localhost'].bottone === '#ap', selDis);
+  const pSel0 = await ctx.newPage();
+  await pSel0.goto(url('sel', '/'));
+  await dorme(1500);
+  const senzaCache = await msgExt({ type: 'statoTab', tabId: await sw.evaluate(async (u) => (await chrome.tabs.query({})).find((t) => t.url === u).id, url('sel', '/')) });
+  verifica('Cache: senza selettore ricordato il campo anonimo (#zq, nessun indizio) NON viene trovato', senzaCache && !senzaCache.campo, senzaCache);
+  await pSel0.close();
+  await msgExt({ type: 'selSalva', dominio: 'sel.localhost', input: '#zq', bottone: '#go' });
+  const rSel = await provaRapida(url('sel', '/'), 'sel.localhost');
+  verifica('Cache: col selettore ricordato il campo anonimo si trova e il codice si applica (-20,00)', buonoOk(rSel, 20), rSel.st && rSel.st.concluso);
+  await rSel.page.close();
+
+  // --- Badge: coda vuota = nessun numero
+  await msgExt({ type: 'badge', tabId: idWoo, dominio: 'vuoto.localhost', campo: true });
+  verifica('Badge: coda vuota (nessun codice da provare) = nessun numero sull\'icona', (await badge(idWoo)) === '', await badge(idWoo));
+
+  // --- Esploratore: "fatto oggi" si segna solo dopo uno scarico riuscito
+  await sw.evaluate(() => chrome.storage.local.remove('esplorati'));
+  await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: false, maxCodici: 8, esplora: true, fonti: [] } }));
+  await msgExt({ type: 'esplora', dominio: 'zzz.localhost', origin: url('zzz', '').replace(/\/$/, ''), attendi: true });
+  const esp1 = (await sw.evaluate(() => chrome.storage.local.get('esplorati'))).esplorati || {};
+  verifica('Esploratore: se la home non si scarica (404) NON si segna "fatto oggi" (si riprova alla prossima visita)', !esp1['sito:zzz.localhost'], esp1);
+  await msgExt({ type: 'esplora', dominio: 'prm.localhost', origin: url('prm', '').replace(/\/$/, ''), attendi: true });
+  const esp2 = (await sw.evaluate(() => chrome.storage.local.get('esplorati'))).esplorati || {};
+  verifica('Esploratore: dopo uno scarico riuscito si segna "fatto oggi"', !!esp2['sito:prm.localhost'], esp2);
+  await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: true, maxCodici: 8, esplora: false, condividi: false, endpoint: null, fonti: [] } }));
+
+  // --- Permessi e testi
+  const man = JSON.parse(fs.readFileSync(path.join(EXT, 'manifest.json'), 'utf8'));
+  verifica('Manifest: niente "alarms" e niente "activeTab" (ridondante con <all_urls>)', !man.permissions.includes('alarms') && !man.permissions.includes('activeTab'), man.permissions);
+  verifica('Manifest: Firefox 128 o più (match_origin_as_fallback)', parseInt(man.browser_specific_settings.gecko.strict_min_version, 10) >= 128, man.browser_specific_settings);
+  const testi = ['README.md', 'STORE.md', 'privacy.html', 'manifest.json'].map((f) => fs.readFileSync(path.join(EXT, f), 'utf8')).join('\n');
+  verifica('Testi: nessuna frase falsa "niente server" / "nessun database condiviso" / "nessun server"', !/niente server|nessun database condiviso|nessun server|non legge (né )?(email|password)|Nessun dato lascia il tuo computer/i.test(testi));
+  verifica('Testi: il permesso "alarms" e "activeTab" non sono più elencati come permessi', !/\*\*activeTab\*\*|\*\*alarms\*\*|^- `activeTab`|^- `alarms`/m.test(testi));
+
+  // --- Edge Function (si prova con Node, senza Deno: si toglie solo l'import di Supabase e si finge Deno)
+  const { spawnSync } = require('child_process');
+  const os2 = require('os');
+  const dirEdge = fs.mkdtempSync(path.join(os2.tmpdir(), 'cs-edge-'));
+  const src = fs.readFileSync(path.join(EXT, 'supabase/functions/cacciasconti-codici/index.ts'), 'utf8').replace(/import \{ createClient \} from "jsr:[^"]+";/, 'const createClient = () => ({});');
+  fs.writeFileSync(path.join(dirEdge, 'index.mts'), src);
+  fs.writeFileSync(path.join(dirEdge, 'prova.mjs'), `
+const ENV = { SUPABASE_URL: 'http://x', SUPABASE_SERVICE_ROLE_KEY: 'k' };
+let serveChiamata = 0;
+globalThis.Deno = { env: { get: (k) => ENV[k] }, serve: () => { serveChiamata++; } };
+const m = await import('./index.mts');
+const out = { serve: serveChiamata };
+const chiamate = { gte: [], rpc: [], insert: 0 };
+const db = {
+  from: () => { const q = { select: () => q, eq: () => q, gte: (c, v) => { chiamate.gte.push([c, v]); return q; }, order: () => q, limit: () => Promise.resolve({ data: [], error: null }), insert: () => { chiamate.insert++; return Promise.resolve({ error: null }); } }; return q; },
+  rpc: (n, a) => { chiamate.rpc.push(a.p_hash); return Promise.resolve({ data: 1, error: null }); }
+};
+const post = (h) => new Request('http://x/f', { method: 'POST', headers: Object.assign({ 'content-type': 'application/json' }, h), body: JSON.stringify({ domain: 'a.it', code: 'ABC10', worked: true }) });
+const get = await m.gestisci(new Request('http://x/f?domain=a.it'), db);
+out.get = get.status; out.gte = chiamate.gte;
+const r503 = await m.gestisci(post({ 'x-forwarded-for': '1.1.1.1' }), db);
+out.senzaSale = { status: r503.status, rpc: chiamate.rpc.length, insert: chiamate.insert };
+ENV.CACCIASCONTI_SALE = 'sale-lungo';
+await m.gestisci(post({ 'x-forwarded-for': '9.9.9.9, 5.5.5.5' }), db);
+await m.gestisci(post({ 'x-forwarded-for': '8.8.8.8, 5.5.5.5' }), db);
+await m.gestisci(post({ 'x-forwarded-for': '8.8.8.8, 6.6.6.6' }), db);
+await m.gestisci(post({ 'x-forwarded-for': '1.1.1.1, 5.5.5.5', 'cf-connecting-ip': '7.7.7.7' }), db);
+await m.gestisci(post({ 'cf-connecting-ip': '7.7.7.7' }), db);
+out.hash = chiamate.rpc;
+out.ip = [m.ipCliente(post({ 'x-forwarded-for': 'falso, vero' })), m.ipCliente(post({ 'cf-connecting-ip': 'cf', 'x-forwarded-for': 'a, b' })), m.ipCliente(post({}))];
+console.log(JSON.stringify(out));
+`);
+  const rEdge = spawnSync(process.execPath, ['--experimental-strip-types', '--no-warnings', path.join(dirEdge, 'prova.mjs')], { encoding: 'utf8' });
+  let ed = null;
+  try { ed = JSON.parse(rEdge.stdout.trim().split('\n').pop()); } catch (e) {}
+  verifica('Edge Function: Deno.serve parte sempre (nessun controllo import.meta.main)', ed && ed.serve === 1 && !/if\s*\(\s*import\.meta\.main/.test(src), { ed, err: rEdge.stderr.slice(0, 300) });
+  verifica('Edge Function: GET chiede almeno 2 successi e tasso di successo >= 50%', ed && ed.get === 200 && JSON.stringify(ed.gte) === '[["n_successi",2],["tasso_successo",50]]', ed && ed.gte);
+  verifica('Edge Function: senza CACCIASCONTI_SALE risponde 503, non calcola l\'hash e non salva', ed && ed.senzaSale.status === 503 && ed.senzaSale.rpc === 0 && ed.senzaSale.insert === 0, ed && ed.senzaSale);
+  verifica('Edge Function: il limite usa l\'ULTIMO indirizzo di x-forwarded-for (il primo lo scrive il cliente)', ed && ed.hash[0] === ed.hash[1] && ed.hash[1] !== ed.hash[2], ed && ed.hash);
+  verifica('Edge Function: con cf-connecting-ip vale quello (anche se x-forwarded-for dice altro)', ed && ed.hash[3] === ed.hash[4] && ed.hash[3] !== ed.hash[0], ed && ed.hash);
+  verifica('Edge Function: ipCliente = ultimo elemento / cf-connecting-ip / "sconosciuto"', ed && JSON.stringify(ed.ip) === '["vero","cf","sconosciuto"]', ed && ed.ip);
+  fs.rmSync(dirEdge, { recursive: true, force: true });
+  await sw.evaluate(() => chrome.storage.local.set({ opzioni: { usaComuni: true, maxCodici: 8 } }));
 
   // ================= (s) Versione, novità, permessi =================
   console.log('\n[s] Popup: versione, novità, permessi');

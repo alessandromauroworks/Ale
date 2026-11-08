@@ -39,8 +39,9 @@
       let sub;
       if (c.esito === 'ok') sub = 'Funziona' + (c.sconto ? ': -' + euro(c.sconto, c.simbolo) : '') + ' · provato il ' + dataBreve(c.data);
       else if (c.esito === 'ko') sub = 'Non funziona (' + (c.motivo || 'nessuna reazione') + ') · provato il ' + dataBreve(c.data);
-      else sub = 'Mai provato · ' + ({ manuale: 'aggiunto da te', 'sito del negozio': 'trovato nel sito del negozio', 'fonte indicata da te': 'da una fonte che hai scelto', condivisi: 'condiviso da altri' }[c.source] || 'trovato nella pagina');
-      li.innerHTML = '<span class="ico">' + (c.esito === 'ok' ? '✓' : c.esito === 'ko' ? '✗' : '○') + '</span><span class="t"><div class="cod"></div><div class="sub"></div></span><button class="del" title="Togli">×</button>';
+      else if (c.esito === 'riprova') sub = 'Da riprovare (' + (c.motivo || 'dipende dal carrello') + ') · ultima prova ' + dataBreve(c.data);
+      else sub = 'Mai provato · ' + ({ manuale: 'aggiunto da te', 'sito del negozio': 'trovato nel sito del negozio', 'fonte indicata da te': 'da una fonte che hai scelto', condivisi: 'condiviso da altri', 'pagina (classe)': 'trovato nella pagina (poco sicuro)' }[c.source] || 'trovato nella pagina');
+      li.innerHTML = '<span class="ico">' + (c.esito === 'ok' ? '✓' : c.esito === 'ko' ? '✗' : c.esito === 'riprova' ? '↻' : '○') + '</span><span class="t"><div class="cod"></div><div class="sub"></div></span><button class="del" title="Togli">×</button>';
       li.querySelector('.cod').textContent = c.code;
       li.querySelector('.sub').textContent = sub;
       li.querySelector('.del').onclick = async () => { await msg({ type: 'rimuovi', dominio, codice: c.code }); caricaCodici(); };
@@ -49,7 +50,7 @@
     const n = s.codici.length;
     $('conteggio').textContent = (n === 1 ? '1 codice salvato per questo sito' : n + ' codici salvati per questo sito') +
       (s.nComuni ? ' · più ' + s.nComuni + ' codici comuni' : '');
-    $('riprova').hidden = !s.codici.some((c) => c.esito === 'ko');
+    $('riprova').hidden = !s.codici.some((c) => c.esito === 'ko' || c.esito === 'riprova');
     $('comuni').checked = s.opzioni.usaComuni;
     $('max').value = s.opzioni.maxCodici;
     $('maxv').textContent = s.opzioni.maxCodici;
@@ -184,6 +185,7 @@
       if (!(await chrome.permissions.contains({ origins: ['<all_urls>'] }))) $('permessi').hidden = false;
     } catch (e) {}
     $('perm-btn').onclick = async () => { try { if (await chrome.permissions.request({ origins: ['<all_urls>'] })) { $('permessi').hidden = true; aggiorna(); } } catch (e) {} };
+    try { await msg({ type: 'controllaAggiornamento', soloControlla: true }); } catch (e) {} // niente permesso "alarms": il controllo si fa anche ogni volta che si apre il popup
     const ag = (await chrome.storage.local.get('aggiornamentoPronto')).aggiornamentoPronto;
     if (ag && ag !== v) { $('agg-v').textContent = ag; $('aggiorna-banner').hidden = false; }
     $('agg-btn').onclick = () => msg({ type: 'ricarica' });
