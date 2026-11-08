@@ -87,9 +87,9 @@
     }
     return { input: null };
   }
-  const RE_INTERRUTTORE = /hai un (codice|coupon|buono)|(codice|coupon) (sconto|promo|promozionale)|have a (promo|coupon|discount|voucher|gift)|(enter|add|use) (a |your )?(promo|coupon|discount|voucher)|aggiungi (un )?(codice|coupon)|inserire il (tuo )?codice|inserisci (il )?(codice|coupon)/i;
+  const RE_INTERRUTTORE = /hai un (codice|coupon|buono)|(codice|coupon) (sconto|promo|promozionale)|have a (promo|coupon|discount|voucher|gift)|(enter|add|use|apply) (a |your )?(promo|coupon|discount|voucher|gift)|have a (promo|coupon)|aggiungi (un )?(codice|coupon)|inserire il (tuo )?codice|inserisci (il )?(codice|coupon)/i;
   function trovaInterruttore() {
-    for (const el of tutti('a,button,summary,[role="button"],[aria-expanded],[onclick],label')) {
+    for (const el of tutti('a,button,summary,[role="button"],[aria-expanded],[onclick],label,[data-role="title"],[role="heading"],[class*="toggle" i],[class*="collaps" i],[class*="accordion" i]')) {
       const t = pulisci(el.textContent);
       if (t.length > 0 && t.length < 80 && RE_INTERRUTTORE.test(t) && visibile(el)) return el;
     }

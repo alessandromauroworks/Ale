@@ -316,6 +316,69 @@ document.getElementById('ap').addEventListener('click', () => {
 const PAGINA_TOTALE_FRAME = HEAD('Riepilogo') + `<div class="order-total">Totale <span id="t">200,00 €</span></div>
 <script>addEventListener('message', (e) => { if (e.data && e.data.tipo === 'totale') document.getElementById('t').textContent = e.data.v; });</script></body></html>`;
 
+// ---------- Markup simulato dei demo ufficiali (da come sono fatti Magento Luma e PrestaShop; NON sono i siti veri) ----------
+const PAGINA_MAG = HEAD('Magento (simulato)') + BANNER + `<h1>Shopping Cart</h1>
+<div class="block discount" id="block-discount">
+  <div class="title" data-role="title"><strong id="block-discount-heading" role="heading" aria-level="2">Apply Discount Code</strong></div>
+  <div class="content" data-role="content" aria-labelledby="block-discount-heading" style="display:none">
+    <form id="discount-coupon-form" onsubmit="return false">
+      <div class="fieldset coupon"><div class="field"><label for="coupon_code" class="label"><span>Enter discount code</span></label>
+        <div class="control"><input type="text" class="input-text" id="coupon_code" name="coupon_code" placeholder="Enter discount code"></div></div>
+        <div class="actions-toolbar"><div class="primary"><button class="action apply primary" type="button" value="Apply Discount"><span>Apply Discount</span></button></div></div></div>
+    </form>
+  </div>
+</div>
+<div id="msgs" class="messages"></div>
+<table class="data table totals"><tr class="totals sub"><th class="mark">Subtotal</th><td class="amount"><span class="price">$100.00</span></td></tr>
+<tbody id="sc"></tbody>
+<tr class="grand totals"><th class="mark"><strong class="label">Order Total</strong></th><td class="amount"><strong><span class="price" id="gt">$100.00</span></strong></td></tr></table>
+<script>
+const V = { ESTATE20: 0.2, SCONTO10: 0.1 };
+const q = (s) => document.querySelector(s);
+q('[data-role=title]').addEventListener('click', () => { const c = q('[data-role=content]'); c.style.display = c.style.display === 'none' ? 'block' : 'none'; });
+q('button.action.apply').addEventListener('click', () => {
+  const code = q('#coupon_code').value.trim().toUpperCase();
+  setTimeout(() => {
+    if (V[code]) {
+      q('#msgs').innerHTML = '<div class="message message-success success"><div>You used coupon code "' + code + '".</div></div>';
+      q('#gt').textContent = '$' + (100 * (1 - V[code])).toFixed(2);
+      q('#sc').innerHTML = '<tr class="totals discount"><th class="mark">Discount (' + code + ')</th><td class="amount"><span class="price">-$' + (100 * V[code]).toFixed(2) + '</span></td></tr>';
+      q('.actions-toolbar .primary').innerHTML = '<button class="action cancel" type="button" value="Cancel Coupon"><span>Cancel Coupon</span></button>';
+      q('button.action.cancel').onclick = () => { q('#gt').textContent = '$100.00'; q('#sc').innerHTML = ''; q('#msgs').innerHTML = '<div class="message message-success success"><div>You canceled the coupon code.</div></div>'; q('.actions-toolbar .primary').innerHTML = '<button class="action apply primary" type="button"><span>Apply Discount</span></button>'; location.reload; };
+    } else q('#msgs').innerHTML = '<div class="message message-error error"><div>The coupon code "' + code + '" is not valid.</div></div>';
+  }, 300);
+});
+</script></body></html>`;
+
+const PAGINA_PRE = HEAD('PrestaShop (simulato)') + BANNER + `<h1>Shopping Cart</h1>
+<div class="cart-summary">
+  <p class="promo-code-button display-promo"><a class="collapse-button promo-code-button" href="#promo-code" aria-expanded="false" aria-controls="promo-code">Have a promo code?</a></p>
+  <div id="promo-code" class="promo-code collapse" style="display:none">
+    <form action="#" data-link-action="add-voucher" method="post" onsubmit="return false">
+      <input class="promo-input" type="text" name="discount_name" placeholder="Promo code">
+      <button type="submit" class="btn btn-primary"><span>Add</span></button>
+    </form>
+    <div class="alert alert-danger js-error" role="alert" style="display:none"><span class="ml-1 js-error-text"></span></div>
+  </div>
+  <div id="voucher"></div>
+  <div class="cart-summary-line cart-total"><span class="label">Total (tax incl.)</span><span class="value">€100.00</span></div>
+</div>
+<script>
+const V = { ESTATE20: 0.2, SCONTO10: 0.1 };
+const q = (s) => document.querySelector(s);
+q('a.promo-code-button').addEventListener('click', (e) => { e.preventDefault(); q('#promo-code').style.display = 'block'; });
+q('form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const code = q('.promo-input').value.trim().toUpperCase();
+  setTimeout(() => {
+    if (V[code]) { q('.js-error').style.display = 'none'; q('.cart-total .value').textContent = '€' + (100 * (1 - V[code])).toFixed(2);
+      q('#voucher').innerHTML = '<div class="cart-summary-line"><span class="label">' + code + '</span><span class="value">-€' + (100 * V[code]).toFixed(2) + '</span> <a href="#" data-link-action="remove-voucher"><i>delete</i></a></div>';
+      q('a[data-link-action=remove-voucher]').onclick = (e) => { e.preventDefault(); q('#voucher').innerHTML = ''; q('.cart-total .value').textContent = '€100.00'; }; }
+    else { q('.js-error-text').textContent = 'This voucher does not exist.'; q('.js-error').style.display = 'block'; }
+  }, 300);
+});
+</script></body></html>`;
+
 function crea() {
   return http.createServer(async (req, res) => {
     const host = (req.headers.host || '').split(':')[0];
@@ -352,6 +415,8 @@ function crea() {
       return html(PAGINA_HOME);
     }
     const q = url.searchParams;
+    if (host.startsWith('mag.')) return html(PAGINA_MAG);
+    if (host.startsWith('pre.')) return html(PAGINA_PRE);
     if (host.startsWith('dis.')) return html(PAGINA_DIS);
     if (host.startsWith('btn.')) return html(paginaBtn(q.get('v')));
     if (host.startsWith('rer.')) return html(PAGINA_RER);

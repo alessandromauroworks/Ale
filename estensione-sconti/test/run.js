@@ -275,6 +275,17 @@ async function finche(fn, ms, passo = 200) {
   verifica('Totale in un frame: codice sbagliato riconosciuto', rFt.cattivo && rFt.cattivo.esito === 'ko', rFt.cattivo);
   await rFt.page.close();
 
+  // ================= (p) Markup simulato di Magento e PrestaShop (siti demo non raggiungibili dalla rete di prova) =================
+  console.log('\n[p] Markup di Magento (Luma) e PrestaShop riprodotto in locale: campo nascosto dietro "Apply Discount Code" / "Have a promo code?"');
+  const rMag = await provaRapida(url('mag', '/'), 'mag.localhost');
+  verifica('Magento simulato: campo aperto, codice applicato (-20,00 $)', buonoOk(rMag, 20) && rMag.buono.simbolo === '$', rMag.st && rMag.st.concluso);
+  verifica('Magento simulato: messaggio "is not valid" riconosciuto', rMag.cattivo && rMag.cattivo.esito === 'ko' && rMag.cattivo.motivo === 'non valido', rMag.cattivo);
+  await rMag.page.close();
+  const rPre = await provaRapida(url('pre', '/'), 'pre.localhost');
+  verifica('PrestaShop simulato: campo aperto, codice applicato (-20,00 €)', buonoOk(rPre, 20) && rPre.buono.simbolo === '€', rPre.st && rPre.st.concluso);
+  verifica('PrestaShop simulato: "voucher does not exist" riconosciuto', rPre.cattivo && rPre.cattivo.esito === 'ko' && rPre.cattivo.motivo === 'non valido', rPre.cattivo);
+  await rPre.page.close();
+
   // ================= (o) Valute =================
   console.log('\n[o] Valute: €, $, £, CHF nell\'elenco dei codici e nei risparmi');
   const val = await ctx.newPage();
