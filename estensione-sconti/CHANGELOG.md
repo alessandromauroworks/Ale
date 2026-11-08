@@ -1,5 +1,19 @@
 # Novità
 
+## 1.4.1
+Correzioni dopo la revisione indipendente della 1.4.0.
+- **Condivisione**: ora si inviano solo i codici che chiunque può vedere (trovati nella pagina o nel sito del negozio, comuni, già condivisi). I codici delle email, dei siti di coupon, delle fonti che indichi tu e quelli scritti a mano restano sempre privati.
+- **Email di Gmail**: un codice si salva solo se vicino (circa 80 caratteri) c'è un discorso di sconto, e mai se vicino ci sono parole come verifica, OTP, password, accesso, login, sicurezza, PIN. Codici di conferma e numeri d'ordine non vengono più salvati.
+- **Avvisi di ribasso**: il prezzo visto navigando e quello letto in secondo piano hanno ciascuno la propria serie; si avvisa solo se scende sotto il minimo già registrato dalla stessa fonte di almeno l'1% (e 0,01), e al massimo una volta ogni 24 ore per prodotto. Niente più avvisi ripetuti e falsi.
+- **Pagine più leggere**: per leggere il prezzo non si copia più l'intera pagina; si guardano solo JSON-LD, meta e itemprop, e solo se qualcosa è cambiato.
+- **Timer**: torna il permesso `alarms` (nessun avviso all'installazione) per il controllo giornaliero dei prodotti che segui e l'aggiornamento ogni 6 ore dei codici personali. Il popup spiega che le pagine con prezzo solo in JavaScript non si controllano in secondo piano.
+- **Più veloce**: prima di una prova i codici personali si leggono dall'archivio; l'aggiornamento (se serve) parte in secondo piano e non fa mai aspettare più di 0,3 secondi.
+- Google: un risultato si segna "visto" solo dopo una risposta riuscita, altrimenti si riprova. Gmail: riconosce meglio i messaggi (non confonde il nome di un'etichetta), segue subito le Opzioni e non smette mai di guardare (con ritmo leggero).
+- Esploratore e controllo prezzi: robots.txt si legge sull'indirizzo completo (percorso e parametri) e i reindirizzamenti verso un altro sito si rifiutano.
+- Se lo spazio del browser finisce: si tolgono i dati più vecchi, si riprova una volta e il popup lo dice.
+- Testi: descrizione del manifest e informativa (richiesta con la chiave personale) aggiornate; scopo unico dello store riscritto. L'informativa resta una BOZZA da far controllare.
+- Servizio dei codici: tabella `cacciasconti_codici_email` allineata a quella già attiva (`email_data` è una data); chiave personale di almeno 32 caratteri; dopo 10 chiavi sbagliate in un'ora risponde 429; ordine per data con i codici senza data in fondo.
+
 ## 1.4.0
 Prezzi, email e altre fonti di codici, tutte spente o solo locali di base.
 - **Storico prezzi**: sulle pagine prodotto (JSON-LD, OpenGraph, microdata, Shopify, WooCommerce) salva un prezzo al giorno sul tuo computer (massimo 500 prodotti). Scheda **Prezzi** nella finestra: mini grafico, minimo, massimo, prezzo di oggi.

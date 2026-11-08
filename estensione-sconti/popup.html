@@ -13,6 +13,7 @@
 </header>
 
 <div id="aggiorna-banner" class="avviso-box" hidden><span>Nuova versione pronta: <b id="agg-v"></b></span> <button id="agg-btn" type="button">Clicca per ricaricare</button></div>
+<div id="spazio" class="avviso-box" hidden><span>Lo spazio del browser era quasi finito: ho tolto i dati più vecchi (prodotti non seguiti, storico, codici scartati). Salva un file dei tuoi codici dalle Opzioni.</span> <button id="spazio-btn" type="button">Ho capito</button></div>
 <div id="permessi" class="avviso-box" hidden><span>Per funzionare serve il permesso su <b>tutti i siti</b>.</span> <button id="perm-btn" type="button">Dai il permesso</button></div>
 
 <nav>
@@ -51,6 +52,7 @@
   <div class="blocco"><b>Prodotti che segui</b>
     <ul id="seguiti"></ul>
     <p class="piccolo">Per questi, al massimo una volta al giorno, l'estensione riguarda la pagina del prodotto (senza cookie, rispettando robots.txt) e ti avvisa se il prezzo scende.</p>
+    <p class="piccolo" id="nota-js">Nota: in secondo piano non si possono controllare le pagine che mostrano il prezzo solo con JavaScript (il controllo legge la pagina come arriva dal sito). Per quelle il prezzo si aggiorna quando le visiti.</p>
   </div>
 </section>
 

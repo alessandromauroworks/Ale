@@ -338,7 +338,11 @@
       if (!(await chrome.permissions.contains({ origins: ['<all_urls>'] }))) $('permessi').hidden = false;
     } catch (e) {}
     $('perm-btn').onclick = async () => { try { if (await chrome.permissions.request({ origins: ['<all_urls>'] })) { $('permessi').hidden = true; aggiorna(); } } catch (e) {} };
-    try { await msg({ type: 'controllaAggiornamento', soloControlla: true }); } catch (e) {} // niente permesso "alarms": il controllo si fa anche ogni volta che si apre il popup
+    try { await msg({ type: 'controllaAggiornamento', soloControlla: true }); } catch (e) {} // il controllo si fa anche ogni volta che si apre il popup
+    try {
+      if ((await chrome.storage.local.get('avvisoSpazio')).avvisoSpazio) $('spazio').hidden = false;
+      $('spazio-btn').onclick = async () => { $('spazio').hidden = true; try { await chrome.storage.local.remove('avvisoSpazio'); } catch (e) {} };
+    } catch (e) {}
     const ag = (await chrome.storage.local.get('aggiornamentoPronto')).aggiornamentoPronto;
     if (ag && ag !== v) { $('agg-v').textContent = ag; $('aggiorna-banner').hidden = false; }
     $('agg-btn').onclick = () => msg({ type: 'ricarica' });

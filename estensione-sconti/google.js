@@ -5,7 +5,7 @@
   window.CS_GOOGLE = true;
   if (window.top !== window) return;
   const msg = (m) => { try { return chrome.runtime.sendMessage(m).catch(() => null); } catch (e) { return Promise.resolve(null); } };
-  let attivo = null, volte = 0, timer = null, inCorso = false;
+  let attivo = null, volte = 0, timer = null, inCorso = false, tentativi = 0;
 
   function dominioDelRisultato(a) {
     try {
@@ -30,17 +30,25 @@
       for (const a of document.querySelectorAll('a[href]')) {
         if (a.dataset.csGoogle || !a.querySelector('h3')) continue;
         if (++n > 40) break;
-        a.dataset.csGoogle = '1';
         const d = dominioDelRisultato(a);
+        if (!d) { a.dataset.csGoogle = '1'; continue; } // non è un risultato di un sito: inutile riguardarlo
+
         if (!d) continue;
         if (!per.has(d)) per.set(d, []);
         per.get(d).push(a);
       }
       if (!per.size) return;
       const r = await msg({ type: 'codiciPerDomini', domini: [...per.keys()] });
-      const conta = (r && r.conta) || {};
+      if (!r || !r.conta) {
+        // Il fondo non ha risposto (si stava riavviando?): i risultati NON si segnano come visti, si riprova fra poco.
+        if (tentativi++ < 4) setTimeout(giro, 1500 * tentativi);
+        return;
+      }
+      tentativi = 0;
+      const conta = r.conta;
       for (const [d, els] of per) {
         const k = conta[d];
+        for (const a of els) a.dataset.csGoogle = '1';
         if (!k) continue;
         for (const a of els) {
           const s = document.createElement('span');
@@ -53,6 +61,12 @@
       }
     } finally { inCorso = false; }
   }
+  // Se accendi o spegni l'opzione mentre la pagina è aperta, vale subito (senza ricaricare).
+  try {
+    chrome.storage.onChanged.addListener((c, area) => {
+      if (area === 'local' && c.opzioni) { attivo = !!(c.opzioni.newValue && c.opzioni.newValue.googleBadge); if (attivo) giro(); }
+    });
+  } catch (e) {}
   setTimeout(giro, 400);
   setTimeout(giro, 2000);
   try {

@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
   "name": "Cacciasconti",
-  "version": "1.4.0",
-  "description": "Al momento del pagamento prova i codici sconto per te e applica il migliore. Segue i prezzi che scegli tu. Di base tutto resta sul tuo computer.",
+  "version": "1.4.1",
+  "description": "Al momento del pagamento prova i codici sconto per te e applica il migliore. Salva sul tuo computer lo storico dei prezzi dei prodotti che visiti; ti avvisa per quelli che segui. Di base tutto resta sul tuo computer.",
   "permissions": [
     "storage",
     "scripting",
-    "notifications"
+    "notifications",
+    "alarms"
   ],
   "host_permissions": [
     "<all_urls>"

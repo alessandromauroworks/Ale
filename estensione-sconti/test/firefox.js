@@ -124,6 +124,34 @@ async function finche(fn, ms, passo = 300) { const fine = Date.now() + ms; let v
     await d.switchTo().window(popupHandle);
     await msgBg({ type: 'opzioni', opzioni: { cashback: { attivo: false } } });
 
+    // --- 1.4.1: lettura leggera del prezzo (JSON-LD/OpenGraph/microdata/Shopify/Woo dal DOM di Firefox), timer, robots con parametri, reindirizzamenti
+    await d.switchTo().window(popupHandle);
+    await msgBg({ type: 'opzioni', opzioni: { storicoPrezzi: true } });
+    await d.switchTo().window(hPrd);
+    const attesiFF = { '/p/og': 59.9, '/p/micro': 1299, '/p/shop': 24.9, '/p/woo': 35 };
+    const trovatiFF = {};
+    for (const [perc, prz] of Object.entries(attesiFF)) {
+      await d.get(url('prd', perc));
+      trovatiFF[perc] = await finche(async () => { const r = (await leggiPrezziFF())[`http://prd.localhost:${porta}${perc}`]; return r && r.punti.length ? r.punti[r.punti.length - 1][1] : null; }, 15000);
+    }
+    verifica('Firefox 1.4.1: prezzi letti col nuovo metodo leggero (OpenGraph 59,90, microdata 1299, Shopify 24,90, WooCommerce 35)', Object.entries(attesiFF).every(([k, v]) => trovatiFF[k] === v), trovatiFF);
+    await d.switchTo().window(popupHandle);
+    const alFF = await estensione('return (await browser.alarms.getAll()).map((a) => [a.name, a.periodInMinutes]);');
+    verifica('Firefox 1.4.1: timer (alarms) registrati: prezzi ogni 1440 minuti, codici personali ogni 360', Array.isArray(alFF) && alFF.some((a) => a[0] === 'cacciasconti-prezzi' && a[1] === 1440) && alFF.some((a) => a[0] === 'cacciasconti-personali' && a[1] === 360), alFF);
+    const vecchioFF = (u) => ({ nome: 'Prova', dominio: 'prd.localhost', valuta: '€', url: u, punti: [[20261101, 50]], avvisa: true, visto: Date.now(), ultimoControllo: Date.now() - 3 * 86400000, minSerie: { visita: 50 } });
+    const kFF = (p) => `http://prd.localhost:${porta}${p}`;
+    await estensione('const r = await browser.storage.local.get("prezzi"); r.prezzi[arguments[0]] = arguments[1]; r.prezzi[arguments[2]] = arguments[3]; await browser.storage.local.set({ prezzi: r.prezzi });', kFF('/p/scarpe?vietato=1'), vecchioFF(kFF('/p/scarpe') + '?vietato=1'), kFF('/p/redir'), vecchioFF(kFF('/p/redir') + '?to=' + encodeURIComponent(`http://prd.localhost:${porta + 1}/p/micro`)));
+    // un secondo server su un'altra porta serve da "altro sito" del reindirizzamento
+    const server2 = crea();
+    await new Promise((r) => server2.listen(0, r));
+    const porta2 = server2.address().port;
+    await estensione('const r = await browser.storage.local.get("prezzi"); r.prezzi[arguments[0]].url = arguments[1]; await browser.storage.local.set({ prezzi: r.prezzi });', kFF('/p/redir'), kFF('/p/redir') + '?to=' + encodeURIComponent(`http://prd.localhost:${porta2}/p/micro`));
+    const ctlFF = await msgBg({ type: 'prezziControlla' });
+    const recRedirFF = (await leggiPrezziFF())[kFF('/p/redir')];
+    verifica('Firefox 1.4.1: robots.txt con parametri (Disallow: /p/scarpe?vietato=1) rispettato; reindirizzamento verso un altro sito rifiutato (nessun prezzo nuovo)', ctlFF && ctlFF.vietati === 1 && ctlFF.errori === 1 && recRedirFF && recRedirFF.punti.length === 1 && recRedirFF.punti[0][1] === 50, { ctlFF, recRedirFF });
+    server2.close();
+    await estensione('const r = await browser.storage.local.get("prezzi"); delete r.prezzi[arguments[0]]; delete r.prezzi[arguments[1]]; await browser.storage.local.set({ prezzi: r.prezzi });', kFF('/p/scarpe?vietato=1'), kFF('/p/redir'));
+
     // --- Popup con i codici
     await d.switchTo().window(popupHandle);
     await d.navigate().refresh();

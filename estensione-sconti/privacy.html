@@ -30,6 +30,7 @@ h1{color:#0f9d78}
 <ul>
 <li><b>Gmail nel browser</b> (acceso di base, ma agisce solo quando apri un messaggio): cerca i codici sconto nel testo del messaggio aperto, sul tuo computer. Il testo dell'email non viene salvato né inviato a nessuno; si salvano solo negozio, codici e scadenza. Si spegne dalle Opzioni.</li>
 <li><b>Codici email dal tuo database personale</b>: se la tua automazione salva i codici delle tue email in una tabella del TUO Supabase (<code>cacciasconti_codici_email</code>: dominio, codice, sconto, scadenza, data e mittente dell'email), puoi inserire nelle Opzioni una <b>chiave personale</b>. Con quella chiave, e solo con quella, l'estensione scarica i tuoi codici non scaduti (ogni 6 ore e prima di una prova). Chi non ha la chiave non può leggere la tabella. La chiave resta solo sul tuo computer (non si sincronizza e non finisce nei salvataggi). Il servizio non restituisce il mittente.</li>
+<li><b>Richiesta di rete con la chiave personale</b>: solo se hai inserito la chiave, l'estensione chiama il TUO servizio (il tuo Supabase) mandando <b>la chiave</b> (e, se la richiesta è per un solo negozio, anche il <b>dominio</b> di quel negozio). Di solito l'aggiornamento è unico, per tutti i negozi, ogni 6 ore o quando premi "Aggiorna". Questa richiesta è <b>indipendente dalla condivisione anonima</b>: parte anche se la condivisione è spenta, e non parte se non c'è la chiave. Non passa da Cacciasconti. Per aggiornare i codici ogni 6 ore l'estensione usa un timer del browser (permesso <code>alarms</code>), che serve anche al controllo giornaliero dei prezzi dei prodotti che segui.</li>
 <li><b>Conservazione</b> nel tuo database: i codici si cancellano 7 giorni dopo la scadenza, e comunque dopo 180 giorni dalla data dell'email.</li>
 </ul>
 <h2>Prezzi dei prodotti</h2>
@@ -45,7 +46,7 @@ h1{color:#0f9d78}
 </ul>
 <h2>Cosa non fa</h2>
 <ul>
-<li>Di base non invia dati a Cacciasconti. Le uniche richieste di rete proprie sono quelle verso lo stesso negozio che stai visitando (esploratore) e, solo se lo accendi, il servizio dei codici condivisi (che scarica i codici del sito che stai visitando e riceve dominio, codice, esito e percentuale).</li>
+<li>Di base non invia dati a Cacciasconti. Le uniche richieste di rete proprie sono: quelle verso lo stesso negozio che stai visitando (esploratore); solo se lo accendi, il servizio dei codici condivisi (che scarica i codici del sito che stai visitando e riceve dominio, codice, esito e percentuale); solo se inserisci la chiave personale, il TUO servizio Supabase (vedi "Codici delle tue email"), anche con la condivisione spenta.</li>
 <li>Non usa strumenti di analisi o statistiche, e non ha identificativi di tracciamento.</li>
 <li>Non legge né modifica i cookie e non usa link di affiliazione.</li>
 <li>Legge il testo delle pagine solo sul tuo computer per trovare codici; non salva né invia altro. Nei moduli scrive soltanto nel campo del codice sconto e preme il suo pulsante.</li>

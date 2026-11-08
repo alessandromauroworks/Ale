@@ -10,6 +10,8 @@ const OPZIONI_BASE = {
   soloIcona: false, googleBadge: false, couponAperti: false, gmail: true, storicoPrezzi: true,
   cashback: { attivo: false, servizio: 'beruby', url: '', nomeAltro: '', tutti: true, negozi: [] }
 };
+// Solo i codici che chiunque può vedere (pagina del negozio, codici comuni, già pubblici) possono essere segnalati. Tutto il resto è privato.
+const ORIGINI_CONDIVISIBILI = ['pagina', 'pagina (classe)', 'sito del negozio', 'comune', 'condivisi'];
 const FONTE_EMAIL = 'email', FONTE_EMAIL_AUTO = 'email (automatico)', FONTE_COUPON = 'sito di coupon (aperto da te)';
 
 // Codici condivisi (anonimi, SPENTI di base). L'indirizzo e la chiave pubblica (anon) si mettono qui; senza chiave la funzione risponde lo stesso se non la richiede.
@@ -48,7 +50,48 @@ async function leggiArchivio() {
   const r = await chrome.storage.local.get('archivio');
   return r.archivio || {};
 }
-const scriviArchivio = (archivio) => chrome.storage.local.set({ archivio });
+// Scrittura con rete di sicurezza: se lo spazio del browser è finito, si tolgono i dati più vecchi (prodotti non seguiti, storico, scarti dell'archivio) e si riprova una volta; poi si avvisa nel popup.
+const UN_GIORNO_MS = 24 * 3600 * 1000;
+async function liberaSpazio(obj) {
+  const k = await chrome.storage.local.get(['prezzi', 'storico', 'esplorati', 'selettori', 'archivio']);
+  const extra = {};
+  const prezzi = obj.prezzi || k.prezzi;
+  if (prezzi) {
+    const chiavi = Object.keys(prezzi).sort((a, b) => (prezzi[a].avvisa ? 1 : 0) - (prezzi[b].avvisa ? 1 : 0) || (prezzi[a].visto || 0) - (prezzi[b].visto || 0));
+    chiavi.filter((c) => !prezzi[c].avvisa).slice(0, Math.max(10, Math.ceil(chiavi.length / 4))).forEach((c) => delete prezzi[c]);
+    if (!obj.prezzi) extra.prezzi = prezzi;
+  }
+  const storico = obj.storico || k.storico;
+  if (Array.isArray(storico) && storico.length > 100) { const t = storico.slice(0, Math.ceil(storico.length / 2)); if (obj.storico) obj.storico = t; else extra.storico = t; }
+  if (k.esplorati && !obj.esplorati) extra.esplorati = {};
+  if (k.selettori && !obj.selettori) {
+    const t = k.selettori;
+    Object.keys(t).sort((a, b) => (t[b].ts || 0) - (t[a].ts || 0)).slice(60).forEach((d) => delete t[d]);
+    extra.selettori = t;
+  }
+  const arch = obj.archivio || k.archivio;
+  if (arch) {
+    const adesso = Date.now();
+    for (const sito of Object.values(arch)) for (const [c, e] of Object.entries(sito)) {
+      if (e.source !== 'manuale' && e.esito !== 'ok' && (e.esito === 'ko' || e.esito === 'mai') && adesso - (e.data || e.trovato || 0) > 14 * UN_GIORNO_MS) delete sito[c];
+    }
+    for (const d of Object.keys(arch)) if (!Object.keys(arch[d]).length) delete arch[d];
+    if (!obj.archivio) extra.archivio = arch;
+  }
+  if (Object.keys(extra).length) { try { await chrome.storage.local.set(extra); } catch (e) {} }
+}
+const èQuota = (e) => /quota/i.test(String((e && e.message) || e));
+async function scrivi(obj) {
+  try { await chrome.storage.local.set(obj); return true; } catch (e) {
+    if (!èQuota(e)) throw e;
+    await liberaSpazio(obj);
+    let riuscito = true;
+    try { await chrome.storage.local.set(obj); } catch (e2) { if (!èQuota(e2)) throw e2; riuscito = false; }
+    try { await chrome.storage.local.set({ avvisoSpazio: Date.now() }); } catch (e3) {}
+    return riuscito;
+  }
+}
+const scriviArchivio = (archivio) => scrivi({ archivio });
 
 const TRENTA_GIORNI = 30 * 24 * 3600 * 1000;
 
@@ -226,11 +269,19 @@ function salvaTrovati(dominio, codici, fonte, scadenze, info) {
 }
 
 // ---------- Rete: scarica con tempo massimo, senza cookie ----------
+// Un reindirizzamento verso un altro sito non si accetta: ciò che si legge deve venire dal sito che stai guardando (stesso indirizzo; solo http -> https è ammesso).
+function stessaOrigine(da, a) {
+  try {
+    const x = new URL(da), y = new URL(a);
+    return x.hostname === y.hostname && (x.port || '') === (y.port || '') ? true : false;
+  } catch (e) { return false; }
+}
 async function scarica(url, ms) {
   const ac = new AbortController();
   const t = setTimeout(() => ac.abort(), ms || 5000);
   try {
     const r = await fetch(url, { credentials: 'omit', signal: ac.signal, redirect: 'follow', cache: 'no-store' });
+    if (r.url && !stessaOrigine(url, r.url)) throw new Error('reindirizzamento verso un altro sito');
     return r;
   } finally { clearTimeout(t); }
 }
@@ -293,7 +344,7 @@ function segnaFatto(chiave) {
   return inFila(async () => {
     const r = (await chrome.storage.local.get('esplorati')).esplorati || {};
     r[chiave] = Date.now();
-    await chrome.storage.local.set({ esplorati: r });
+    await scrivi({ esplorati: r });
   });
 }
 async function paginaHtml(url) {
@@ -331,7 +382,7 @@ async function esplora(dominio, origin) {
     let ottenuto = false;
     const robots = await leggiRobots(origin);
     const percorsi = [];
-    const aggiungi = (p) => { if (!percorsi.includes(p) && percorsi.length < MAX_PAGINE && consentito(robots, p.split('?')[0])) percorsi.push(p); };
+    const aggiungi = (p) => { if (!percorsi.includes(p) && percorsi.length < MAX_PAGINE && consentito(robots, p)) percorsi.push(p); };
     aggiungi('/');
     let htmlHome = null;
     if (percorsi.includes('/')) {
@@ -365,7 +416,7 @@ async function esplora(dominio, origin) {
     try { u = new URL(f.url); } catch (e) { continue; }
     if (!/^https?:$/.test(u.protocol) || (await giaFattoOggi('fonte:' + f.url))) continue;
     const robots = await leggiRobots(u.origin);
-    if (!consentito(robots, u.pathname)) { esito.fonteVietata = (esito.fonteVietata || []).concat(f.url); continue; }
+    if (!consentito(robots, u.pathname + u.search)) { esito.fonteVietata = (esito.fonteVietata || []).concat(f.url); continue; }
     esito.pagine.push(f.url);
     esplorazioniInCorso.add('fonte:' + f.url);
     try {
@@ -453,10 +504,18 @@ function registraPrezzo(chiave, dati, prezzo, fonte) {
     rec.punti = self.CS_lib.aggiungiPunto(rec.punti, prezzo, Date.now());
     if (fonte === 'visita') rec.visto = Date.now();
     else rec.visto = rec.visto || Date.now();
+    // Avviso di ribasso: il prezzo visto navigando (con i tuoi cookie, varianti, paese) e quello letto in secondo piano (senza cookie) possono essere diversi,
+    // quindi ogni fonte ha la SUA serie: si avvisa solo se il prezzo è sotto il minimo già registrato dalla STESSA fonte (da quando segui il prodotto),
+    // di almeno l'1% e di almeno 0,01 in valore, e al massimo una volta ogni 24 ore per prodotto. Il riferimento (prezzoRif) non cambia a ogni lettura.
     let avviso = null;
-    if (rec.avvisa) {
-      if (rec.prezzoRif != null && prezzo < rec.prezzoRif - 0.004) avviso = { da: rec.prezzoRif, a: prezzo };
-      rec.prezzoRif = prezzo;
+    if (rec.avvisa && (fonte === 'visita' || fonte === 'controllo')) {
+      rec.minSerie = rec.minSerie || {};
+      let prima = rec.minSerie[fonte];
+      if (prima == null && fonte === 'visita' && rec.prezzoRif != null) prima = rec.prezzoRif; // prodotti seguiti con la 1.4.0
+      const sceso = prima != null && prima - prezzo >= 0.01 - 1e-9 && prima - prezzo >= prima * 0.01 - 1e-9;
+      const libero = Date.now() - (rec.ultimoAvviso || 0) >= UN_GIORNO;
+      if (sceso && libero) { avviso = { da: prima, a: prezzo }; rec.ultimoAvviso = Date.now(); }
+      if (!(sceso && !libero)) rec.minSerie[fonte] = prima == null ? prezzo : Math.min(prima, prezzo); // avviso rimandato: il minimo non si sposta, così arriverà dopo
     }
     prezzi[chiave] = rec;
     // Al massimo MAX_PRODOTTI: via prima quelli non seguiti e meno recenti
@@ -465,7 +524,7 @@ function registraPrezzo(chiave, dati, prezzo, fonte) {
       chiavi.sort((a, b) => (prezzi[b].avvisa ? 1 : 0) - (prezzi[a].avvisa ? 1 : 0) || (prezzi[b].visto || 0) - (prezzi[a].visto || 0));
       chiavi.slice(MAX_PRODOTTI).forEach((k) => delete prezzi[k]);
     }
-    await chrome.storage.local.set({ prezzi });
+    await scrivi({ prezzi });
     if (avviso) notifica('prezzo:' + chiave, 'Il prezzo è sceso', (rec.nome || chiave) + ': da ' + formattaImporto(avviso.da, rec.valuta) + ' a ' + formattaImporto(avviso.a, rec.valuta));
     return { nuovo, avviso: !!avviso };
   });
@@ -483,14 +542,14 @@ async function controllaOsservati(forza) {
     const dovuti = Object.entries(prezzi).filter(([, r]) => r.avvisa && r.url && Date.now() - (r.ultimoControllo || 0) >= UN_GIORNO).slice(0, 15);
     const segna = (chiave, ts) => inFila(async () => {
       const t = (await chrome.storage.local.get('prezzi')).prezzi || {};
-      if (t[chiave]) { t[chiave].ultimoControllo = ts; await chrome.storage.local.set({ prezzi: t }); }
+      if (t[chiave]) { t[chiave].ultimoControllo = ts; await scrivi({ prezzi: t }); }
     });
     for (const [chiave, r] of dovuti) {
       let u;
       try { u = new URL(r.url); } catch (e) { continue; }
       if (!/^https?:$/.test(u.protocol)) continue;
       const robots = await leggiRobots(u.origin);
-      if (!consentito(robots, u.pathname)) { esito.vietati++; await segna(chiave, Date.now()); continue; }
+      if (!consentito(robots, u.pathname + u.search)) { esito.vietati++; await segna(chiave, Date.now()); continue; }
       const h = await paginaHtml(r.url);
       const p = h ? self.CS_lib.prezzoDaHtml(h) : null;
       if (!p || !(p.prezzo > 0)) { esito.errori++; await segna(chiave, Date.now() - UN_GIORNO + 4 * 3600 * 1000); continue; } // riprova tra 4 ore
@@ -518,7 +577,7 @@ function scaricaPersonali(dominio, forza) {
     const opz = await leggiOpzioni();
     const aggiorna = (x) => inFila(async () => {
       const s2 = (await chrome.storage.local.get('statoPersonali')).statoPersonali || {};
-      await chrome.storage.local.set({ statoPersonali: Object.assign(s2, x) });
+      await scrivi({ statoPersonali: Object.assign(s2, x) });
     });
     try {
       const ac = new AbortController();
@@ -556,7 +615,7 @@ const STATI_CB = ['in attesa', 'accreditato', 'mancante'];
 const dataValida = (s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s)) && !isNaN(new Date(s + 'T12:00:00'));
 const oggiIso = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 async function leggiRegistro() { return (await chrome.storage.local.get('cashbackRegistro')).cashbackRegistro || []; }
-const scriviRegistro = (v) => chrome.storage.local.set({ cashbackRegistro: v });
+const scriviRegistro = (v) => scrivi({ cashbackRegistro: v });
 
 let coupon_ricette = null;
 async function ricetteCoupon() {
@@ -582,18 +641,34 @@ async function controllaAggiornamento(soloControlla) {
     const su_disco = (await r.json()).version;
     const attuale = chrome.runtime.getManifest().version;
     if (!versioneMaggiore(su_disco, attuale)) { await chrome.storage.local.remove('aggiornamentoPronto'); return { nuova: null, attuale }; }
-    await chrome.storage.local.set({ aggiornamentoPronto: su_disco });
+    await scrivi({ aggiornamentoPronto: su_disco });
     const occupato = await testInCorso();
     const ricarica = (await leggiOpzioni()).ricaricaAuto === true;
     if (!occupato && !soloControlla && ricarica) { setTimeout(() => chrome.runtime.reload(), 200); return { nuova: su_disco, attuale, ricarico: true }; }
     return { nuova: su_disco, attuale, ricarico: false };
   } catch (e) { return { errore: String(e) }; }
 }
-// Niente permesso "alarms": il controllo parte all'avvio del browser, all'installazione e ogni volta che si apre il popup.
-// (Ha senso solo per la cartella caricata a mano; con gli store aggiornano gli store.)
+// Timer: permesso "alarms" (non mostra nessun avviso all'installazione). Servono solo a due cose:
+// il controllo giornaliero dei prezzi dei prodotti che SEGUI e l'aggiornamento ogni 6 ore dei codici personali (se hai messo la chiave).
+// Senza timer il controllo parte comunque all'avvio del browser, all'apertura di una pagina e quando apri il popup.
+const ALLARME_PREZZI = 'cacciasconti-prezzi', ALLARME_PERSONALI = 'cacciasconti-personali';
+async function creaAllarmi() {
+  try {
+    if (!chrome.alarms) return;
+    if (!(await chrome.alarms.get(ALLARME_PREZZI))) chrome.alarms.create(ALLARME_PREZZI, { delayInMinutes: 30, periodInMinutes: 24 * 60 });
+    if (!(await chrome.alarms.get(ALLARME_PERSONALI))) chrome.alarms.create(ALLARME_PERSONALI, { delayInMinutes: 15, periodInMinutes: 6 * 60 });
+  } catch (e) {}
+}
 try {
-  chrome.runtime.onStartup.addListener(() => { controllaAggiornamento(); controllaOsservati(); scaricaPersonali(null, false); });
-  chrome.runtime.onInstalled.addListener(() => controllaAggiornamento());
+  chrome.alarms.onAlarm.addListener((a) => {
+    if (a.name === ALLARME_PREZZI) controllaOsservati(true);
+    else if (a.name === ALLARME_PERSONALI) scaricaPersonali(null, false);
+  });
+} catch (e) {}
+// (Il ricaricamento da cartella ha senso solo per l'estensione caricata a mano; con gli store aggiornano gli store.)
+try {
+  chrome.runtime.onStartup.addListener(() => { creaAllarmi(); controllaAggiornamento(); controllaOsservati(); scaricaPersonali(null, false); });
+  chrome.runtime.onInstalled.addListener(() => { creaAllarmi(); controllaAggiornamento(); });
 } catch (e) {}
 
 async function gestisci(m, sender) {
@@ -647,7 +722,8 @@ async function gestisci(m, sender) {
         sito[c] = e;
         await scriviArchivio(potatura(arch));
         // Si segnala solo ciò che dice qualcosa sul CODICE: "funziona" o "non esiste/non vale". Mai i motivi che dipendono dal carrello.
-        if (e.origine !== 'manuale' && e.esito !== 'riprova') inviaRisultato(await leggiOpzioni(), m.dominio, c, m.ok, m.ok ? m.pct : null);
+        // Elenco di origini consentite (non di escluse): email, siti di coupon, fonti tue, codici scritti a mano restano SEMPRE privati.
+        if (ORIGINI_CONDIVISIBILI.includes(e.origine) && e.esito !== 'riprova') inviaRisultato(await leggiOpzioni(), m.dominio, c, m.ok, m.ok ? m.pct : null);
         return { ok: true };
       });
     case 'stato': {
@@ -659,7 +735,9 @@ async function gestisci(m, sender) {
     }
     case 'coda': {
       await scaricaCondivisi(m.dominio, await leggiOpzioni(), !!m.avvio);
-      if (m.avvio) await scaricaPersonali(m.dominio, true); // prima di una prova: codici delle email per questo sito (se hai messo la chiave)
+      // Prima di una prova: si usano subito i codici delle email già scaricati (ultime 6 ore). Se sono vecchi, l'aggiornamento parte in secondo piano
+      // e la prova aspetta al massimo 300 millisecondi (di solito i codici nuovi si vedono dalla prova dopo).
+      if (m.avvio) await conTempo(scaricaPersonali(null, false), 300);
       const [arch, opz] = [await leggiArchivio(), await leggiOpzioni()];
       return { coda: costruisciCoda(arch, m.dominio, opz, !!m.riprova, typeof m.totale === 'number' ? m.totale : null), opzioni: opz };
     }
@@ -674,7 +752,7 @@ async function gestisci(m, sender) {
         const r = await chrome.storage.local.get('storico');
         const lista = r.storico || [];
         lista.unshift({ dominio: m.dominio, codice: m.codice, risparmio: m.risparmio, simbolo: simboloValuta(m.simbolo), data: Date.now() });
-        await chrome.storage.local.set({ storico: lista.slice(0, 500) });
+        await scrivi({ storico: lista.slice(0, 500) });
         return { ok: true };
       });
     case 'leggiStorico':
@@ -684,7 +762,7 @@ async function gestisci(m, sender) {
         const r = await chrome.storage.local.get('nascosti');
         const n = r.nascosti || {};
         n[m.dominio] = Date.now();
-        await chrome.storage.local.set({ nascosti: n });
+        await scrivi({ nascosti: n });
         return { ok: true };
       });
     case 'cardNascosta': {
@@ -726,7 +804,7 @@ async function gestisci(m, sender) {
           const chiavi = new Set((r.storico || []).map((x) => x.dominio + x.codice + x.data));
           const unito = (r.storico || []).concat(d.storico.filter((x) => x && !chiavi.has(x.dominio + x.codice + x.data)));
           unito.sort((a, b) => b.data - a.data);
-          await chrome.storage.local.set({ storico: unito.slice(0, 500) });
+          await scrivi({ storico: unito.slice(0, 500) });
         }
         return { ok: true };
       });
@@ -753,7 +831,7 @@ async function gestisci(m, sender) {
         nuove.cashback = cb;
         nuove.fonti = (Array.isArray(nuove.fonti) ? nuove.fonti : []).filter((f) => f && /^https?:\/\//.test(f.url || '') && f.dominio).slice(0, 10)
           .map((f) => ({ url: String(f.url).slice(0, 500), dominio: String(f.dominio).toLowerCase().slice(0, 253) }));
-        await chrome.storage.local.set({ opzioni: nuove });
+        await scrivi({ opzioni: nuove });
         return nuove;
       });
     // Stato del test per scheda (serve a continuare dopo il ricaricamento della pagina).
@@ -822,7 +900,7 @@ async function gestisci(m, sender) {
         t[m.dominio] = { input: String(m.input || '').slice(0, 300) || null, bottone: String(m.bottone || '').slice(0, 300) || null, ts: Date.now() };
         const chiavi = Object.keys(t);
         if (chiavi.length > 200) chiavi.sort((a, b) => (t[a].ts || 0) - (t[b].ts || 0)).slice(0, chiavi.length - 200).forEach((k) => delete t[k]);
-        await chrome.storage.local.set({ selettori: t });
+        await scrivi({ selettori: t });
         return { ok: true };
       });
     case 'diagnosiTab':
@@ -879,8 +957,9 @@ async function gestisci(m, sender) {
         if (m.avvisa && Object.values(prezzi).filter((x) => x.avvisa).length >= MAX_SEGUITI && !rec.avvisa) return { errore: 'Puoi seguire al massimo ' + MAX_SEGUITI + ' prodotti.' };
         rec.avvisa = !!m.avvisa;
         rec.prezzoRif = rec.avvisa ? (rec.punti.length ? rec.punti[rec.punti.length - 1][1] : null) : null;
+        rec.minSerie = rec.avvisa && rec.prezzoRif != null ? { visita: rec.prezzoRif } : {}; // la serie di "controllo" parte alla prima lettura in secondo piano
         if (rec.avvisa) rec.ultimoControllo = Date.now();
-        await chrome.storage.local.set({ prezzi });
+        await scrivi({ prezzi });
         return { ok: true, avvisa: rec.avvisa };
       });
     case 'prezziSeguiti': {
@@ -933,7 +1012,7 @@ async function gestisci(m, sender) {
         const k = String(m.chiave || '').trim();
         if (k.length > 200 || /\s/.test(k)) return { errore: 'Chiave non valida.' };
         if (!k) await chrome.storage.local.remove(['chiavePersonale', 'statoPersonali']);
-        else await chrome.storage.local.set({ chiavePersonale: k });
+        else await scrivi({ chiavePersonale: k });
         return { ok: true, presente: !!k };
       });
     case 'chiaveStato': {
@@ -953,7 +1032,7 @@ async function gestisci(m, sender) {
       return inFila(async () => {
         const n = (await chrome.storage.local.get('nascosti')).nascosti || {};
         n['cb:' + m.dominio] = Date.now();
-        await chrome.storage.local.set({ nascosti: n });
+        await scrivi({ nascosti: n });
         return { ok: true };
       });
     case 'cbLista':

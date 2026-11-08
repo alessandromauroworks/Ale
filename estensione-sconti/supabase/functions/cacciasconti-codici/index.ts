@@ -2,12 +2,13 @@
 // POST  {domain, code, worked, saving_pct?}  -> salva una segnalazione anonima
 // GET   ?domain=esempio.it                   -> max 20 codici con almeno 2 successi e tasso di successo >= 50% negli ultimi 30 giorni
 // GET   ?personali=1[&domain=x]              -> codici delle TUE email (tabella cacciasconti_codici_email), non scaduti, max 500. Serve l'intestazione x-cacciasconti-token = segreto CACCIASCONTI_TOKEN_PERSONALE (senza segreto: 503).
-// Segreti da impostare: CACCIASCONTI_TOKEN_PERSONALE (solo per i codici personali delle email); CACCIASCONTI_SALE (testo casuale lungo, OBBLIGATORIO: senza, le segnalazioni rispondono 503); opzionale CACCIASCONTI_APIKEY (chiave anon dell'estensione).
+// Segreti da impostare: CACCIASCONTI_TOKEN_PERSONALE (solo per i codici personali delle email; almeno 32 caratteri casuali; dopo 10 chiavi sbagliate in un'ora dallo stesso indirizzo risponde 429); CACCIASCONTI_SALE (testo casuale lungo, OBBLIGATORIO: senza, le segnalazioni rispondono 503); opzionale CACCIASCONTI_APIKEY (chiave anon dell'estensione).
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const MAX_BODY = 2048;
 const MAX_ORA = 60;
 const MAX_PERSONALI = 500;
+const MAX_TOKEN_SBAGLIATI = 10; // chiavi personali sbagliate per ora, per indirizzo (hash): oltre, 429
 const RE_DOMINIO = /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/;
 const RE_CODICE = /^[A-Z0-9-]{3,25}$/;
 // Un codice entra nell'elenco pubblico solo con almeno 2 segnalazioni "funziona" e almeno il 50% di successi (contro l'avvelenamento con una sola segnalazione falsa).
@@ -51,13 +52,20 @@ async function personali(req: Request, url: URL, db: any): Promise<Response> {
   const segreto = Deno.env.get("CACCIASCONTI_TOKEN_PERSONALE");
   if (!segreto) return json({ errore: "servizio non configurato" }, 503);
   const dato = req.headers.get("x-cacciasconti-token") || "";
-  if (!dato || !(await confrontoCostante(dato, segreto))) return json({ errore: "non autorizzato" }, 401);
+  if (!dato || !(await confrontoCostante(dato, segreto))) {
+    // Freno contro chi prova chiavi a caso: si contano le chiavi SBAGLIATE per ora e per indirizzo (solo l'hash, mai l'IP). Prefisso "tok|" per non mischiarsi con le segnalazioni.
+    const sale = Deno.env.get("CACCIASCONTI_SALE") || segreto;
+    const hash = await sha256("tok|" + ipCliente(req) + "|" + new Date().toISOString().slice(0, 10) + "|" + sale);
+    const { data: n, error } = await db.rpc("cacciasconti_conta", { p_hash: hash });
+    if (!error && n > MAX_TOKEN_SBAGLIATI) return json({ errore: "troppi tentativi, riprova più tardi" }, 429);
+    return json({ errore: "non autorizzato" }, 401);
+  }
   const dominio = (url.searchParams.get("domain") || "").toLowerCase();
   if (dominio && !dominioValido(dominio)) return json({ errore: "dominio non valido" }, 400);
   const oggi = new Date().toISOString().slice(0, 10);
   let q = db.from("cacciasconti_codici_email").select("domain,code,sconto,scade_il,email_data").or(`scade_il.is.null,scade_il.gte.${oggi}`);
   if (dominio) q = q.eq("domain", dominio);
-  const { data, error } = await q.order("email_data", { ascending: false }).limit(MAX_PERSONALI);
+  const { data, error } = await q.order("email_data", { ascending: false, nullsFirst: false }).limit(MAX_PERSONALI);
   if (error) return json({ errore: "errore del server" }, 500);
   return json({ codici: data });
 }

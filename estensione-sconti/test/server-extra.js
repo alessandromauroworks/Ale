@@ -47,8 +47,9 @@ async function gestisciExtra(host, url, req, res, html, leggiCorpo) {
     if (url.pathname === '/__hits') return json({ hits: hitsPrd }), true;
     if (url.pathname === '/__azzera') { hitsPrd.length = 0; return json({ ok: 1 }), true; }
     if (url.pathname === '/__prezzo') { prezzi[url.searchParams.get('p')] = parseFloat(url.searchParams.get('v')); return json({ ok: 1 }), true; }
-    if (url.pathname === '/robots.txt') { hitsPrd.push({ path: '/robots.txt', cookie: req.headers.cookie || null }); res.writeHead(200, { 'content-type': 'text/plain' }); res.end('User-agent: *\nDisallow: /p/vietato\n'); return true; }
+    if (url.pathname === '/robots.txt') { hitsPrd.push({ path: '/robots.txt', cookie: req.headers.cookie || null }); res.writeHead(200, { 'content-type': 'text/plain' }); res.end('User-agent: *\nDisallow: /p/vietato\nDisallow: /p/scarpe?vietato=1\n'); return true; }
     if (url.pathname === '/lista') { html(LISTA); return true; }
+    if (url.pathname === '/p/redir') { hitsPrd.push({ path: '/p/redir', cookie: null }); res.writeHead(302, { location: url.searchParams.get('to') }); res.end(); return true; }
     const p = paginaProdotto(url.pathname);
     if (p) { hitsPrd.push({ path: url.pathname + url.search, cookie: req.headers.cookie || null, ua: req.headers['user-agent'] ? 1 : 0 }); html(p, { 'set-cookie': 'sid=1; Path=/' }); return true; }
     res.writeHead(404); res.end('no'); return true;
@@ -73,11 +74,12 @@ async function gestisciExtra(host, url, req, res, html, leggiCorpo) {
     if (url.pathname === '/__azzera') { logPers.length = 0; return json({ ok: 1 }), true; }
     const token = req.headers['x-cacciasconti-token'] || null;
     logPers.push({ domain: url.searchParams.get('domain'), personali: url.searchParams.get('personali'), token, cookie: req.headers.cookie || null });
+    if (url.pathname === '/lenta') await new Promise((r) => setTimeout(r, 2500));
     if (token !== 'segreto-di-prova') return json({ errore: 'non autorizzato' }, 401), true;
     const tutte = [
-      { domain: 'emailshop.it', code: 'MAIL15', sconto: '15%', scade_il: '2099-12-31', email_data: '2026-11-01T10:00:00Z' },
-      { domain: 'emailshop.it', code: 'VECCHIO5', sconto: '5%', scade_il: '2020-01-01', email_data: '2019-12-01T10:00:00Z' },
-      { domain: 'altroshop.com', code: 'ALTRO20', sconto: null, scade_il: null, email_data: '2026-11-02T10:00:00Z' }
+      { domain: 'emailshop.it', code: 'MAIL15', sconto: '15%', scade_il: '2099-12-31', email_data: '2026-11-01' },
+      { domain: 'emailshop.it', code: 'VECCHIO5', sconto: '5%', scade_il: '2020-01-01', email_data: '2019-12-01' },
+      { domain: 'altroshop.com', code: 'ALTRO20', sconto: null, scade_il: null, email_data: '2026-11-02' }
     ];
     const d = url.searchParams.get('domain');
     return json({ codici: d ? tutte.filter((x) => x.domain === d) : tutte }), true;

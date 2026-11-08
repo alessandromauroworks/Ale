@@ -127,6 +127,39 @@
     return null;
   };
 
+  // Dalla pagina VERA (DOM) prende solo i pezzi che servono per leggere il prezzo e li mette in un piccolo HTML: titolo, <meta>, JSON-LD, elementi con itemprop,
+  // il tag <body> e i primi blocchi "price" (WooCommerce). Non si copia più l'intera pagina (outerHTML), che su pagine grandi costa decine di millisecondi per volta.
+  L.htmlPerPrezzo = function (doc) {
+    doc = doc || document;
+    const parti = [];
+    const t = doc.title;
+    if (t) parti.push('<title>' + String(t).replace(/</g, '&lt;') + '</title>');
+    let n = 0;
+    for (const el of doc.querySelectorAll('meta')) { if (n++ >= 400) break; parti.push(el.outerHTML); }
+    n = 0;
+    for (const el of doc.querySelectorAll('script[type="application/ld+json"]')) { if (n++ >= 20) break; parti.push(el.outerHTML.slice(0, 300000)); }
+    const radice = doc.querySelector('[itemtype*="schema.org/Product" i]');
+    if (radice) parti.push(radice.cloneNode(false).outerHTML.replace(/<\/[a-z0-9]+>$/i, ''));
+    n = 0;
+    for (const el of doc.querySelectorAll('[itemprop=price],[itemprop=priceCurrency],[itemprop=name]')) { if (n++ >= 12) break; parti.push(el.outerHTML.slice(0, 600)); }
+    if (doc.body && doc.body.classList && doc.body.classList.contains('single-product')) {
+      parti.push('<body class="' + String(doc.body.className).replace(/"/g, '') + '">');
+      n = 0;
+      for (const el of doc.querySelectorAll('.price')) { if (n++ >= 3) break; parti.push(el.outerHTML.slice(0, 2000)); }
+    }
+    return parti.join('\n');
+  };
+  // Firma leggera di ciò che conta per il prezzo: se non cambia, non serve rileggere la pagina.
+  L.firmaPrezzo = function (doc) {
+    doc = doc || document;
+    let f = String(doc.title || '').length + '|';
+    for (const el of doc.querySelectorAll('script[type="application/ld+json"]')) f += el.textContent.length + ',';
+    for (const el of doc.querySelectorAll('meta[property^="product:"],meta[property^="og:price"],meta[name="twitter:data1"]')) f += (el.getAttribute('content') || '') + ',';
+    for (const el of doc.querySelectorAll('[itemprop=price]')) f += (el.getAttribute('content') || el.textContent || '').slice(0, 40) + ',';
+    if (doc.body && doc.body.classList.contains('single-product')) { const p = doc.querySelector('.price'); f += p ? p.textContent.replace(/\s+/g, ' ').slice(0, 80) : ''; }
+    return f;
+  };
+
   L.chiaveProdotto = function (url) {
     try {
       const u = new URL(url);
@@ -251,6 +284,14 @@
     return [...conta.entries()].sort((a, b) => b[1] - a[1]).map((x) => x[0]);
   }
   const reInfoPct = /(\d{1,2}(?:[.,]\d)?)\s*%/;
+  // Codici di verifica, accesso, password, sicurezza: mai salvati. Nelle email il codice deve avere VICINO (circa 80 caratteri) una parola di sconto.
+  const FINESTRA_CODICE = 80;
+  const RE_SEGRETO = /verifica\b|verifich|verification|verify|\botp\b|one[-\s]?time|password|accesso|log[-\s]?in|sign[-\s]?in|conferma\s+(?:del\s+(?:tuo\s+)?|il\s+tuo\s+|la\s+tua\s+)?(?:account|e-?mail|indirizzo)|confirm\w*\s+(?:your\s+)?(?:account|e-?mail)|security|sicurezza|autenticazion|authentication|\bpin\b|\b2fa\b|due\s+fattori|two[-\s]?factor/i;
+  const RE_SCONTO_VICINO = /sconto|sconti|coupon|promo|offert|risparm|discount|\d\s*%|%\s*\d|€\s*di\s*sconto|\boff\b|\bsave\b|saving/i;
+  L.contestoSconto = function (vicino) {
+    const t = String(vicino || '').replace(/accesso\s+(?:anticipato|esclusivo|prioritario|riservato)|early\s+access|vip\s+access/gi, ' ');
+    return RE_SCONTO_VICINO.test(t) && !RE_SEGRETO.test(t);
+  };
   // { mittente, oggetto, testo, link: [href...], oggi } -> { dominio, codici: [{ code, scade, info }] }
   L.emailEstrai = function (e) {
     const out = { dominio: null, codici: [] };
@@ -262,10 +303,18 @@
     else if (link.length) out.dominio = link[0];
     if (!out.dominio) return out;
     const trovati = new Set();
-    self.CS_dalTesto(String(e.oggetto || '') + ' \n' + testo.slice(0, 200000), trovati, oggi);
+    const tutto = String(e.oggetto || '') + ' \n' + testo.slice(0, 200000);
+    self.CS_dalTesto(tutto, trovati, oggi);
     for (const c of trovati) {
-      const i = testo.indexOf(c);
-      const vicino = i >= 0 ? testo.slice(Math.max(0, i - 120), i + c.length + 120) : String(e.oggetto || '');
+      // Una email vale solo se il codice sta dentro un discorso di sconto (e non di verifica, accesso, password...): altrimenti potrebbe essere un codice SEGRETO.
+      let i = tutto.indexOf(c), buono = false;
+      while (i >= 0 && !buono) {
+        buono = L.contestoSconto(tutto.slice(Math.max(0, i - FINESTRA_CODICE), i + c.length + FINESTRA_CODICE));
+        i = tutto.indexOf(c, i + c.length);
+      }
+      if (!buono) continue;
+      const j = tutto.indexOf(c);
+      const vicino = j >= 0 ? tutto.slice(Math.max(0, j - 120), j + c.length + 120) : '';
       const p = reInfoPct.exec(vicino);
       out.codici.push({ code: c, scade: (trovati.scad && trovati.scad[c]) || null, info: p ? '-' + p[1].replace(',', '.') + '%' : null });
     }

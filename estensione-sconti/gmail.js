@@ -11,7 +11,17 @@
   let attivo = null, volte = 0, timer = null, inCorso = false;
 
   // Un messaggio è aperto quando l'indirizzo finisce con l'identificativo del messaggio (#inbox/FMfcg...), non con il nome di una cartella.
-  const idMessaggio = () => { const m = /^#[^?]*\/([A-Za-z0-9_-]{14,})$/.exec(location.hash); return m ? m[1] : null; };
+  // Gli identificativi veri sono 16 cifre esadecimali (vecchi) oppure 24-40 tra lettere e cifre (nuovi, senza trattini): il nome di un'etichetta (#label/Offerte-di-natale) non vale.
+  // Per #label/... e #search/... l'identificativo sta dopo il nome (almeno tre pezzi); per le cartelle normali (#inbox/...) subito dopo.
+  const RE_ID = /^(?:[0-9a-f]{16}|[A-Za-z][A-Za-z0-9]{23,39})$/;
+  const idMessaggio = () => {
+    const pezzi = location.hash.replace(/^#/, '').split('?')[0].split('/');
+    const nome = (pezzi[0] || '').toLowerCase();
+    const id = pezzi[pezzi.length - 1];
+    if (pezzi.length < 2 || !RE_ID.test(id)) return null;
+    if ((nome === 'label' || nome === 'search' || nome === 'category') && pezzi.length < 3) return null;
+    return id;
+  };
   const visibile = (el) => { try { return el.checkVisibility ? el.checkVisibility() : !!(el.offsetWidth || el.offsetHeight); } catch (e) { return false; } };
 
   async function giro() {
@@ -32,6 +42,7 @@
         const indirizzo = (mitt && mitt.getAttribute('email')) || '';
         const chiave = id + '|' + indirizzo + '|' + testo.length + '|' + testo.slice(0, 60);
         if (fatti.has(chiave)) continue;
+        if (fatti.size > 500) fatti.clear();
         fatti.add(chiave);
         const link = Array.from(corpo.querySelectorAll('a[href]')).slice(0, 200).map((a) => a.href);
         const r = L.emailEstrai({ mittente: indirizzo, oggetto, testo, link });
@@ -40,11 +51,19 @@
     } finally { inCorso = false; }
   }
   window.addEventListener('hashchange', () => setTimeout(giro, 700));
+  // Se accendi o spegni l'opzione mentre Gmail è aperto, vale subito (senza ricaricare).
+  try {
+    chrome.storage.onChanged.addListener((c, area) => {
+      if (area === 'local' && c.opzioni) { attivo = !(c.opzioni.newValue && c.opzioni.newValue.gmail === false); if (attivo) giro(); }
+    });
+  } catch (e) {}
   setTimeout(giro, 800);
+  // L'osservatore non si ferma mai (Gmail cambia la pagina di continuo), ma è leggero: al massimo un giro ogni 0,9 secondi, poi ogni 4 secondi dopo 300 giri;
+  // e se non c'è un messaggio aperto il giro finisce subito (guarda solo l'indirizzo).
   try {
     new MutationObserver(() => {
-      if (volte >= 300 || timer) return;
-      timer = setTimeout(() => { timer = null; volte++; giro(); }, 900);
+      if (timer) return;
+      timer = setTimeout(() => { timer = null; volte++; giro(); }, volte < 300 ? 900 : 4000);
     }).observe(document.documentElement, { childList: true, subtree: true });
   } catch (e) {}
 })();

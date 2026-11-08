@@ -30,15 +30,25 @@ Rispetto alle altre estensioni di coupon:
 Limiti onesti: non esistono codici per tutti i negozi, non funziona su ogni cassa, alcuni siti bloccano i troppi tentativi (in quel caso l'estensione si ferma) e i codici personali non funzionano per altri.
 
 ## Scopo unico (single purpose)
-Trovare e provare i codici sconto sulla pagina del carrello o della cassa di un negozio online e applicare quello che fa risparmiare di più.
+Aiutarti a risparmiare sugli acquisti online: codici sconto provati alla cassa, con funzioni collegate (storico prezzi, promemoria cashback, codici dalle tue email).
+
+Come ogni funzione serve a questo unico scopo:
+- **Codici sconto provati alla cassa** (funzione principale): trova i codici e prova quelli che fanno risparmiare di più.
+- **Storico prezzi e avviso di ribasso**: ti dice se il prezzo di un prodotto è alto o basso rispetto ai giorni scorsi e ti avvisa, solo per i prodotti che scegli tu, quando scende: serve a comprare al prezzo più basso.
+- **Spedizione gratuita**: mostra quanto manca alla soglia, per non pagare spedizione che si può evitare.
+- **Promemoria cashback**: ti ricorda di passare dal servizio di cashback che hai scelto prima di pagare, per recuperare parte della spesa (non è un affiliato: nessun link nostro).
+- **Codici dalle tue email e dai siti di coupon che apri**: portano nel posto giusto i codici sconto che hai già ricevuto o che stai già guardando.
+- **Segnali su Google**: una scritta accanto ai risultati dei negozi per cui hai già un codice.
+Nessuna di queste funzioni fa altro che aiutare a pagare meno; non c'è pubblicità, non ci sono affiliazioni, non ci sono altri scopi.
 
 ## Motivazione dei permessi
 - **storage**: salva sul computer i codici, i risultati delle prove, lo storico dei risparmi e le impostazioni.
 - **scripting**: permette di caricare lo script nella scheda già aperta prima dell'installazione, quando l'utente apre la finestra dell'estensione.
 - **Accesso a tutti i siti (host_permissions <all_urls>)**: i negozi online sono migliaia e non si possono elencare. Serve per leggere il testo delle pagine alla ricerca di codici sconto (solo sul computer dell'utente), per scrivere nel campo coupon della cassa, per scaricare le poche pagine promo dello stesso negozio e, solo se l'utente accende la condivisione, per parlare con il servizio dei codici condivisi. Il testo letto non viene salvato né inviato, a parte i codici trovati (salvati solo sul computer).
 - **notifications**: mostra l'avviso "il prezzo è sceso" solo per i prodotti che l'utente ha scelto di seguire.
+- **alarms**: due timer del browser, nessun avviso all'installazione: uno al giorno per ricontrollare il prezzo dei soli prodotti che l'utente segue, uno ogni 6 ore per aggiornare i codici personali (solo se l'utente ha inserito la chiave). Senza timer i controlli partirebbero solo quando si apre il browser o una pagina.
 - **Pagine di Gmail e di Google (match specifici)**: lo script di Gmail gira solo su `mail.google.com`, quello dei risultati solo su `google.*/search`.
-- Non sono richiesti `activeTab` (ridondante con l'accesso a tutti i siti), `alarms`, `cookies`.
+- Non sono richiesti `activeTab` (ridondante con l'accesso a tutti i siti) e `cookies`.
 
 ## Uso dei dati (Data use disclosure)
 - Di base: dati raccolti **nessuno**. "Contenuto dei siti web": il testo delle pagine si elabora solo sul computer dell'utente per trovare i codici e non viene trasmesso.
@@ -46,7 +56,7 @@ Trovare e provare i codici sconto sulla pagina del carrello o della cassa di un 
 - Cacciasconti non inserisce link di affiliazione né propri codici di tracciamento.
 - **Gmail**: il contenuto delle pagine di Gmail (solo del messaggio che l'utente apre) è elaborato SOLO sul computer dell'utente per trovare codici sconto; non viene trasmesso né salvato (si salvano solo negozio, codici e scadenza). Dichiarare "Contenuto dei siti web" / comunicazioni personali come trattati localmente, non raccolti. Uso limitato (Limited Use): nessun uso per pubblicità, nessun trasferimento a terzi, nessuna lettura da parte di persone.
 - **Storico prezzi**: i prezzi dei prodotti visti sono salvati solo nel browser (massimo 500 prodotti, un punto al giorno). Per i prodotti seguiti l'estensione scarica la pagina del prodotto una volta al giorno, senza cookie, rispettando robots.txt.
-- **Chiave personale (facoltativa)**: se l'utente la inserisce, resta solo in `storage.local` (mai sincronizzata né esportata) e viene inviata soltanto al servizio dell'utente stesso (il SUO Supabase), insieme al dominio del negozio. Da dichiarare come "Informazioni di autenticazione" (opzionale, verso un servizio scelto dall'utente) e "Attività di navigazione" (dominio).
+- **Chiave personale (facoltativa)**: se l'utente la inserisce, resta solo in `storage.local` (mai sincronizzata né esportata) e viene inviata soltanto al servizio dell'utente stesso (il SUO Supabase), anche con la condivisione spenta e solo se la chiave c'è. Da dichiarare come "Informazioni di autenticazione" (opzionale, verso un servizio scelto dall'utente) e "Attività di navigazione" (dominio).
 - **Solo se l'utente accende "Condividi codici funzionanti (anonimo)"** (spento di base) si inviano: sito (dominio), codice, se ha funzionato, percentuale di sconto. Nessun account, nessun IP salvato (solo un hash con sale giornaliero per limitare gli abusi, cancellato dopo 24 ore); le segnalazioni si cancellano dopo 90 giorni. Titolare: Alessandro Mauro, alessandromauro.works@gmail.com. I codici scritti a mano dall'utente non si inviano mai.
 - L'"esploratore del negozio" scarica poche pagine pubbliche (max 8, una volta al giorno) dello STESSO negozio che l'utente sta visitando, senza cookie, rispettando robots.txt; non scarica siti di terzi.
 - BOZZA da far controllare (privacy/legale) prima della pubblicazione: nella scheda dello store va dichiarata la raccolta opzionale di "attività di navigazione" (dominio).

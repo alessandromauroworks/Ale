@@ -74,7 +74,7 @@
   };
 
   // ---------- Prezzo del prodotto ----------
-  let ultimoInviato = null;
+  let ultimoInviato = null, ultimaFirma = null;
   CS.prodotto = null;
   function chiaveDiQuestaPagina() {
     let k = L.chiaveProdotto(location.href);
@@ -87,8 +87,13 @@
   async function rilevaPrezzo() {
     if (!document.documentElement) return null;
     if (!document.querySelector('script[type="application/ld+json"],meta[property^="product:"],meta[property="og:price:amount"],[itemprop=price],meta[name="twitter:data1"],body.single-product')) return CS.prodotto;
+    // Se i pezzi che contano per il prezzo non sono cambiati dall'ultima lettura, non si rilegge niente.
+    let firmaDom;
+    try { firmaDom = L.firmaPrezzo(document) + '|' + location.pathname; } catch (e) { firmaDom = null; }
+    if (firmaDom !== null && firmaDom === ultimaFirma) return CS.prodotto;
     let r;
-    try { r = L.prezzoDaHtml(document.documentElement.outerHTML); } catch (e) { return CS.prodotto; }
+    try { r = L.prezzoDaHtml(L.htmlPerPrezzo(document)); } catch (e) { return CS.prodotto; }
+    ultimaFirma = firmaDom;
     if (!r || !(r.prezzo > 0)) return CS.prodotto;
     const nome = L.nomeBreve(r.nome || document.title);
     CS.prodotto = { chiave: chiaveDiQuestaPagina(), url: location.href.split('#')[0], nome, prezzo: r.prezzo, valuta: r.valuta, via: r.via, dominio };
@@ -205,11 +210,15 @@
   setTimeout(giro, 700);
   setTimeout(giro, 3200);
   setTimeout(giro, 7500);
-  let volte = 0, timer = null;
+  // Quando la pagina cambia si aspetta che si calmi (almeno 1,5 secondi senza modifiche, al massimo 6 secondi) e poi si fa UN solo giro; al massimo 6 giri in tutto.
+  let volte = 0, timer = null, primoCambio = 0;
   try {
     new MutationObserver(() => {
-      if (volte >= 6 || timer) return;
-      timer = setTimeout(() => { timer = null; volte++; leggiSpedizione(); cashback(); rilevaPrezzo(); }, 2500);
+      if (volte >= 6) return;
+      const adesso = Date.now();
+      if (!timer) primoCambio = adesso;
+      clearTimeout(timer);
+      timer = setTimeout(() => { timer = null; volte++; leggiSpedizione(); cashback(); rilevaPrezzo(); }, Math.max(0, Math.min(1500, primoCambio + 6000 - adesso)));
     }).observe(document.documentElement, { childList: true, subtree: true });
   } catch (e) {}
 })();

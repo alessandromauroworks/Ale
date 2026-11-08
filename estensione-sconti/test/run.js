@@ -574,11 +574,11 @@ async function finche(fn, ms, passo = 200) {
 
   // --- Permessi e testi
   const man = JSON.parse(fs.readFileSync(path.join(EXT, 'manifest.json'), 'utf8'));
-  verifica('Manifest: niente "alarms" e niente "activeTab" (ridondante con <all_urls>)', !man.permissions.includes('alarms') && !man.permissions.includes('activeTab'), man.permissions);
+  verifica('Manifest: "alarms" c\'è (timer per prezzi e codici personali) e niente "activeTab" (ridondante con <all_urls>)', man.permissions.includes('alarms') && !man.permissions.includes('activeTab'), man.permissions);
   verifica('Manifest: Firefox 128 o più (match_origin_as_fallback)', parseInt(man.browser_specific_settings.gecko.strict_min_version, 10) >= 128, man.browser_specific_settings);
   const testi = ['README.md', 'STORE.md', 'privacy.html', 'manifest.json'].map((f) => fs.readFileSync(path.join(EXT, f), 'utf8')).join('\n');
   verifica('Testi: nessuna frase falsa "niente server" / "nessun database condiviso" / "nessun server"', !/niente server|nessun database condiviso|nessun server|non legge (né )?(email|password)|Nessun dato lascia il tuo computer/i.test(testi));
-  verifica('Testi: il permesso "alarms" e "activeTab" non sono più elencati come permessi', !/\*\*activeTab\*\*|\*\*alarms\*\*|^- `activeTab`|^- `alarms`/m.test(testi));
+  verifica('Testi: "activeTab" non è elencato come permesso; "alarms" sì, con il motivo (prezzi e codici personali)', !/\*\*activeTab\*\*|^- `activeTab`/m.test(testi) && /\*\*alarms\*\*[^\n]*prezz/.test(testi) && /^- `alarms`[^\n]*prezz/m.test(testi));
 
   // --- Edge Function (si prova con Node, senza Deno: si toglie solo l'import di Supabase e si finge Deno)
   const { spawnSync } = require('child_process');
@@ -625,11 +625,13 @@ console.log(JSON.stringify(out));
 const ENV = { SUPABASE_URL: 'http://x', SUPABASE_SERVICE_ROLE_KEY: 'k' };
 globalThis.Deno = { env: { get: (k) => ENV[k] }, serve: () => {} };
 const m = await import('./index.mts');
-const reg = { from: 0 };
-const righe = [{ domain: 'a.it', code: 'MAIL15', sconto: '15%', scade_il: '2099-12-31', email_data: '2026-11-01T10:00:00Z' }];
+const reg = { from: 0, rpc: [] };
+const cont = {};
+const righe = [{ domain: 'a.it', code: 'MAIL15', sconto: '15%', scade_il: '2099-12-31', email_data: '2026-11-01' }];
 const db = { from: (t) => { reg.from++; reg.tabella = t; const q = {
   select: (c) => { reg.select = c; return q; }, or: (f) => { reg.or = f; return q; }, eq: (c, v) => { reg.eq = [c, v]; return q; }, gte: () => q,
-  order: (c, o) => { reg.order = [c, o && o.ascending]; return q; }, limit: (n) => { reg.limit = n; return Promise.resolve({ data: righe, error: null }); } }; return q; } };
+  order: (c, o) => { reg.order = [c, o && o.ascending, o && o.nullsFirst]; return q; }, limit: (n) => { reg.limit = n; return Promise.resolve({ data: righe, error: null }); } }; return q; },
+  rpc: (nome, a) => { reg.rpc.push(a.p_hash); cont[a.p_hash] = (cont[a.p_hash] || 0) + 1; return Promise.resolve({ data: cont[a.p_hash], error: null }); } };
 const get = (qs, h) => new Request('http://x/f?' + qs, { headers: h || {} });
 const out = {};
 let r = await m.gestisci(get('personali=1'), db);
@@ -649,11 +651,23 @@ r = await m.gestisci(new Request('http://x/f', { method: 'OPTIONS' }), db);
 out.cors = r.headers.get('access-control-allow-headers');
 out.costante = [await m.confrontoCostante('abc', 'abc'), await m.confrontoCostante('abc', 'abd'), await m.confrontoCostante('abc', 'abcd'), await m.confrontoCostante('', 'x')];
 r = await m.gestisci(get('domain=a.it'), db); out.pubblicoSenzaToken = r.status;
+const rpcPrima = reg.rpc.length;
+await m.gestisci(get('personali=1', { 'x-cacciasconti-token': 'segreto-lungo-123', 'cf-connecting-ip': '3.3.3.3' }), db);
+out.giustoNonConta = reg.rpc.length === rpcPrima;
+out.tentativi = [];
+for (let i = 0; i < 12; i++) out.tentativi.push((await m.gestisci(get('personali=1', { 'x-cacciasconti-token': 'sbagliato' + i, 'cf-connecting-ip': '3.3.3.3' }), db)).status);
+out.altroIp = (await m.gestisci(get('personali=1', { 'x-cacciasconti-token': 'sbagliato', 'cf-connecting-ip': '4.4.4.4' }), db)).status;
+const sha = async (t) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)))].map((x) => x.toString(16).padStart(2, '0')).join('');
+out.prefissoTok = reg.rpc.includes(await sha('tok|3.3.3.3|' + new Date().toISOString().slice(0, 10) + '|segreto-lungo-123'));
+out.bloccoDopo = (await m.gestisci(get('personali=1', { 'x-cacciasconti-token': 'segreto-lungo-123', 'cf-connecting-ip': '5.5.5.5' }), db)).status;
 console.log(JSON.stringify(out));
 `);
   const rPers = spawnSync(process.execPath, ['--experimental-strip-types', '--no-warnings', path.join(dirEdge, 'prova-pers.mjs')], { encoding: 'utf8' });
   let ep = null;
   try { ep = JSON.parse(rPers.stdout.trim().split('\n').pop()); } catch (e) {}
+  verifica('Edge Function personali: ordine per email_data dal più recente con i codici senza data IN FONDO (nullsFirst: false)', ep && ep.giusto.order[0] === 'email_data' && ep.giusto.order[1] === false && ep.giusto.order[2] === false, ep && ep.giusto.order);
+  verifica('Edge Function personali: dopo 10 chiavi sbagliate in un\'ora dallo stesso indirizzo la 11a risponde 429 (le prime 10: 401); un altro indirizzo non è bloccato', ep && JSON.stringify(ep.tentativi) === JSON.stringify([401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 429, 429]) && ep.altroIp === 401, ep && [ep.tentativi, ep.altroIp]);
+  verifica('Edge Function personali: il contatore delle chiavi sbagliate usa l\'hash con prefisso "tok|" (non si mischia con le segnalazioni) e una chiave GIUSTA non conta', ep && ep.prefissoTok === true && ep.giustoNonConta === true, ep && [ep.prefissoTok, ep.giustoNonConta]);
   verifica('Edge Function personali: senza il segreto CACCIASCONTI_TOKEN_PERSONALE risponde 503 e non tocca il database', ep && ep.senzaSegreto.status === 503 && ep.senzaSegreto.db === 0, ep ? ep.senzaSegreto : rPers.stderr.slice(0, 300));
   verifica('Edge Function personali: senza intestazione, con chiave sbagliata o più corta = 401, database mai toccato', ep && ep.senzaToken.status === 401 && ep.tokenSbagliato.status === 401 && ep.tokenCorto.status === 401 && ep.tokenCorto.db === 0, ep && [ep.senzaToken, ep.tokenSbagliato, ep.tokenCorto]);
   verifica('Edge Function personali: con la chiave giusta 200, tabella cacciasconti_codici_email, max 500, solo non scaduti, ordinati per email_data', ep && ep.giusto.status === 200 && ep.giusto.tabella === 'cacciasconti_codici_email' && ep.giusto.limit === 500 && /^scade_il\.is\.null,scade_il\.gte\.\d{4}-\d{2}-\d{2}$/.test(ep.giusto.or) && ep.giusto.order[0] === 'email_data' && ep.giusto.order[1] === false && ep.giusto.corpo.codici[0].code === 'MAIL15', ep && ep.giusto);
@@ -693,7 +707,7 @@ console.log(JSON.stringify(out));
   verifica('Spedizione: testo senza spedizione gratuita = niente', L.spedizione('Totale 40 € spedizione 4,90 €') === null);
   const em1 = L.emailEstrai({ mittente: 'store+123@m.shopifyemail.com', oggetto: 'Il tuo sconto', testo: 'Usa il codice WELCOME15 per il 15% di sconto. Scade il 31/12/2099.', link: ['https://click.klaviyomail.com/x', 'https://negozioprova.it/discount/WELCOME15', 'https://www.negozioprova.it/collections/tutto', 'https://facebook.com/negozioprova', 'https://negozioprova.it/unsubscribe?x=1'] });
   verifica('Email: mittente store+123@m.shopifyemail.com -> negozio dai link nel testo (negozioprova.it), codice, scadenza, -15%', em1.dominio === 'negozioprova.it' && em1.codici.length === 1 && em1.codici[0].code === 'WELCOME15' && em1.codici[0].info === '-15%' && em1.codici[0].scade > Date.now(), em1);
-  const em2 = L.emailEstrai({ mittente: 'News <offerte@e.zalando.it>', oggetto: '', testo: 'Codice: MODA20 solo oggi', link: [] });
+  const em2 = L.emailEstrai({ mittente: 'News <offerte@e.zalando.it>', oggetto: '', testo: 'Sconto del 20% sulla moda. Codice: MODA20 solo oggi', link: [] });
   verifica('Email: mittente normale -> dominio del mittente (zalando.it)', em2.dominio === 'zalando.it' && em2.codici[0].code === 'MODA20', em2);
   verifica('Email: mittente di una piattaforma e nessun link del negozio = nessun negozio (non si inventa)', L.emailEstrai({ mittente: 'x@mailchimp.com', testo: 'codice ABCD1234', link: ['https://facebook.com/x'] }).dominio === null);
   const cu = L.cercaUrl('Scarpe Corsa Pro | Negozio Prova');
@@ -756,7 +770,9 @@ console.log(JSON.stringify(out));
   await setPrezzoSrv('/p/scarpe', 95);
   await pp.goto(url('prd', '/p/scarpe'));
   await dorme(2500);
-  verifica('Avviso: se il prezzo SALE non arriva nessuna notifica', (await notifiche()).length === nDopo && ((await leggiPrezzi())[kP('/p/scarpe')].prezzoRif === 95));
+  verifica('Avviso: se il prezzo SALE non arriva nessuna notifica e il prezzo di riferimento NON cambia a ogni lettura (resta 89,90)', (await notifiche()).length === nDopo && ((await leggiPrezzi())[kP('/p/scarpe')].prezzoRif === 89.9));
+  const recSerie = (await leggiPrezzi())[kP('/p/scarpe')];
+  verifica('Avviso: il minimo della serie "visita" è 79,90 (serie per fonte, una per le visite e una per il controllo)', recSerie.minSerie && recSerie.minSerie.visita === 79.9 && recSerie.minSerie.controllo === undefined, recSerie.minSerie);
   // prodotto non seguito: nessun avviso, nessun controllo in secondo piano
   const pOg = await ctx.newPage();
   await setPrezzoSrv('/p/og', 40);
@@ -773,11 +789,33 @@ console.log(JSON.stringify(out));
   verifica('Controllo in secondo piano: legge robots.txt e la pagina del prodotto seguito', hp1.some((x) => x.path === '/robots.txt') && hp1.some((x) => x.path.startsWith('/p/scarpe')) && ctl.controllati === 1, { hp1, ctl });
   verifica('Controllo in secondo piano: senza cookie (credentials omit)', hp1.every((x) => !x.cookie), hp1);
   verifica('Controllo in secondo piano: non tocca i prodotti non seguiti (/p/og, /p/micro...)', !hp1.some((x) => /\/p\/(og|micro|shop|woo)/.test(x.path)), hp1);
+  await dorme(1500);
+  verifica('Controllo in secondo piano: la PRIMA lettura (70, diversa dalle visite: 79,90) crea la serie "controllo" e NON fa partire nessun avviso falso', (await notifiche()).length === nDopo && (await leggiPrezzi())[kP('/p/scarpe')].minSerie.controllo === 70, { n: (await notifiche()).length, nDopo, s: (await leggiPrezzi())[kP('/p/scarpe')].minSerie });
+  await sw.evaluate((k) => chrome.storage.local.get('prezzi').then((r) => { r.prezzi[k].ultimoControllo = Date.now() - 2 * 86400000; return chrome.storage.local.set({ prezzi: r.prezzi }); }), kP('/p/scarpe'));
+  await msgExt({ type: 'prezziControlla' });
+  await dorme(1200);
+  verifica('Controllo: stesso prezzo letto di nuovo (70) = nessun avviso', (await notifiche()).length === nDopo);
+  // ribasso piccolo (meno dell'1%): niente avviso
+  await sw.evaluate((k) => chrome.storage.local.get('prezzi').then((r) => { r.prezzi[k].ultimoControllo = Date.now() - 2 * 86400000; r.prezzi[k].ultimoAvviso = Date.now() - 2 * 86400000; return chrome.storage.local.set({ prezzi: r.prezzi }); }), kP('/p/scarpe'));
+  await setPrezzoSrv('/p/scarpe', 69.8);
+  await msgExt({ type: 'prezziControlla' });
+  await dorme(1200);
+  verifica('Controllo: ribasso sotto l\'1% (70 -> 69,80) = nessun avviso', (await notifiche()).length === nDopo, await notifiche());
+  // ribasso vero ma l'ultimo avviso è di meno di 24 ore fa: rimandato
+  await sw.evaluate((k) => chrome.storage.local.get('prezzi').then((r) => { r.prezzi[k].ultimoControllo = Date.now() - 2 * 86400000; r.prezzi[k].ultimoAvviso = Date.now() - 3600 * 1000; return chrome.storage.local.set({ prezzi: r.prezzi }); }), kP('/p/scarpe'));
+  await setPrezzoSrv('/p/scarpe', 60);
+  await msgExt({ type: 'prezziControlla' });
+  await dorme(1200);
+  verifica('Avviso: al massimo uno ogni 24 ore per prodotto (ribasso vero ma ultimo avviso 1 ora fa = rimandato, il minimo non si sposta)', (await notifiche()).length === nDopo && (await leggiPrezzi())[kP('/p/scarpe')].minSerie.controllo === 69.8, (await leggiPrezzi())[kP('/p/scarpe')].minSerie);
+  await sw.evaluate((k) => chrome.storage.local.get('prezzi').then((r) => { r.prezzi[k].ultimoControllo = Date.now() - 2 * 86400000; r.prezzi[k].ultimoAvviso = Date.now() - 2 * 86400000; return chrome.storage.local.set({ prezzi: r.prezzi }); }), kP('/p/scarpe'));
+  await leggiUrl(url('prd', '/__azzera'));
+  await msgExt({ type: 'prezziControlla' });
+  const hpX = JSON.parse(await leggiUrl(url('prd', '/__hits'))).hits;
   const n2 = await finche(async () => { const l = await notifiche(); return l.length > nDopo ? l[l.length - 1] : null; }, 5000);
-  verifica('Controllo in secondo piano: prezzo sceso a 70 -> notifica "da 95,00 € a 70,00 €"', n2 && n2.testo.includes('95,00 €') && n2.testo.includes('70,00 €'), n2);
+  verifica('Controllo in secondo piano: ribasso vero (69,80 -> 60) dopo 24 ore dall\'ultimo avviso = notifica "da 69,80 € a 60,00 €"', n2 && n2.testo.includes('69,80 €') && n2.testo.includes('60,00 €'), n2);
   await msgExt({ type: 'prezziControlla' });
   const hp2 = JSON.parse(await leggiUrl(url('prd', '/__hits'))).hits;
-  verifica('Controllo in secondo piano: al massimo una volta al giorno (la seconda chiamata non scarica niente)', hp2.length === hp1.length, { hp1: hp1.length, hp2: hp2.length });
+  verifica('Controllo in secondo piano: al massimo una volta al giorno (la seconda chiamata non scarica niente)', hp2.length === hpX.length, { hpX: hpX.length, hp2: hp2.length });
   // robots.txt vieta /p/vietato
   const pv = await ctx.newPage();
   await pv.goto(url('prd', '/p/vietato'));
@@ -966,11 +1004,21 @@ console.log(JSON.stringify(out));
   await sw.evaluate(() => chrome.storage.local.get('statoPersonali').then((r) => { r.statoPersonali.ts = Date.now() - 7 * 3600 * 1000; return chrome.storage.local.set({ statoPersonali: r.statoPersonali }); }));
   await msgExt({ type: 'badge', tabId: idWoo, dominio: 'woo.localhost', campo: false });
   verifica('Aggiornamento ogni 6 ore: dopo 7 ore richiede di nuovo (all\'apertura di una pagina)', await finche(async () => JSON.parse(await pers()).length === 1, 5000));
-  // prima di una prova: per il dominio corrente
+  // prima di una prova: si usa subito la cache (6 ore); se è vecchia, l'aggiornamento parte in secondo piano e la prova aspetta al massimo 300 ms
   await leggiUrl(url('pers', '/__azzera'));
+  const tA = Date.now();
   await msgExt({ type: 'coda', dominio: 'emailshop.it', avvio: true });
   const lg2 = JSON.parse(await pers());
-  verifica('Prima di una prova: scarica i codici personali per il dominio corrente (?domain=emailshop.it)', lg2.length === 1 && lg2[0].domain === 'emailshop.it' && lg2[0].personali === '1', lg2);
+  verifica('Prima di una prova con la cache fresca (meno di 6 ore): nessuna richiesta di rete, si usano i codici già salvati', lg2.length === 0 && Date.now() - tA < 1500, { lg2, ms: Date.now() - tA });
+  await msgExt({ type: 'opzioni', opzioni: { endpoint: url('pers', '/lenta') } });
+  await sw.evaluate(() => chrome.storage.local.get('statoPersonali').then((r) => { r.statoPersonali.ts = Date.now() - 7 * 3600 * 1000; return chrome.storage.local.set({ statoPersonali: r.statoPersonali }); }));
+  const tB = Date.now();
+  const rLenta = await msgExt({ type: 'coda', dominio: 'emailshop.it', avvio: true });
+  const msLenta = Date.now() - tB;
+  verifica('Prima di una prova con la cache vecchia e il servizio LENTO (2,5 s): la prova aspetta al massimo 300 ms (qui ' + msLenta + ' ms) e ha già il codice MAIL15 dall\'archivio', msLenta < 1200 && rLenta.coda.includes('MAIL15'), { msLenta, coda: rLenta.coda });
+  verifica('Cache vecchia: l\'aggiornamento è partito comunque (in secondo piano, richiesta per tutti i negozi)', await finche(async () => { const l = JSON.parse(await pers()); return l.length === 1 && l[0].personali === '1' && l[0].domain === null; }, 3000), JSON.parse(await pers()));
+  await msgExt({ type: 'opzioni', opzioni: { endpoint: url('pers', '/f') } });
+  await finche(async () => (await msgExt({ type: 'chiaveStato' })).stato.ts > Date.now() - 60000, 6000, 300);
   verifica('Il codice email entra nella coda di prova', (await msgExt({ type: 'coda', dominio: 'emailshop.it' })).coda.includes('MAIL15'));
   const pOpz = await apriPopup(idWoo);
   await pOpz.locator('.scheda[data-s=opzioni]').click();
@@ -997,12 +1045,12 @@ console.log(JSON.stringify(out));
   const w15 = await finche(async () => await conCodice('negozioprova.it', 'WELCOME15'), 8000);
   verifica('Gmail: aprendo un messaggio di store+123@m.shopifyemail.com il negozio si ricava dai link (negozioprova.it); fonte "email", scadenza 2099, -15%', w15 && w15.source === 'email' && w15.scade > Date.now() && w15.info === '-15%', w15);
   verifica('Gmail: non salva niente per il dominio della piattaforma (shopifyemail.com)', !(await archivio()).archivio['shopifyemail.com']);
-  await apriMsg(gm, 'FMfcgzQXJqrstuvwxyz12345', 'Offerte <offerte@e.zalando.it>', 'Moda', '<p>Codice: MODA20 solo per oggi.</p>');
+  await apriMsg(gm, 'FMfcgzQXJqrstuvwxyz12345', 'Offerte <offerte@e.zalando.it>', 'Moda', '<p>Sconto del 20%! Codice: MODA20 solo per oggi.</p>');
   verifica('Gmail: mittente normale -> dominio del mittente (zalando.it)', !!(await finche(async () => await conCodice('zalando.it', 'MODA20'), 8000)));
   await msgExt({ type: 'opzioni', opzioni: { gmail: false } });
   const gm2 = await ctx.newPage();
   await gm2.goto('https://mail.google.com/mail/u/0/#inbox');
-  await apriMsg(gm2, 'FMfcgzQXJzzzzzzzzzzzzzz1', 'x@negoziospento.it', 'Ciao', '<p>Il tuo codice SPENTO15 vale fino a domani. Grazie dal negozio.</p>');
+  await apriMsg(gm2, 'FMfcgzQXJzzzzzzzzzzzzzz1', 'x@negoziospento.it', 'Ciao', '<p>Sconto del 15% con il codice SPENTO15, vale fino a domani. Grazie dal negozio.</p>');
   await dorme(3500);
   verifica('Gmail: con l\'opzione spenta non legge niente', !(await conCodice('negoziospento.it', 'SPENTO15')));
   await msgExt({ type: 'opzioni', opzioni: { gmail: true } });
@@ -1081,12 +1129,202 @@ console.log(JSON.stringify(out));
 
   console.log('\n[w9] Permessi e codice del pacchetto');
   const man2 = JSON.parse(fs.readFileSync(path.join(EXT, 'manifest.json'), 'utf8'));
-  verifica('Manifest 1.4.0: permessi storage, scripting, notifications (e basta); niente cookies/alarms/activeTab', man2.version === '1.4.0' && man2.permissions.slice().sort().join() === 'notifications,scripting,storage', man2.permissions);
+  verifica('Manifest 1.4.1: permessi storage, scripting, notifications, alarms (e basta); niente cookies/activeTab', man2.version === '1.4.1' && man2.permissions.slice().sort().join() === 'alarms,notifications,scripting,storage', man2.permissions);
   const sorgenti = fs.readdirSync(EXT).filter((f) => f.endsWith('.js')).map((f) => fs.readFileSync(path.join(EXT, f), 'utf8')).join('\n');
   verifica('Nessun codice remoto: niente eval, new Function, importScripts/script da indirizzi http', !/\beval\s*\(|new Function\s*\(|importScripts\(\s*['"]https?:|createElement\(['"]script['"]\)/.test(sorgenti));
   verifica('Nessun cookie: il codice non usa chrome.cookies né document.cookie', !/chrome\.cookies|document\.cookie/.test(sorgenti));
   verifica('Nessun identificativo di affiliazione o tracciamento nei link che costruiamo (ricerche, cashback)', !/[?&](tag|aff\w*|ref|utm_\w+|subid|clickid)=/.test(sorgenti.replace(/PARAM_TRACCIA[^\n]*\n/, '')));
 
+  }
+
+  { // ---- sezione 1.4.1 (revisione indipendente): blocco proprio, i nomi non si scontrano
+  console.log('\n[y1] 1.4.1: condivisione solo dei codici pubblici (elenco di origini consentite)');
+  require('../domain.js'); require('../lib-extra.js');
+  const L2 = self.CS_lib;
+  const logC = async () => JSON.parse(await leggiUrl(url('cond', '/__log')));
+  await leggiUrl(url('cond', '/__azzera'));
+  await msgExt({ type: 'opzioni', opzioni: { usaComuni: false, esplora: false, condividi: true, endpoint: url('cond', '/fn') } });
+  const ORIG = { PAGINA1: 'pagina', NEGOZIO1: 'sito del negozio', COMUNE1: 'comune', CONDIV1: 'condivisi', DEBOLE1: 'pagina (classe)',
+    EMAIL001: 'email', EMAILAUTO1: 'email (automatico)', COUPON001: 'sito di coupon (aperto da te)', FONTE001: 'fonte indicata da te', MANUALE1: 'manuale', VECCHIO01: undefined };
+  await sw.evaluate((o) => chrome.storage.local.get('archivio').then((r) => {
+    const a = r.archivio || {}; a['shr.localhost'] = {};
+    for (const [c, orig] of Object.entries(o)) { a['shr.localhost'][c] = { code: c, source: orig || 'comune', esito: 'mai', sconto: null, data: null, trovato: Date.now() }; if (orig) a['shr.localhost'][c].origine = orig; }
+    return chrome.storage.local.set({ archivio: a });
+  }), ORIG);
+  for (const c of Object.keys(ORIG)) await msgExt({ type: 'risultato', dominio: 'shr.localhost', codice: c, ok: true, sconto: 5, pct: 10, simbolo: '€', totale: 50 });
+  await dorme(1500);
+  const inviati = (await logC()).filter((x) => x.metodo === 'POST').map((x) => x.corpo.code).sort();
+  verifica('Condivisione: partono SOLO i codici di origine pagina / pagina (classe) / sito del negozio / comune / condivisi', JSON.stringify(inviati) === JSON.stringify(['COMUNE1', 'CONDIV1', 'DEBOLE1', 'NEGOZIO1', 'PAGINA1']), inviati);
+  verifica('Condivisione: codici delle email, "email (automatico)", dei siti di coupon, delle fonti indicate da te, manuali e senza origine NON partono mai', !inviati.some((c) => /EMAIL|COUPON|FONTE|MANUALE|VECCHIO/.test(c)), inviati);
+  await sw.evaluate(() => chrome.storage.local.get('archivio').then((r) => { delete r.archivio['shr.localhost']; return chrome.storage.local.set({ archivio: r.archivio }); }));
+  await msgExt({ type: 'opzioni', opzioni: { condividi: false, endpoint: null, usaComuni: true } });
+
+  console.log('\n[y2] 1.4.1: email con codici di verifica / ordini non si salvano; solo i veri sconti');
+  const em = (testo, ogg) => L2.emailEstrai({ mittente: 'Negozio <info@shop.example.it>', oggetto: ogg || '', testo, link: [] }).codici.map((x) => x.code);
+  verifica('Email OTP ("il tuo codice di verifica è ...") = niente', em('Il tuo codice di verifica è 4829AB12. Non condividerlo con nessuno.').length === 0);
+  verifica('Email password/accesso/login/sicurezza/PIN/one-time = niente', [
+    'Codice: AB12CD34 per accedere al tuo account. Hai chiesto di reimpostare la password.',
+    'Your one-time code is: XK2931QA. Do not share it. Discount offers in the app.',
+    'Nuovo accesso al tuo account. Codice: ZZ99XX11 (security alert)',
+    'Il tuo PIN è: 5521ABCD, codice di sicurezza per la tua carta con sconto 5%',
+    'Login code: LOGIN2024 - sign in to see 10% off' ].every((t) => em(t).length === 0), [em('Login code: LOGIN2024 - sign in to see 10% off')]);
+  verifica('Email con numero d\'ordine ("Codice ordine / Codice: ZX99887", nessun discorso di sconto) = niente', em('Grazie per il tuo acquisto! Il tuo ordine è confermato. Codice: ZX99887. Spedizione in 3 giorni lavorativi.').length === 0 && em('Riepilogo ordine\nCodice ordine: ORD123456\nTotale 59,90 €').length === 0);
+  verifica('Email promo vera (sconto/coupon/%) = salvata; anche con il codice nell\'oggetto', em('Per te il 15% di sconto: usa il codice WELCOME15 entro il 31/12/2099.').join() === 'WELCOME15' && em('Offerta lampo', 'Usa il codice FLASH25 e risparmi').join() === 'FLASH25' && em('Black Friday: codice BLACK20 per 20 € di sconto. Accesso anticipato per te!').join() === 'BLACK20');
+  verifica('Email: una parola di sconto LONTANA (oltre 80 caratteri) dal codice non basta', em('Codice: LONTANO99 ' + 'x '.repeat(60) + 'approfitta dello sconto').length === 0);
+
+  const GMAIL2 = '<!doctype html><html><head><title>Posta in arrivo - Gmail</title></head><body><div id="lista"></div><div id="vista"></div></body></html>';
+  await ctx.route('https://mail.google.com/**', (route) => route.fulfill({ status: 200, contentType: 'text/html', body: GMAIL2 }));
+  const apri2 = (page, hash, mittente, oggetto, corpo) => page.evaluate(([hash, mittente, oggetto, corpo]) => {
+    document.getElementById('vista').innerHTML = '<h2 class="hP">' + oggetto + '</h2><div class="adn"><h3 class="iw"><span class="gD" email="' + mittente + '">Negozio</span></h3><div class="a3s aiL">' + corpo + '</div></div>';
+    location.hash = hash;
+  }, [hash, mittente, oggetto, corpo]);
+  const gx = await ctx.newPage();
+  await gx.goto('https://mail.google.com/mail/u/0/#inbox');
+  await dorme(1500);
+  await apri2(gx, '#inbox/FMfcgzQXKotpotpotpotpotpotp1', 'sicurezza@otpshop.it', 'Il tuo codice', '<p>Il tuo codice di verifica è OTP48291A. Valido 10 minuti.</p>');
+  await dorme(2500);
+  await apri2(gx, '#inbox/FMfcgzQXKordineordineordine2', 'ordini@ordshop.it', 'Ordine confermato', '<p>Grazie! Ordine ricevuto. Codice: ORD998877 per seguire la spedizione.</p>');
+  await dorme(2500);
+  await apri2(gx, '#inbox/FMfcgzQXKpromopromopromopromo3', 'news@promshop.it', 'Per te', '<p>Il 20% di sconto sul tuo prossimo acquisto con il codice ESTATE30X, fino al 31/12/2099.</p>');
+  verifica('Gmail (pagina): la email promo vera si salva (ESTATE30X)', !!(await finche(async () => await conCodice('promshop.it', 'ESTATE30X'), 8000)));
+  verifica('Gmail (pagina): la email OTP e quella dell\'ordine NON salvano niente', !(await conCodice('otpshop.it', 'OTP48291A')) && !(await conCodice('ordshop.it', 'ORD998877')) && !(await archivio()).archivio['otpshop.it'] && !(await archivio()).archivio['ordshop.it']);
+  // identificativo del messaggio: il nome di un'etichetta non vale
+  await apri2(gx, '#label/Offerte-promozionali-lunghe-di-natale', 'news@etichetta.it', 'Per te', '<p>Il 30% di sconto con il codice ETICH30X per tutti.</p>');
+  await dorme(2500);
+  verifica('Gmail: l\'elenco di un\'etichetta con nome lungo (#label/Offerte-promozionali-...) non è un messaggio aperto', !(await conCodice('etichetta.it', 'ETICH30X')));
+  await apri2(gx, '#label/Natale/FMfcgzQXKetichettaetichetta4', 'news@etichetta.it', 'Per te', '<p>Il 30% di sconto con il codice ETICH30X per tutti.</p>');
+  verifica('Gmail: un messaggio dentro un\'etichetta (#label/Natale/<id>) si legge', !!(await finche(async () => await conCodice('etichetta.it', 'ETICH30X'), 8000)));
+  // l'opzione cambia mentre Gmail è aperto: vale subito, senza ricaricare
+  await msgExt({ type: 'opzioni', opzioni: { gmail: false } });
+  await dorme(700);
+  await apri2(gx, '#inbox/FMfcgzQXKspentospentospento5', 'news@spentoora.it', 'Per te', '<p>Il 40% di sconto con il codice SPENTO40 per te.</p>');
+  await dorme(3000);
+  verifica('Gmail: spegnendo l\'opzione con Gmail già aperto smette subito di leggere (nessun ricaricamento)', !(await conCodice('spentoora.it', 'SPENTO40')));
+  await msgExt({ type: 'opzioni', opzioni: { gmail: true } });
+  verifica('Gmail: riaccendendola con Gmail già aperto legge subito il messaggio aperto', !!(await finche(async () => await conCodice('spentoora.it', 'SPENTO40'), 8000)));
+  // l'osservatore non si ferma più dopo 300 giri
+  const srcG = fs.readFileSync(path.join(EXT, 'gmail.js'), 'utf8');
+  verifica('Gmail: l\'osservatore non si ferma più dopo 300 giri (resta leggero: 0,9 s poi 4 s) e segue storage.onChanged', !/volte\s*>=\s*300\s*\|\|/.test(srcG) && /storage\.onChanged/.test(srcG) && /4000/.test(srcG));
+  await gx.close();
+  await ctx.unroute('https://mail.google.com/**');
+
+  console.log('\n[y3] 1.4.1: Google segna il risultato come visto solo dopo una risposta riuscita');
+  const gp = await ctx.newPage();
+  await gp.addInitScript(() => {
+    window.__chiamate = { opz: 0, cod: 0 };
+    window.chrome = { runtime: { sendMessage: (m) => {
+      if (m.type === 'opzioniPagina') { window.__chiamate.opz++; return Promise.resolve({ googleBadge: true }); }
+      if (m.type === 'codiciPerDomini') { window.__chiamate.cod++; return window.__chiamate.cod === 1 ? Promise.reject(new Error('fondo spento')) : Promise.resolve({ conta: { 'negoziogoogle.it': 2 } }); }
+      return Promise.resolve(null);
+    } }, storage: { onChanged: { addListener() {} } } };
+  });
+  await gp.route('https://prova-google.test/**', (route) => route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><html><body><a href="https://www.negoziogoogle.it/p"><h3>Negozio Google</h3></a></body></html>' }));
+  await gp.goto('https://prova-google.test/search?q=x');
+  await gp.addScriptTag({ path: path.join(EXT, 'domain.js') });
+  await gp.addScriptTag({ path: path.join(EXT, 'google.js') });
+  const etichetta = await finche(async () => (await gp.locator('.cacciasconti-etichetta').count()) === 1 ? await gp.locator('.cacciasconti-etichetta').textContent() : null, 12000, 300);
+  const chiamateG = await gp.evaluate(() => window.__chiamate);
+  verifica('Google: la prima risposta fallisce -> il risultato NON è segnato come visto e si riprova; poi compare "🏷 2 codici" (una sola volta)', etichetta === '🏷 2 codici' && chiamateG.cod >= 2, { etichetta, chiamateG });
+  await gp.close();
+
+  console.log('\n[y4] 1.4.1: letture del prezzo leggere (niente outerHTML dell\'intera pagina)');
+  const srcPE = fs.readFileSync(path.join(EXT, 'pagina-extra.js'), 'utf8');
+  verifica('pagina-extra.js non usa più outerHTML dell\'intera pagina', !/documentElement\.outerHTML/.test(srcPE) && /htmlPerPrezzo/.test(srcPE) && /firmaPrezzo/.test(srcPE));
+  const grande = await ctx.newPage();
+  await grande.goto('about:blank');
+  await grande.setContent('<!doctype html><html><head><title>Scarpa grande</title><meta property="og:title" content="Scarpa grande"><script type="application/ld+json">' + JSON.stringify({ '@context': 'https://schema.org', '@type': 'Product', name: 'Scarpa grande', offers: { '@type': 'Offer', price: '49.90', priceCurrency: 'EUR' } }) + '</script></head><body>' +
+    Array.from({ length: 2500 }, (_, i) => '<div class="riga r' + i + '"><span>Voce numero ' + i + ' del catalogo, testo lungo per riempire la pagina come fanno i negozi veri</span></div>').join('') + '</body></html>');
+  await grande.addScriptTag({ path: path.join(EXT, 'domain.js') });
+  await grande.addScriptTag({ path: path.join(EXT, 'estrattore.js') });
+  await grande.addScriptTag({ path: path.join(EXT, 'lib-extra.js') });
+  const mis = await grande.evaluate(() => {
+    const L = self.CS_lib;
+    const N = 9, giri = 5;
+    const tempo = (fn) => { let migliore = 1e9; for (let g = 0; g < giri; g++) { const a = performance.now(); for (let i = 0; i < N; i++) fn(); migliore = Math.min(migliore, performance.now() - a); } return migliore; };
+    const vecchio = tempo(() => L.prezzoDaHtml(document.documentElement.outerHTML));
+    const nuovo = tempo(() => L.prezzoDaHtml(L.htmlPerPrezzo(document)));
+    const firmaSola = tempo(() => L.firmaPrezzo(document));
+    const rv = L.prezzoDaHtml(document.documentElement.outerHTML), rn = L.prezzoDaHtml(L.htmlPerPrezzo(document));
+    return { nodi: document.querySelectorAll('*').length, grandezzaPagina: document.documentElement.outerHTML.length, grandezzaMinima: L.htmlPerPrezzo(document).length, vecchio, nuovo, firmaSola, uguali: JSON.stringify(rv) === JSON.stringify(rn), prezzo: rn && rn.prezzo };
+  });
+  console.log('  TEMPI (9 letture di fila, pagina con ' + mis.nodi + ' nodi, ' + mis.grandezzaPagina + ' caratteri): prima ' + mis.vecchio.toFixed(1) + ' ms, dopo ' + mis.nuovo.toFixed(1) + ' ms, dopo con pagina invariata (solo firma) ' + mis.firmaSola.toFixed(1) + ' ms; testo letto ' + mis.grandezzaMinima + ' caratteri');
+  verifica('Pagina grande (5000 nodi): stesso prezzo di prima (49,90), HTML letto < 5% della pagina, 9 letture molto più veloci (' + mis.vecchio.toFixed(1) + ' -> ' + mis.nuovo.toFixed(1) + ' ms; invariata: ' + mis.firmaSola.toFixed(1) + ' ms)', mis.uguali && mis.prezzo === 49.9 && mis.nodi >= 5000 && mis.grandezzaMinima < mis.grandezzaPagina * 0.05 && mis.nuovo < mis.vecchio * 0.5, mis);
+  await grande.close();
+
+  console.log('\n[y5] 1.4.1: timer (alarms), robots.txt con parametri, reindirizzamenti, spazio del browser');
+  const allarmi = await sw.evaluate(() => chrome.alarms.getAll());
+  const aP = allarmi.find((x) => x.name === 'cacciasconti-prezzi'), aE = allarmi.find((x) => x.name === 'cacciasconti-personali');
+  verifica('Timer: controllo prezzi ogni 24 ore e codici personali ogni 6 ore', aP && aP.periodInMinutes === 1440 && aE && aE.periodInMinutes === 360, allarmi);
+  const prSet = (k, rec) => sw.evaluate(([k, rec]) => chrome.storage.local.get('prezzi').then((r) => { r.prezzi = r.prezzi || {}; r.prezzi[k] = rec; return chrome.storage.local.set({ prezzi: r.prezzi }); }), [k, rec]);
+  const prGet = async (k) => ((await sw.evaluate(() => chrome.storage.local.get('prezzi'))).prezzi || {})[k];
+  const kQ = (p) => `http://prd.localhost:${porta}${p}`;
+  const vecchioRec = (u, extra) => Object.assign({ nome: 'Prova', dominio: 'prd.localhost', valuta: '€', url: u, punti: [[20261101, 50]], avvisa: true, visto: Date.now(), ultimoControllo: Date.now() - 3 * 86400000, minSerie: { visita: 50 } }, extra || {});
+  await msgExt({ type: 'opzioni', opzioni: { storicoPrezzi: true } });
+  // l'allarme del prezzo fa partire il controllo
+  await prSet(kQ('/p/og'), vecchioRec(kQ('/p/og')));
+  await leggiUrl(url('prd', '/__azzera'));
+  await sw.evaluate(() => chrome.alarms.create('cacciasconti-prezzi', { when: Date.now() + 400 }));
+  const hitAl = await finche(async () => JSON.parse(await leggiUrl(url('prd', '/__hits'))).hits.some((x) => x.path.startsWith('/p/og')), 8000, 300);
+  verifica('Timer: quando suona l\'allarme dei prezzi, il prodotto seguito viene controllato in secondo piano', hitAl);
+  await sw.evaluate(() => creaAllarmi());
+  const allarmi2 = await sw.evaluate(() => chrome.alarms.getAll());
+  verifica('Timer: dopo l\'allarme singolo i timer periodici vengono ricreati', allarmi2.find((x) => x.name === 'cacciasconti-prezzi' && x.periodInMinutes === 1440) && allarmi2.find((x) => x.name === 'cacciasconti-personali'), allarmi2);
+  await sw.evaluate((k) => chrome.storage.local.get('prezzi').then((r) => { delete r.prezzi[k]; return chrome.storage.local.set({ prezzi: r.prezzi }); }), kQ('/p/og'));
+  // robots.txt: regola con parametri (Disallow: /p/scarpe?vietato=1)
+  await prSet(kQ('/p/scarpe?vietato=1'), vecchioRec(kQ('/p/scarpe') + '?vietato=1'));
+  await prSet(kQ('/p/scarpe?libero=1'), vecchioRec(kQ('/p/scarpe') + '?libero=1'));
+  await leggiUrl(url('prd', '/__azzera'));
+  const ctlQ = await msgExt({ type: 'prezziControlla' });
+  const hQ = JSON.parse(await leggiUrl(url('prd', '/__hits'))).hits;
+  verifica('robots.txt: la regola "Disallow: /p/scarpe?vietato=1" vale (si guarda percorso + parametri): quella pagina non si scarica, quella con altri parametri sì', ctlQ.vietati === 1 && ctlQ.controllati === 1 && hQ.filter((x) => x.path.startsWith('/p/scarpe')).length === 1 && hQ.some((x) => x.path === '/p/scarpe?libero=1'), { ctlQ, hQ });
+  await sw.evaluate(() => chrome.storage.local.get('prezzi').then((r) => { for (const k of Object.keys(r.prezzi)) if (k.includes('?vietato=1') || k.includes('?libero=1')) delete r.prezzi[k]; return chrome.storage.local.set({ prezzi: r.prezzi }); }));
+  // reindirizzamento verso un altro sito: rifiutato
+  const verso = url2('prd', '/p/micro');
+  await prSet(kQ('/p/redir'), vecchioRec(kQ('/p/redir') + '?to=' + encodeURIComponent(verso)));
+  await leggiUrl(url('prd', '/__azzera'));
+  const ctlR = await msgExt({ type: 'prezziControlla' });
+  const recR = await prGet(kQ('/p/redir'));
+  verifica('Reindirizzamento verso un altro sito (altra porta): la pagina NON si usa (errore, nessun prezzo nuovo, nessun avviso)', ctlR.controllati === 0 && ctlR.errori === 1 && recR.punti.length === 1 && recR.punti[0][1] === 50 && !recR.minSerie.controllo, { ctlR, recR });
+  await sw.evaluate((k) => chrome.storage.local.get('prezzi').then((r) => { delete r.prezzi[k]; return chrome.storage.local.set({ prezzi: r.prezzi }); }), kQ('/p/redir'));
+  const srcBG = fs.readFileSync(path.join(EXT, 'background.js'), 'utf8');
+  verifica('robots.txt: ogni controllo usa percorso + parametri (u.pathname + u.search), non il solo percorso', (srcBG.match(/consentito\(robots, u\.pathname \+ u\.search\)/g) || []).length === 2 && !/split\('\?'\)\[0\]/.test(srcBG));
+
+  // spazio del browser finito: si tolgono i dati vecchi, si riprova, il popup avvisa
+  await sw.evaluate(() => chrome.storage.local.remove(['avvisoSpazio', 'riempimento']));
+  const fisso = {};
+  for (let i = 0; i < 300; i++) fisso['http://quota' + i + '.it/prodotto'] = { nome: 'Prodotto di prova numero ' + i + ' con un nome piuttosto lungo', dominio: 'quota' + i + '.it', valuta: '€', url: 'http://quota' + i + '.it/prodotto', punti: [[20260101, 10], [20260102, 11], [20260103, 12]], avvisa: i === 7, visto: 1000 + i };
+  await sw.evaluate((f) => chrome.storage.local.get('prezzi').then((r) => chrome.storage.local.set({ prezzi: Object.assign(r.prezzi || {}, f) })), fisso);
+  const libero = await sw.evaluate(async () => { const usati = await chrome.storage.local.getBytesInUse(null); const quota = chrome.storage.local.QUOTA_BYTES; const grande = 'x'.repeat(Math.max(0, quota - usati - 60 - 8)); await chrome.storage.local.set({ riempimento: grande }); return quota - (await chrome.storage.local.getBytesInUse(null)); });
+  const pq = await ctx.newPage();
+  await setPrezzoQuota(pq);
+  async function setPrezzoQuota(page) { await page.goto(url('prd', '/p/shop')); }
+  const recWoo = await finche(async () => (await prGet(kQ('/p/shop'))), 8000);
+  const avv = await finche(async () => (await sw.evaluate(() => chrome.storage.local.get('avvisoSpazio'))).avvisoSpazio, 4000);
+  const nProd = Object.keys((await sw.evaluate(() => chrome.storage.local.get('prezzi'))).prezzi).length;
+  verifica('Spazio finito (quota del browser): la scrittura non va persa — si tolgono i prodotti più vecchi non seguiti e si riprova (libero prima: ' + libero + ' byte)', !!recWoo && recWoo.punti.length >= 1 && nProd < 300 && !!(await prGet('http://quota7.it/prodotto')), { recWoo: !!recWoo, nProd, seguitoVivo: !!(await prGet('http://quota7.it/prodotto')) });
+  verifica('Spazio finito: il browser segna l\'avviso e il popup lo mostra con il pulsante "Ho capito"', !!avv, avv);
+  const popQ = await apriPopup(await idScheda('*://prd.localhost/p/shop*'));
+  verifica('Popup: avviso "Lo spazio del browser era quasi finito" visibile', await finche(async () => await popQ.locator('#spazio').isVisible(), 4000));
+  await popQ.locator('#spazio-btn').click();
+  verifica('Popup: "Ho capito" nasconde l\'avviso e lo toglie dall\'archivio', !(await popQ.locator('#spazio').isVisible()) && !(await sw.evaluate(() => chrome.storage.local.get('avvisoSpazio'))).avvisoSpazio);
+  verifica('Popup: spiega che le pagine con prezzo solo in JavaScript non si controllano in secondo piano', /solo con JavaScript/.test(await popQ.locator('#nota-js').textContent()));
+  await popQ.close(); await pq.close();
+  await sw.evaluate(() => chrome.storage.local.remove('riempimento'));
+  await sw.evaluate(() => chrome.storage.local.get('prezzi').then((r) => { for (const k of Object.keys(r.prezzi)) if (k.startsWith('http://quota')) delete r.prezzi[k]; return chrome.storage.local.set({ prezzi: r.prezzi }); }));
+
+  console.log('\n[y6] 1.4.1: testi, migrazione e servizio');
+  const mig = fs.readFileSync(path.join(EXT, 'supabase/migrations/20261108130000_cacciasconti_codici_email.sql'), 'utf8');
+  verifica('Migrazione: colonne e controlli identici alla tabella attiva (id identity, domain, code, sconto<=80, scade_il date, email_data date, mittente<=120, created_at, unique(domain, code))',
+    /id bigint generated always as identity primary key/.test(mig) && /domain text not null check \(char_length\(domain\) <= 253 and domain ~ '\^\[a-z0-9\]\(\[a-z0-9\.-\]\*\[a-z0-9\]\)\?\$'\)/.test(mig) && /code text not null check \(code ~ '\^\[A-Z0-9-\]\{3,25\}\$'\)/.test(mig) &&
+    /sconto text check \(char_length\(sconto\) <= 80\)/.test(mig) && /scade_il date,/.test(mig) && /email_data date,/.test(mig) && /mittente text check \(char_length\(mittente\) <= 120\)/.test(mig) && /created_at timestamptz default now\(\),/.test(mig) && /unique \(domain, code\)/.test(mig) && !/email_data timestamptz/.test(mig) && !/create index/.test(mig));
+  verifica('Migrazione: RLS accesa, revoke anon/authenticated, lavoro pg_cron "cacciasconti_email_pulizia" alle 20 3 * * * con le due condizioni (scade_il < oggi-7 oppure created_at < 180 giorni), nessun altro nome', /enable row level security/.test(mig) && /revoke all on public\.cacciasconti_codici_email from anon, authenticated/.test(mig) &&
+    /cron\.unschedule\('cacciasconti_email_pulizia'\)/.test(mig) && /cron\.schedule\('cacciasconti_email_pulizia', '20 3 \* \* \*'/.test(mig) && /scade_il is not null and scade_il < current_date - 7/.test(mig) && /created_at < now\(\) - interval '180 days'/.test(mig) && !/cacciasconti_pulizia_email/.test(mig) && !/coalesce\(email_data/.test(mig));
+  const man3 = JSON.parse(fs.readFileSync(path.join(EXT, 'manifest.json'), 'utf8'));
+  const priv = fs.readFileSync(path.join(EXT, 'privacy.html'), 'utf8'), store = fs.readFileSync(path.join(EXT, 'STORE.md'), 'utf8'), readme = fs.readFileSync(path.join(EXT, 'README.md'), 'utf8');
+  verifica('Manifest: la descrizione non dice più "Segue i prezzi che scegli tu" e spiega lo storico (salvato sul computer) e gli avvisi per i prodotti seguiti', !/Segue i prezzi che scegli tu/.test(man3.description) && /storico dei prezzi dei prodotti che visiti/.test(man3.description) && /ti avvisa per quelli che segui/.test(man3.description), man3.description);
+  verifica('Informativa: spiega la richiesta con la chiave personale (chiave + dominio, solo se la chiave c\'è, indipendente dalla condivisione) e resta la BOZZA', /Richiesta di rete con la chiave personale/.test(priv) && /indipendente dalla condivisione/.test(priv) && /solo se hai inserito la chiave/.test(priv) && /<b>BOZZA:<\/b>/.test(priv));
+  verifica('STORE.md: scopo unico riscritto ("Aiutarti a risparmiare sugli acquisti online...") con la spiegazione di ogni funzione; alarms motivato', /Aiutarti a risparmiare sugli acquisti online: codici sconto provati alla cassa, con funzioni collegate \(storico prezzi, promemoria cashback, codici dalle tue email\)/.test(store) && /Come ogni funzione serve a questo unico scopo/.test(store) && /\*\*alarms\*\*/.test(store));
+  verifica('README: spiega alarms (nessun avviso all\'installazione), token di almeno 32 caratteri e il limite di 10 chiavi sbagliate', /`alarms`[^\n]*nessun avviso all'installazione/.test(readme) && /almeno 32 caratteri/.test(readme) && /10 chiavi sbagliate/.test(readme) && !/Non ci sono i permessi[^\n]*`alarms`/.test(readme));
   }
 
   // ================= (s) Versione, novità, permessi =================
