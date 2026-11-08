@@ -1,5 +1,6 @@
 // Tre negozi finti per provare Cacciasconti. Codici validi: ESTATE20 (-20%), SCONTO10 (-10%).
 const http = require('http');
+const { gestisciExtra } = require('./server-extra');
 
 const VALIDI = { ESTATE20: 0.2, SCONTO10: 0.1 };
 const sessioni = {}; // WooCommerce finto: stato lato server, per cookie
@@ -566,6 +567,7 @@ function crea() {
     const host = (req.headers.host || '').split(':')[0];
     const url = new URL(req.url, 'http://x');
     const html = (t, extra) => { res.writeHead(200, Object.assign({ 'content-type': 'text/html; charset=utf-8' }, extra || {})); res.end(t); };
+    if (await gestisciExtra(host, url, req, res, html, leggiCorpo)) return;
     if (host.startsWith('woo.')) {
       let sid = cookie(req), extra = {};
       if (!sid || !sessioni[sid]) { sid = Math.random().toString(16).slice(2); sessioni[sid] = { coupon: null, flash: null }; extra['set-cookie'] = 'sid=' + sid + '; Path=/'; }

@@ -42,3 +42,14 @@ li .del{background:none;border:none;color:var(--mu);cursor:pointer;font-size:15p
 #fonti{list-style:none;padding:0;margin:6px 0}#fonti li{display:flex;justify-content:space-between;gap:6px;font-size:12px;padding:2px 0;word-break:break-all}
 #fonte-form{flex-wrap:wrap}#fonte-form input{flex:1 1 100%}
 #novita-testo{white-space:pre-wrap;max-height:160px;overflow:auto}
+
+.sped{color:var(--ac2);font-weight:600;margin-bottom:6px}
+.grafico-box{color:var(--ac);margin:6px 0}.grafico-box svg{width:100%;height:auto;background:var(--ca);border-radius:10px;border:1px solid var(--li)}
+#cerca a{padding:6px 10px;border-radius:9px;border:1px solid var(--ac);color:var(--ac);text-decoration:none;font-weight:600;font-size:12px}
+#cb-form input,#cb-form select,#chiave-form input,#cb-negozi,#cb-url,#cb-servizio{padding:7px;border-radius:9px;border:1px solid var(--li);background:var(--bg);color:var(--tx);font:inherit}
+#cb-form #cb-negozio{flex:1 1 100%}#cb-form #cb-importo{width:90px}
+#chiave-form input{flex:1 1 100%}
+#cb-lista li select{font-size:11px}
+li.ritardo .sub{color:var(--er);font-weight:600}
+.puntino{color:var(--er)}
+#cb-negozi{width:100%}

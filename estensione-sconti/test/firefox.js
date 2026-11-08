@@ -13,6 +13,7 @@ const EXT = path.resolve(__dirname, '..');
 const UUID = '11111111-2222-3333-4444-555555555555';
 let ok = 0, ko = 0;
 const verifica = (nome, cond, dettaglio) => { if (cond) { ok++; console.log('  PASS  ' + nome); } else { ko++; console.log('  FAIL  ' + nome + (dettaglio !== undefined ? '  -> ' + JSON.stringify(dettaglio) : '')); } };
+const leggiUrlFF = (u) => new Promise((ok, no) => { const x = new URL(u); require('http').get({ host: '127.0.0.1', port: x.port, path: x.pathname + x.search, headers: { host: x.host } }, (r) => { let b = ''; r.on('data', (c) => (b += c)); r.on('end', () => ok(b)); }).on('error', no); });
 const dorme = (ms) => new Promise((r) => setTimeout(r, ms));
 async function finche(fn, ms, passo = 300) { const fine = Date.now() + ms; let v; while (Date.now() < fine) { try { v = await fn(); if (v) return v; } catch (e) {} await dorme(passo); } return v; }
 
@@ -93,6 +94,36 @@ async function finche(fn, ms, passo = 300) { const fine = Date.now() + ms; let v
       const f = await finche(async () => { const t = await d.executeScript('const h = document.getElementById("cacciasconti-overlay"); return h ? h.shadowRoot.textContent : "";'); return /Risparmi|Nessun codice|fermato|Qualcosa/.test(t) ? t : null; }, 150000, 1000);
       verifica('Firefox: ' + host + ' -> ' + atteso, !!f && f.includes(atteso), f);
     }
+    // --- 1.4.0: storico prezzi, avviso (notifiche), spedizione gratuita, cashback
+    await d.switchTo().window(popupHandle);
+    await msgBg({ type: 'opzioni', opzioni: { storicoPrezzi: true, cashback: { attivo: true, servizio: 'topcashback', tutti: true, negozi: [] } } });
+    await d.switchTo().newWindow('tab');
+    await d.get(url('prd', '/p/scarpe?utm_source=x#y'));
+    const chiavePrd = `http://prd.localhost:${porta}/p/scarpe`;
+    const leggiPrezziFF = async () => { const h = await d.getWindowHandle(); await d.switchTo().window(popupHandle); const r = await estensione('return (await browser.storage.local.get("prezzi")).prezzi || {};'); await d.switchTo().window(h); return r; };
+    const recFF = await finche(async () => (await leggiPrezziFF())[chiavePrd], 15000);
+    verifica('Firefox: storico prezzi (JSON-LD): Scarpe Corsa Pro a 99,90, un punto, indirizzo senza utm_source', !!recFF && recFF.nome === 'Scarpe Corsa Pro' && recFF.punti.length === 1 && recFF.punti[0][1] === 99.9 && !/utm_/.test(recFF.url), recFF);
+    const hPrd = await d.getWindowHandle();
+    await d.switchTo().window(popupHandle);
+    const avv = await msgBg({ type: 'prezziAvvisa', chiave: chiavePrd, avvisa: true });
+    const apiNotif = await estensione('return typeof browser.notifications.create;');
+    verifica('Firefox: "Avvisami se scende" si accende e l\'API delle notifiche esiste', avv && avv.avvisa === true && apiNotif === 'function', { avv, apiNotif });
+    await leggiUrlFF(url('prd', '/__prezzo?p=/p/scarpe&v=79.9'));
+    await d.switchTo().window(hPrd);
+    await d.get(url('prd', '/p/scarpe'));
+    await d.switchTo().window(popupHandle);
+    const nFF = await finche(async () => { const l = (await msgBg({ type: 'notificheInviate' })).lista; return l.length ? l[l.length - 1] : null; }, 15000);
+    verifica('Firefox: prezzo sceso a 79,90 -> notifica "Il prezzo è sceso" (da 99,90 € a 79,90 €)', !!nFF && nFF.titolo === 'Il prezzo è sceso' && nFF.testo.includes('99,90 €') && nFF.testo.includes('79,90 €'), nFF);
+    await d.switchTo().window(hPrd);
+    await d.get(url('spd', '/cart'));
+    const spFF = await finche(async () => { await d.switchTo().window(popupHandle); const t = await msgBg({ type: 'spedizioneTab', tabId: (await estensione('return (await browser.tabs.query({ url: "*://spd.localhost/*" }))[0].id;')) }); await d.switchTo().window(hPrd); return t && t.spedizione; }, 15000);
+    verifica('Firefox: spedizione gratuita sopra 49 €, subtotale 41,90 -> mancano 7,10 €', !!spFF && spFF.soglia === 49 && spFF.mancano === 7.1, spFF);
+    await d.get(url('cbk', '/checkout'));
+    const cbFF = await finche(async () => d.executeScript('const h = document.getElementById("cacciasconti-cashback"); return h ? h.shadowRoot.textContent : "";').then((t) => (t.includes('TopCashback') ? t : null)), 15000);
+    verifica('Firefox: promemoria cashback alla cassa ("Hai il cashback su TopCashback")', !!cbFF, cbFF);
+    await d.switchTo().window(popupHandle);
+    await msgBg({ type: 'opzioni', opzioni: { cashback: { attivo: false } } });
+
     // --- Popup con i codici
     await d.switchTo().window(popupHandle);
     await d.navigate().refresh();

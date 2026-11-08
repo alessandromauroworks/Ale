@@ -17,7 +17,8 @@
 
 <nav>
   <button class="scheda attiva" data-s="codici">Codici</button>
-  <button class="scheda" data-s="risparmi">Risparmi</button>
+  <button class="scheda" data-s="prezzi">Prezzi</button>
+  <button class="scheda" data-s="risparmi" id="tab-risparmi">Risparmi</button>
   <button class="scheda" data-s="opzioni">Opzioni</button>
 </nav>
 
@@ -25,6 +26,7 @@
   <div id="conteggio" class="piccolo"></div>
   <button id="genera" class="grande" disabled>Genera sconto</button>
   <div id="spiega" class="piccolo avviso"></div>
+  <div id="sped" class="piccolo sped" hidden></div>
   <div id="risultato" class="risultato" hidden></div>
   <button id="riprova" class="link" hidden>Riprova anche i codici che non funzionavano</button>
   <ul id="lista"></ul>
@@ -35,9 +37,38 @@
   <div id="errore" class="piccolo errore"></div>
 </section>
 
+<section id="s-prezzi" hidden>
+  <div id="p-vuoto" class="piccolo"></div>
+  <div id="p-prodotto" hidden>
+    <div id="p-nome" class="cod"></div>
+    <div id="p-grafico" class="grafico-box"></div>
+    <div id="p-stat" class="piccolo"></div>
+    <label class="riga"><input type="checkbox" id="avvisa"> Avvisami se scende</label>
+    <div id="p-errore" class="piccolo errore"></div>
+    <div class="piccolo">Cerca anche su (si apre una scheda solo quando clicchi):</div>
+    <div id="cerca" class="riga2"></div>
+  </div>
+  <div class="blocco"><b>Prodotti che segui</b>
+    <ul id="seguiti"></ul>
+    <p class="piccolo">Per questi, al massimo una volta al giorno, l'estensione riguarda la pagina del prodotto (senza cookie, rispettando robots.txt) e ti avvisa se il prezzo scende.</p>
+  </div>
+</section>
+
 <section id="s-risparmi" hidden>
   <div class="totale"><span class="piccolo">Totale risparmiato</span><div id="totale">0,00 €</div></div>
   <ul id="storico"></ul>
+  <div class="blocco"><b>Registro cashback</b>
+    <div id="cb-avviso" class="avviso-box" hidden></div>
+    <form id="cb-form" class="riga2">
+      <input id="cb-negozio" type="text" placeholder="Negozio" maxlength="60" required>
+      <input id="cb-importo" type="text" inputmode="decimal" placeholder="Importo €" required size="8">
+      <input id="cb-data" type="date">
+      <select id="cb-stato"><option>in attesa</option><option>accreditato</option><option>mancante</option></select>
+      <button type="submit">Aggiungi</button>
+    </form>
+    <div id="cb-errore" class="piccolo errore"></div>
+    <ul id="cb-lista"></ul>
+  </div>
 </section>
 
 <section id="s-opzioni" hidden>
@@ -51,6 +82,25 @@
   </div>
   <label class="riga"><input type="checkbox" id="esplora"> Cerca codici anche nelle pagine promo del negozio (una volta al giorno)</label>
   <label class="riga"><input type="checkbox" id="ricaricaAuto"> Ricarica da sola quando la cartella dell'estensione si aggiorna (prova)</label>
+  <label class="riga"><input type="checkbox" id="soloIcona"> Modalità solo icona (niente scheda sulla pagina, solo il numero sull'icona)</label>
+  <label class="riga"><input type="checkbox" id="storicoPrezzi"> Salva lo storico dei prezzi dei prodotti che guardi (solo sul computer)</label>
+  <label class="riga"><input type="checkbox" id="gmail"> Gmail: quando apri un'email, cerca i codici sconto (solo sul computer)</label>
+  <label class="riga"><input type="checkbox" id="googleBadge"> Google: segna i risultati dei siti per cui hai codici</label>
+  <label class="riga"><input type="checkbox" id="couponAperti"> Leggi i codici dai siti di coupon che apri tu</label>
+  <p class="piccolo">Alcuni siti di coupon vietano nei loro termini la lettura automatica. L'estensione legge solo ciò che la pagina già mostra mentre la guardi tu: non apre pagine e non clicca "mostra codice". Controlla i termini del sito.</p>
+  <div class="blocco"><b>Chiave personale codici email</b>
+    <p class="piccolo">Se la tua automazione salva i codici delle tue email nel tuo Supabase, incolla qui la chiave. Resta solo su questo computer (non si sincronizza, non va nei salvataggi).</p>
+    <form id="chiave-form" class="riga2"><input id="chiave" type="password" autocomplete="off" placeholder="Chiave personale" maxlength="200"><button type="submit">Salva</button><button type="button" id="chiave-agg" class="sec">Aggiorna ora</button></form>
+    <div id="chiave-stato" class="piccolo"></div>
+  </div>
+  <div class="blocco"><b>Promemoria cashback</b>
+    <label class="riga"><input type="checkbox" id="cb-attivo"> Alla cassa ricordami il cashback</label>
+    <div class="riga2"><select id="cb-servizio"><option value="beruby">Beruby</option><option value="topcashback">TopCashback</option><option value="igraal">iGraal</option><option value="payback">Payback</option><option value="letyshops">LetyShops</option><option value="altro">Altro</option></select>
+      <input id="cb-url" type="url" placeholder="https://… (solo per Altro)" hidden></div>
+    <label class="riga"><input type="checkbox" id="cb-tutti"> Su tutti i negozi</label>
+    <input id="cb-negozi" type="text" placeholder="Negozi con cashback, separati da virgola (es. zalando.it, amazon.it)" hidden>
+    <p class="piccolo">È un semplice avviso con un link alla home del servizio: nessun codice di tracciamento nostro.</p>
+  </div>
   <label class="riga"><input type="checkbox" id="condividi"> Condividi codici funzionanti (anonimo)</label>
   <p class="piccolo" id="condividi-nota">Se lo accendi: si inviano solo sito, codice, se ha funzionato e la percentuale di sconto. Niente account, nessun IP salvato. Non si inviano i codici scritti da te. Vedi privacy.html.</p>
   <div class="blocco"><b>Fonti aggiuntive</b>
@@ -62,6 +112,7 @@
   <details id="novita"><summary>Novità · versione <span id="versione"></span></summary><pre id="novita-testo" class="piccolo"></pre></details>
 </section>
 <script src="domain.js"></script>
+<script src="lib-extra.js"></script>
 <script src="popup.js"></script>
 </body>
 </html>

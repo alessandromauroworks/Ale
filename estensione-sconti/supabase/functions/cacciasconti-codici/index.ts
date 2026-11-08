@@ -1,11 +1,13 @@
 // Edge Function Cacciasconti (BOZZA da controllare prima della distribuzione pubblica).
 // POST  {domain, code, worked, saving_pct?}  -> salva una segnalazione anonima
 // GET   ?domain=esempio.it                   -> max 20 codici con almeno 2 successi e tasso di successo >= 50% negli ultimi 30 giorni
-// Segreti da impostare: CACCIASCONTI_SALE (testo casuale lungo, OBBLIGATORIO: senza, le segnalazioni rispondono 503); opzionale CACCIASCONTI_APIKEY (chiave anon dell'estensione).
+// GET   ?personali=1[&domain=x]              -> codici delle TUE email (tabella cacciasconti_codici_email), non scaduti, max 500. Serve l'intestazione x-cacciasconti-token = segreto CACCIASCONTI_TOKEN_PERSONALE (senza segreto: 503).
+// Segreti da impostare: CACCIASCONTI_TOKEN_PERSONALE (solo per i codici personali delle email); CACCIASCONTI_SALE (testo casuale lungo, OBBLIGATORIO: senza, le segnalazioni rispondono 503); opzionale CACCIASCONTI_APIKEY (chiave anon dell'estensione).
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const MAX_BODY = 2048;
 const MAX_ORA = 60;
+const MAX_PERSONALI = 500;
 const RE_DOMINIO = /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/;
 const RE_CODICE = /^[A-Z0-9-]{3,25}$/;
 // Un codice entra nell'elenco pubblico solo con almeno 2 segnalazioni "funziona" e almeno il 50% di successi (contro l'avvelenamento con una sola segnalazione falsa).
@@ -14,7 +16,7 @@ const MIN_TASSO = 50;
 
 const CORS = {
   "access-control-allow-origin": "*", // l'estensione chiama da chrome-extension:// / moz-extension://
-  "access-control-allow-headers": "content-type, apikey, authorization",
+  "access-control-allow-headers": "content-type, apikey, authorization, x-cacciasconti-token",
   "access-control-allow-methods": "GET, POST, OPTIONS",
 };
 const json = (o: unknown, status = 200) =>
@@ -36,12 +38,38 @@ export function ipCliente(req: Request): string {
   return xff.length ? xff[xff.length - 1] : "sconosciuto";
 }
 
+// Confronto a tempo costante: si confrontano gli hash SHA-256 (stessa lunghezza) con XOR su tutti i caratteri, senza uscire al primo errore.
+export async function confrontoCostante(a: string, b: string): Promise<boolean> {
+  const [x, y] = await Promise.all([sha256(a), sha256(b)]);
+  let diff = x.length ^ y.length;
+  for (let i = 0; i < x.length; i++) diff |= x.charCodeAt(i) ^ (y.charCodeAt(i) || 0);
+  return diff === 0;
+}
+
+// Codici personali delle email: lettura protetta dal segreto. Mai pubblici.
+async function personali(req: Request, url: URL, db: any): Promise<Response> {
+  const segreto = Deno.env.get("CACCIASCONTI_TOKEN_PERSONALE");
+  if (!segreto) return json({ errore: "servizio non configurato" }, 503);
+  const dato = req.headers.get("x-cacciasconti-token") || "";
+  if (!dato || !(await confrontoCostante(dato, segreto))) return json({ errore: "non autorizzato" }, 401);
+  const dominio = (url.searchParams.get("domain") || "").toLowerCase();
+  if (dominio && !dominioValido(dominio)) return json({ errore: "dominio non valido" }, 400);
+  const oggi = new Date().toISOString().slice(0, 10);
+  let q = db.from("cacciasconti_codici_email").select("domain,code,sconto,scade_il,email_data").or(`scade_il.is.null,scade_il.gte.${oggi}`);
+  if (dominio) q = q.eq("domain", dominio);
+  const { data, error } = await q.order("email_data", { ascending: false }).limit(MAX_PERSONALI);
+  if (error) return json({ errore: "errore del server" }, 500);
+  return json({ codici: data });
+}
+
 export async function gestisci(req: Request, db: any): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   const chiave = Deno.env.get("CACCIASCONTI_APIKEY");
   if (chiave && req.headers.get("apikey") !== chiave) return json({ errore: "non autorizzato" }, 401);
 
   if (req.method === "GET") {
+    const url = new URL(req.url);
+    if (url.searchParams.get("personali") === "1") return await personali(req, url, db);
     const dominio = (new URL(req.url).searchParams.get("domain") || "").toLowerCase();
     if (!dominioValido(dominio)) return json({ errore: "dominio non valido" }, 400);
     const { data, error } = await db.from("cacciasconti_stats_30g").select("code,n_report,tasso_successo,ultimo_successo,sconto_medio_pct")

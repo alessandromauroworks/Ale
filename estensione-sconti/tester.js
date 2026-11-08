@@ -711,7 +711,7 @@
   const CSS_BASE = `
     :host{all:initial}
     *{box-sizing:border-box;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-    .box{position:fixed;right:16px;bottom:16px;z-index:2147483647;width:300px;max-width:calc(100vw - 32px);
+    .box{position:fixed;right:var(--r,16px);bottom:var(--b,16px);left:var(--l,auto);top:var(--t,auto);z-index:2147483647;width:300px;max-width:calc(100vw - 32px);
       background:#fff;color:#14231d;border:1px solid #cfe3da;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.22);padding:14px;font-size:14px;line-height:1.35}
     @media (prefers-color-scheme:dark){.box{background:#17221e;color:#e8f3ee;border-color:#2c4238}}
     .tit{font-weight:700;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
@@ -765,7 +765,9 @@
       testa = `<div>Sto provando: <b>${esc(st.corrente || '...')}</b> <small>(${Math.min(st.idx, st.coda.length)} di ${st.coda.length})</small></div>`;
       piedi = '<div class="riga" style="margin-top:8px"><span class="grigio"><small>Non toccare la pagina</small></span><button id="stop" class="sec">Stop</button></div>';
     }
-    sr.innerHTML = `<style>${CSS_BASE}</style><div class="box"><div class="tit"><span>Cacciasconti</span></div>${testa}<ul>${righe}</ul>${piedi}</div>`;
+    const sped = (CS.leggiSpedizione && CS.leggiSpedizione()) || CS.spedizione;
+    const rigaSped = sped && self.CS_lib ? self.CS_lib.testoSpedizione(sped) : '';
+    sr.innerHTML = `<style>${CSS_BASE}</style><div class="box"><div class="tit"><span>Cacciasconti</span></div>${testa}<ul>${righe}</ul>${rigaSped ? '<div id="sped" class="grigio"><small>' + esc(rigaSped) + '</small></div>' : ''}${piedi}</div>`;
     const s = sr.getElementById('stop');
     if (s) s.onclick = () => { msg({ type: 'fermaTab' }); };
     const c = sr.getElementById('chiudi');
@@ -775,6 +777,7 @@
   // ---------- Scheda "consiglio" automatica e badge (solo nel frame principale) ----------
   let schedaMostrata = false, esplorato = false;
   const haCampoQui = () => !!trovaCampo().input || !!trovaInterruttore();
+  CS.haCampoQui = haCampoQui;
   async function aggiornaStato() {
     if (CS.inEsecuzione) return;
     await ricetteProntE;
@@ -795,12 +798,17 @@
     const c = await msg({ type: 'coda', dominio, totale: leggiLocale().totale });
     const n = c && c.coda ? c.coda.length : (b && b.n) || 0;
     if (!n) return;
-    schedaMostrata = true;
+    if (c && c.opzioni && c.opzioni.soloIcona === true) return; // modalità solo icona: resta il numero sull'icona, niente scheda sulla pagina
+    schedaMostrata = true; // una volta sola per ogni visita della pagina: se si chiude o sparisce da sola non torna
     const host = creaHost('cacciasconti-scheda');
+    const sped = (CS.leggiSpedizione && CS.leggiSpedizione()) || CS.spedizione;
+    const rigaSped = sped && self.CS_lib ? self.CS_lib.testoSpedizione(sped) : '';
     host.shadowRoot.innerHTML = `<style>${CSS_BASE}</style><div class="box"><div class="riga"><div><b>Cacciasconti</b>: ${n} codic${n === 1 ? 'e' : 'i'} da provare</div>
-      <button class="x" id="x" title="Non mostrare per 24 ore">✕</button></div><div style="margin-top:8px"><button id="vai">Genera sconto</button></div></div>`;
+      <button class="x" id="x" title="Non mostrare per 24 ore">✕</button></div>${rigaSped ? '<div class="grigio" style="margin-top:4px"><small>' + esc(rigaSped) + '</small></div>' : ''}<div style="margin-top:8px"><button id="vai">Genera sconto</button></div></div>`;
     host.shadowRoot.getElementById('x').onclick = async () => { host.remove(); await msg({ type: 'nascondiCard', dominio }); };
     host.shadowRoot.getElementById('vai').onclick = () => { host.remove(); msg({ type: 'avviaTab', riprova: false }); };
+    // In basso a destra, sparisce da sola dopo 12 secondi e non copre mai i pulsanti di pagamento (si sposta o non si mostra)
+    if (CS.sorveglia) CS.sorveglia(host, ['br', 'bl', 'tr', 'tl'], 12000);
   }
 
   // ---------- Avvio, messaggi dal fondo, ripresa dopo il ricaricamento ----------

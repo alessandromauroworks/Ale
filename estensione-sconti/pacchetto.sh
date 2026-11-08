@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 VERSIONE=$(python3 -c "import json;print(json.load(open('manifest.json'))['version'])")
 mkdir -p dist
-FILE="manifest.json background.js cercatore.js tester.js domain.js estrattore.js popup.html popup.css popup.js privacy.html CHANGELOG.md icons recipes"
+FILE="manifest.json background.js cercatore.js tester.js domain.js estrattore.js lib-extra.js pagina-extra.js google.js gmail.js popup.html popup.css popup.js privacy.html CHANGELOG.md icons recipes"
 costruisci() { # $1 = chrome | firefox
   local TMP; TMP=$(mktemp -d)
   mkdir -p "$TMP/p"

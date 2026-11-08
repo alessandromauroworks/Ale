@@ -25,13 +25,23 @@ h1{color:#0f9d78}
 <li>Titolare del trattamento: Alessandro Mauro, alessandromauro.works@gmail.com (per chiedere informazioni o la cancellazione). Il servizio è ospitato su Supabase (regione UE, Irlanda).</li>
 <li>Puoi spegnere la funzione in qualsiasi momento.</li>
 </ul>
+<h2>Codici delle tue email (facoltativo)</h2>
+<p>Due funzioni leggono le tue email, solo se le usi:</p>
+<ul>
+<li><b>Gmail nel browser</b> (acceso di base, ma agisce solo quando apri un messaggio): cerca i codici sconto nel testo del messaggio aperto, sul tuo computer. Il testo dell'email non viene salvato né inviato a nessuno; si salvano solo negozio, codici e scadenza. Si spegne dalle Opzioni.</li>
+<li><b>Codici email dal tuo database personale</b>: se la tua automazione salva i codici delle tue email in una tabella del TUO Supabase (<code>cacciasconti_codici_email</code>: dominio, codice, sconto, scadenza, data e mittente dell'email), puoi inserire nelle Opzioni una <b>chiave personale</b>. Con quella chiave, e solo con quella, l'estensione scarica i tuoi codici non scaduti (ogni 6 ore e prima di una prova). Chi non ha la chiave non può leggere la tabella. La chiave resta solo sul tuo computer (non si sincronizza e non finisce nei salvataggi). Il servizio non restituisce il mittente.</li>
+<li><b>Conservazione</b> nel tuo database: i codici si cancellano 7 giorni dopo la scadenza, e comunque dopo 180 giorni dalla data dell'email.</li>
+</ul>
+<h2>Prezzi dei prodotti</h2>
+<p>Sulle pagine prodotto l'estensione salva sul tuo computer il nome e il prezzo (un valore al giorno, massimo 500 prodotti). Se scegli "Avvisami se scende", una volta al giorno riscarica la pagina di quel prodotto (senza cookie, rispettando robots.txt) e ti manda una notifica del browser se il prezzo è sceso. Si spegne dalle Opzioni.</p>
 <h2>Esploratore del negozio</h2>
 <p>Quando sei su un negozio con il campo coupon, l'estensione può scaricare (senza cookie, una volta al giorno, al massimo 8 pagine, rispettando robots.txt) alcune pagine pubbliche dello stesso negozio (per esempio /promo, /offerte) per cercarvi codici. Si spegne dalle Opzioni. Le "Fonti aggiuntive" sono pagine che scegli tu: non ce ne sono di base.</p>
 <h2>Cosa salva (solo sul tuo computer)</h2>
 <ul>
 <li>I codici sconto trovati nelle pagine dei negozi che visiti e quelli che aggiungi tu.</li>
 <li>Il risultato di ogni prova (funziona o no) e il risparmio ottenuto.</li>
-<li>Le tue impostazioni (codici comuni sì/no, numero massimo di codici).</li>
+<li>Le tue impostazioni (codici comuni sì/no, numero massimo di codici, opzioni facoltative, cashback scelto).</li>
+<li>Lo storico dei prezzi dei prodotti, il registro cashback che scrivi tu e, se la inserisci, la chiave personale.</li>
 </ul>
 <h2>Cosa non fa</h2>
 <ul>

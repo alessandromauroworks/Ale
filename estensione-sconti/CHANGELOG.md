@@ -1,5 +1,19 @@
 # Novità
 
+## 1.4.0
+Prezzi, email e altre fonti di codici, tutte spente o solo locali di base.
+- **Storico prezzi**: sulle pagine prodotto (JSON-LD, OpenGraph, microdata, Shopify, WooCommerce) salva un prezzo al giorno sul tuo computer (massimo 500 prodotti). Scheda **Prezzi** nella finestra: mini grafico, minimo, massimo, prezzo di oggi.
+- **Avvisami se scende**: per i prodotti che scegli tu. Ad ogni visita, e una volta al giorno in secondo piano (senza cookie, rispettando robots.txt), se il prezzo è sceso arriva una notifica. Nuovo permesso: `notifications`.
+- **Cerca anche su**: pulsanti Amazon.it, Google Shopping, Idealo.it, Trovaprezzi.it con il nome del prodotto (si apre una scheda solo quando clicchi).
+- **Spedizione gratuita**: "Ti mancano 7,10 € per la spedizione gratuita" nella scheda, nel pannello e nella finestra.
+- **Gmail**: quando apri un messaggio, cerca i codici nel testo e li salva per il negozio (fonte "email"). Solo sul tuo computer.
+- **Codici dalle tue email (automatico)**: chiave personale nelle Opzioni; ogni 6 ore e prima di una prova scarica dal tuo Supabase i codici non scaduti. La chiave resta solo qui (mai sincronizzata, mai nei salvataggi).
+- **Google**: opzione (spenta) che segna i risultati con "🏷 N codici" per i siti di cui hai codici.
+- **Siti di coupon aperti da te**: opzione (spenta) che legge i codici già visibili nella pagina e li assegna al negozio. Non clicca mai "mostra codice".
+- **Cashback**: promemoria alla cassa (opzione spenta) con link semplice al servizio scelto, e **registro cashback** a mano con promemoria dopo 90 giorni "in attesa".
+- **Modalità solo icona** e scheda più educata: in basso a destra, sparisce dopo 12 secondi, non torna nella stessa pagina e non copre mai i pulsanti di pagamento.
+- Servizio dei codici (bozza): nuova lettura `?personali=1` protetta da `CACCIASCONTI_TOKEN_PERSONALE` (503 se manca il segreto, 401 se la chiave non è giusta).
+
 ## 1.3.0
 Correzioni dopo la revisione indipendente.
 - Il pulsante "rimuovi" non può più togliere un prodotto dal carrello: dentro una riga prodotto non si clicca mai, anche se nel testo ci sono parole come "Promo" o "Codice".

@@ -17,6 +17,9 @@ Come funziona:
 - Con un clic prova i codici uno alla volta nel campo del negozio, scarta quelli che non funzionano e applica il migliore.
 - Ti mostra quanto risparmi e, per ogni codice, quando è stato provato e perché non ha funzionato (non valido, scaduto, importo minimo...).
 - Tiene lo storico dei tuoi risparmi e puoi salvare o ricaricare i tuoi codici in un file.
+- Segue i prezzi dei prodotti che guardi (storico e mini grafico sul tuo computer) e, solo per quelli che scegli tu, ti avvisa con una notifica se il prezzo scende.
+- Mostra quanto manca per la spedizione gratuita, ti ricorda il cashback che hai scelto e tiene un registro cashback.
+- Facoltativo: cerca i codici nelle email di Gmail che apri, nei siti di coupon che apri tu e nel tuo archivio personale; segna i risultati di Google per cui hai codici.
 
 Rispetto alle altre estensioni di coupon:
 - Di base non invia nulla a nessuno: niente account, niente statistiche. Il testo delle pagine si legge solo sul tuo computer per trovare codici.
@@ -33,12 +36,17 @@ Trovare e provare i codici sconto sulla pagina del carrello o della cassa di un 
 - **storage**: salva sul computer i codici, i risultati delle prove, lo storico dei risparmi e le impostazioni.
 - **scripting**: permette di caricare lo script nella scheda già aperta prima dell'installazione, quando l'utente apre la finestra dell'estensione.
 - **Accesso a tutti i siti (host_permissions <all_urls>)**: i negozi online sono migliaia e non si possono elencare. Serve per leggere il testo delle pagine alla ricerca di codici sconto (solo sul computer dell'utente), per scrivere nel campo coupon della cassa, per scaricare le poche pagine promo dello stesso negozio e, solo se l'utente accende la condivisione, per parlare con il servizio dei codici condivisi. Il testo letto non viene salvato né inviato, a parte i codici trovati (salvati solo sul computer).
+- **notifications**: mostra l'avviso "il prezzo è sceso" solo per i prodotti che l'utente ha scelto di seguire.
+- **Pagine di Gmail e di Google (match specifici)**: lo script di Gmail gira solo su `mail.google.com`, quello dei risultati solo su `google.*/search`.
 - Non sono richiesti `activeTab` (ridondante con l'accesso a tutti i siti), `alarms`, `cookies`.
 
 ## Uso dei dati (Data use disclosure)
 - Di base: dati raccolti **nessuno**. "Contenuto dei siti web": il testo delle pagine si elabora solo sul computer dell'utente per trovare i codici e non viene trasmesso.
 - Da dichiarare nel modulo dei dati: **"Attività di navigazione sul web"** = solo il dominio del negozio, inviato SOLO se l'utente accende la condivisione facoltativa; mai venduto, mai usato per pubblicità.
 - Cacciasconti non inserisce link di affiliazione né propri codici di tracciamento.
+- **Gmail**: il contenuto delle pagine di Gmail (solo del messaggio che l'utente apre) è elaborato SOLO sul computer dell'utente per trovare codici sconto; non viene trasmesso né salvato (si salvano solo negozio, codici e scadenza). Dichiarare "Contenuto dei siti web" / comunicazioni personali come trattati localmente, non raccolti. Uso limitato (Limited Use): nessun uso per pubblicità, nessun trasferimento a terzi, nessuna lettura da parte di persone.
+- **Storico prezzi**: i prezzi dei prodotti visti sono salvati solo nel browser (massimo 500 prodotti, un punto al giorno). Per i prodotti seguiti l'estensione scarica la pagina del prodotto una volta al giorno, senza cookie, rispettando robots.txt.
+- **Chiave personale (facoltativa)**: se l'utente la inserisce, resta solo in `storage.local` (mai sincronizzata né esportata) e viene inviata soltanto al servizio dell'utente stesso (il SUO Supabase), insieme al dominio del negozio. Da dichiarare come "Informazioni di autenticazione" (opzionale, verso un servizio scelto dall'utente) e "Attività di navigazione" (dominio).
 - **Solo se l'utente accende "Condividi codici funzionanti (anonimo)"** (spento di base) si inviano: sito (dominio), codice, se ha funzionato, percentuale di sconto. Nessun account, nessun IP salvato (solo un hash con sale giornaliero per limitare gli abusi, cancellato dopo 24 ore); le segnalazioni si cancellano dopo 90 giorni. Titolare: Alessandro Mauro, alessandromauro.works@gmail.com. I codici scritti a mano dall'utente non si inviano mai.
 - L'"esploratore del negozio" scarica poche pagine pubbliche (max 8, una volta al giorno) dello STESSO negozio che l'utente sta visitando, senza cookie, rispettando robots.txt; non scarica siti di terzi.
 - BOZZA da far controllare (privacy/legale) prima della pubblicazione: nella scheda dello store va dichiarata la raccolta opzionale di "attività di navigazione" (dominio).

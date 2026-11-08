@@ -1,0 +1,21 @@
+{
+  "nota": "Elenco statico di siti di coupon (aggregatori) noti. Serve solo a riconoscere la pagina; nulla viene scaricato. Ogni sito ha i suoi termini d'uso: l'estensione legge solo ciò che la pagina mostra già mentre la guardi tu, senza aprire pagine e senza cliccare.",
+  "aggregatori": [
+    "pepper.it",
+    "picodi.com",
+    "scontomaggio.com",
+    "dealabs.com",
+    "mydealz.de",
+    "couponfollow.com",
+    "retailmenot.com",
+    "coupons.com",
+    "promocodes.com",
+    "vouchercodes.co.uk",
+    "hotukdeals.com",
+    "groupon.it",
+    "couponcabin.com",
+    "dontpayfull.com",
+    "slickdeals.net",
+    "cuponation.it"
+  ]
+}
