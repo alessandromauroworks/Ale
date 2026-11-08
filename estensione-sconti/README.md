@@ -81,7 +81,7 @@ Non ci sono i permessi `cookies`, `activeTab` (con `<all_urls>` sarebbe ridondan
 Onestà prima di tutto:
 - Honey e CouponBirds hanno grandi database condivisi di codici, aggiornati da milioni di utenti. **Noi no**: abbiamo solo i codici che trovi tu, quelli che aggiungi e una piccola lista di codici comuni. Su molti negozi troveranno più codici di noi.
 - Cacciasconti è locale e trasparente: il codice è tutto in questa cartella e si può leggere, di base non invia nulla a nessuno (la condivisione anonima è facoltativa e spenta) e non ha affiliazioni.
-- Nel dicembre 2024 un'inchiesta pubblica ha sostenuto che Honey, durante gli acquisti, sostituiva i cookie di affiliazione dei creatori di contenuti con i propri. Cacciasconti non tocca i cookie e non usa link di affiliazione, quindi non può farlo: per questo non chiede il permesso `cookies`.
+- Sulla polemica di Honey (presentata qui come accusa, non come fatto accertato): nel dicembre 2024 lo YouTuber MegaLag ha accusato Honey di riassegnare a sé le commissioni di affiliazione dei creatori di contenuti; PayPal ha risposto di seguire le regole del settore (attribuzione all'ultimo clic); nel marzo 2025 Google ha aggiornato la politica del Chrome Web Store sugli affiliati; dal dicembre 2024 sono state depositate azioni collettive, la prima archiviata nel novembre 2025 (fonte: en.wikipedia.org/wiki/PayPal_Honey). **Cacciasconti non inserisce link di affiliazione né propri codici di tracciamento** e non tocca i cookie (per questo non chiede il permesso `cookies`; i permessi sono solo `storage` e `scripting`).
 - Non copiamo né nome né grafica di altre estensioni.
 
 ## Limiti onesti

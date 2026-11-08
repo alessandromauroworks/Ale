@@ -36,7 +36,9 @@ Trovare e provare i codici sconto sulla pagina del carrello o della cassa di un 
 - Non sono richiesti `activeTab` (ridondante con l'accesso a tutti i siti), `alarms`, `cookies`.
 
 ## Uso dei dati (Data use disclosure)
-- Di base: dati raccolti **nessuno**.
+- Di base: dati raccolti **nessuno**. "Contenuto dei siti web": il testo delle pagine si elabora solo sul computer dell'utente per trovare i codici e non viene trasmesso.
+- Da dichiarare nel modulo dei dati: **"Attività di navigazione sul web"** = solo il dominio del negozio, inviato SOLO se l'utente accende la condivisione facoltativa; mai venduto, mai usato per pubblicità.
+- Cacciasconti non inserisce link di affiliazione né propri codici di tracciamento.
 - **Solo se l'utente accende "Condividi codici funzionanti (anonimo)"** (spento di base) si inviano: sito (dominio), codice, se ha funzionato, percentuale di sconto. Nessun account, nessun IP salvato (solo un hash con sale giornaliero per limitare gli abusi, cancellato dopo 24 ore); le segnalazioni si cancellano dopo 90 giorni. Titolare: Alessandro Mauro, alessandromauro.works@gmail.com. I codici scritti a mano dall'utente non si inviano mai.
 - L'"esploratore del negozio" scarica poche pagine pubbliche (max 8, una volta al giorno) dello STESSO negozio che l'utente sta visitando, senza cookie, rispettando robots.txt; non scarica siti di terzi.
 - BOZZA da far controllare (privacy/legale) prima della pubblicazione: nella scheda dello store va dichiarata la raccolta opzionale di "attività di navigazione" (dominio).
