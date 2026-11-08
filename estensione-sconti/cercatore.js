@@ -4,6 +4,8 @@
   window.CS_CARICATO = true;
   const CS = (window.CS = window.CS || {});
   CS.inEsecuzione = false;
+  // Il cercatore legge solo la pagina principale: i frame (pubblicità, widget) non devono sporcare l'archivio.
+  if (window.top !== window) return;
   const dominio = dominioDi(location.hostname);
 
   const PAROLE_VIETATE = new Set((

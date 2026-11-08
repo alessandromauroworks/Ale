@@ -4,7 +4,7 @@
   const q = new URLSearchParams(location.search);
   let tab = null, dominio = '', http = false;
   const msg = (m) => chrome.runtime.sendMessage(m);
-  const euro = (n, s) => Number(n).toFixed(2).replace('.', ',') + ' ' + (s || '€');
+  const euro = (n, s) => formattaImporto(n, s);
   const dataBreve = (t) => (t ? new Date(t).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '');
 
   document.querySelectorAll('.scheda').forEach((b) => b.addEventListener('click', () => {
@@ -13,14 +13,19 @@
     if (b.dataset.s === 'risparmi') caricaStorico();
   }));
 
-  async function chiedi(m) {
-    try { return await chrome.tabs.sendMessage(tab.id, m); } catch (e) {
+  let iniettato = false;
+  // Lo stato del campo coupon si chiede al fondo, che interroga tutti i frame della scheda.
+  async function statoTab() {
+    let r = await msg({ type: 'statoTab', tabId: tab.id });
+    if (r && r.n === 0 && !iniettato) { // scheda aperta prima dell'installazione: carico gli script in tutti i frame
+      iniettato = true;
       try {
-        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['domain.js', 'cercatore.js', 'tester.js'] });
-        await new Promise((r) => setTimeout(r, 400));
-        return await chrome.tabs.sendMessage(tab.id, m);
-      } catch (e2) { return null; }
+        await chrome.scripting.executeScript({ target: { tabId: tab.id, allFrames: true }, files: ['domain.js', 'cercatore.js', 'tester.js'] });
+        await new Promise((x) => setTimeout(x, 500));
+        r = await msg({ type: 'statoTab', tabId: tab.id });
+      } catch (e) {}
     }
+    return r;
   }
 
   async function caricaCodici() {
@@ -32,7 +37,7 @@
       const classe = c.esito === 'ok' ? 'ok' : c.esito === 'ko' ? 'ko' : 'mai';
       li.className = classe;
       let sub;
-      if (c.esito === 'ok') sub = 'Funziona' + (c.sconto ? ': -' + euro(c.sconto) : '') + ' · provato il ' + dataBreve(c.data);
+      if (c.esito === 'ok') sub = 'Funziona' + (c.sconto ? ': -' + euro(c.sconto, c.simbolo) : '') + ' · provato il ' + dataBreve(c.data);
       else if (c.esito === 'ko') sub = 'Non funziona (' + (c.motivo || 'nessuna reazione') + ') · provato il ' + dataBreve(c.data);
       else sub = 'Mai provato · ' + (c.source === 'manuale' ? 'aggiunto da te' : 'trovato nella pagina');
       li.innerHTML = '<span class="ico">' + (c.esito === 'ok' ? '✓' : c.esito === 'ko' ? '✗' : '○') + '</span><span class="t"><div class="cod"></div><div class="sub"></div></span><button class="del" title="Togli">×</button>';
@@ -52,8 +57,9 @@
 
   async function caricaStorico() {
     const { storico } = await msg({ type: 'leggiStorico' });
-    const somma = storico.reduce((a, x) => a + (x.risparmio || 0), 0);
-    $('totale').textContent = euro(somma);
+    // Un totale per ogni valuta: mai sommare euro, dollari e sterline insieme.
+    const somme = sommaPerValuta(storico);
+    $('totale').textContent = somme.length ? somme.map((x) => euro(x.totale, x.simbolo)).join(' + ') : euro(0, '€');
     const ul = $('storico');
     ul.innerHTML = '';
     if (!storico.length) { ul.innerHTML = '<li class="piccolo">Ancora nessun risparmio.</li>'; return; }
@@ -88,14 +94,14 @@
       caricaCodici();
     } else ris.hidden = true;
     if (!http) { g.disabled = true; sp.textContent = 'Cacciasconti funziona solo sulle pagine dei negozi online.'; return; }
-    const st = await chiedi({ type: 'stato' });
+    const st = await statoTab();
     if (st && st.campo) { g.disabled = false; sp.textContent = ''; }
     else { g.disabled = true; sp.textContent = 'Vai alla pagina del carrello o del pagamento.'; }
   }
 
   async function avvia(riprova) {
     $('genera').disabled = true;
-    await chiedi({ type: 'avvia', riprova: !!riprova });
+    await msg({ type: 'avviaTab', tabId: tab.id, riprova: !!riprova });
     aggiorna();
   }
 

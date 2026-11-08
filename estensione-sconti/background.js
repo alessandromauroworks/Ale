@@ -87,17 +87,65 @@ async function aggiornaBadge(tabId, dominio, campo) {
   return n;
 }
 
+let ricetteCache = null;
 async function leggiRicette() {
+  if (ricetteCache) return ricetteCache;
   const out = [];
   try {
     const indice = await (await fetch(chrome.runtime.getURL('recipes/indice.json'))).json();
     for (const f of indice) out.push(await (await fetch(chrome.runtime.getURL('recipes/' + f))).json());
+    ricetteCache = out;
   } catch (e) {}
   return out;
 }
 
+
+// ---------- Frame: ogni frame della scheda si registra, il fondo li coordina ----------
+const chiaveFrames = (tabId) => 'frames_' + tabId;
+async function leggiFrames(tabId) {
+  const k = chiaveFrames(tabId);
+  return (await chrome.storage.session.get(k))[k] || [];
+}
+function registraFrame(tabId, frameId) {
+  return inFila(async () => {
+    const lista = await leggiFrames(tabId);
+    if (!lista.includes(frameId)) lista.push(frameId);
+    await chrome.storage.session.set({ [chiaveFrames(tabId)]: lista });
+  });
+}
+function togliFrame(tabId, ids) {
+  if (!ids.length) return Promise.resolve();
+  return inFila(async () => {
+    const lista = (await leggiFrames(tabId)).filter((x) => !ids.includes(x));
+    await chrome.storage.session.set({ [chiaveFrames(tabId)]: lista });
+  });
+}
+const conTempo = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(() => r(undefined), ms))]);
+// Manda un messaggio a tutti i frame registrati (tranne quelli esclusi) e raccoglie le risposte.
+async function aiFrame(tabId, m, esclusi) {
+  const ids = (await leggiFrames(tabId)).filter((id) => !(esclusi || []).includes(id));
+  const out = [], morti = [];
+  await Promise.all(ids.map(async (id) => {
+    try {
+      const r = await conTempo(chrome.tabs.sendMessage(tabId, m, { frameId: id }), 1500);
+      if (r !== undefined && r !== null) out.push({ frameId: id, r });
+    } catch (e) {
+      if (/Receiving end does not exist|No frame with id|No tab with id/i.test(String(e && e.message))) morti.push(id);
+    }
+  }));
+  await togliFrame(tabId, morti);
+  return out.sort((a, b) => a.frameId - b.frameId);
+}
+const aUnFrame = async (tabId, frameId, m) => {
+  try { return await conTempo(chrome.tabs.sendMessage(tabId, m, { frameId }), 1500); } catch (e) { return null; }
+};
+
 async function gestisci(m, sender) {
   const tabId = m.tabId != null ? m.tabId : sender && sender.tab ? sender.tab.id : null;
+  // I codici sono sempre del sito che si vede nella barra, anche se il messaggio arriva da un frame di un altro sito.
+  if (sender && sender.tab && sender.tab.url && m.dominio != null) {
+    try { m.dominio = dominioDi(new URL(sender.tab.url).hostname); } catch (e) {}
+  }
   switch (m.type) {
     case 'trovati':
       return inFila(async () => {
@@ -142,6 +190,7 @@ async function gestisci(m, sender) {
         const e = sito[c] || { code: c, source: 'comune', origine: 'comune', trovato: Date.now() };
         e.esito = m.ok ? 'ok' : 'ko';
         e.sconto = m.ok ? m.sconto : null;
+        e.simbolo = simboloValuta(m.simbolo);
         e.data = Date.now();
         e.motivo = m.ok ? null : m.motivo || 'nessuna reazione';
         e.source = m.ok ? 'funzionato' : e.origine || 'comune';
@@ -168,7 +217,7 @@ async function gestisci(m, sender) {
       return inFila(async () => {
         const r = await chrome.storage.local.get('storico');
         const lista = r.storico || [];
-        lista.unshift({ dominio: m.dominio, codice: m.codice, risparmio: m.risparmio, simbolo: m.simbolo || '€', data: Date.now() });
+        lista.unshift({ dominio: m.dominio, codice: m.codice, risparmio: m.risparmio, simbolo: simboloValuta(m.simbolo), data: Date.now() });
         await chrome.storage.local.set({ storico: lista.slice(0, 500) });
         return { ok: true };
       });
@@ -203,7 +252,7 @@ async function gestisci(m, sender) {
             const vecchio = sito[c];
             if (!vecchio || (e.data || 0) > (vecchio.data || 0)) {
               sito[c] = { code: c, source: e.source || 'manuale', origine: e.origine || 'manuale', esito: e.esito || 'mai',
-                sconto: e.sconto || null, data: e.data || null, trovato: e.trovato || Date.now(), motivo: e.motivo || null };
+                sconto: e.sconto || null, simbolo: e.simbolo ? simboloValuta(e.simbolo) : '€', data: e.data || null, trovato: e.trovato || Date.now(), motivo: e.motivo || null };
             }
           }
         }
@@ -237,6 +286,46 @@ async function gestisci(m, sender) {
     case 'sessDel':
       await chrome.storage.session.remove('test_' + tabId);
       return { ok: true };
+    // ----- Frame -----
+    case 'registraFrame':
+      if (tabId != null && sender && sender.frameId != null) await registraFrame(tabId, sender.frameId);
+      return { ok: true };
+    case 'chiSono': {
+      let dom = m.dominio;
+      try { dom = dominioDi(new URL(sender.tab.url).hostname); } catch (e) {}
+      return { frameId: sender ? sender.frameId : 0, tabId, dominio: dom };
+    }
+    // Quali frame hanno un campo coupon? (serve al popup, alla scheda e al badge)
+    case 'statoTab': {
+      const r = await aiFrame(tabId, { type: 'haCampo' });
+      return { n: r.length, campo: r.some((x) => x.r.campo), inEsecuzione: r.some((x) => x.r.inEsecuzione), frame: r.filter((x) => x.r.campo).map((x) => x.frameId) };
+    }
+    case 'campoAltrove': {
+      const r = await aiFrame(tabId, { type: 'haCampo' }, [sender.frameId]);
+      return { campo: r.some((x) => x.r.campo) };
+    }
+    case 'ricontrolla':
+      await aUnFrame(tabId, 0, { type: 'ricontrolla' });
+      return { ok: true };
+    // Avvia il test nel frame giusto: quello che ha il campo (meglio se c'è proprio l'input visibile).
+    case 'avviaTab': {
+      const r = await aiFrame(tabId, { type: 'haCampo' });
+      const c = r.filter((x) => x.r.campo).sort((a, b) => (b.r.input - a.r.input) || (a.frameId - b.frameId))[0];
+      if (!c) return { ok: false, errore: 'Non trovo il campo del codice.' };
+      return (await aUnFrame(tabId, c.frameId, { type: 'avvia', riprova: !!m.riprova })) || { ok: false, errore: 'Il frame non risponde.' };
+    }
+    case 'fermaTab':
+      await aiFrame(tabId, { type: 'ferma' });
+      return { ok: true };
+    // Il pannello si disegna sempre nel frame principale.
+    case 'overlay':
+      await aUnFrame(tabId, 0, { type: 'disegnaOverlay', st: m.st });
+      return { ok: true };
+    // Lettura di totale e messaggi negli altri frame
+    case 'leggiAltrove': {
+      const r = await aiFrame(tabId, { type: 'leggiLocale' }, [sender.frameId]);
+      return { frame: r.map((x) => x.r) };
+    }
     default:
       return { errore: 'messaggio sconosciuto' };
   }
@@ -247,4 +336,4 @@ chrome.runtime.onMessage.addListener((m, sender, risposta) => {
   return true;
 });
 
-chrome.tabs.onRemoved.addListener((id) => chrome.storage.session.remove('test_' + id));
+chrome.tabs.onRemoved.addListener((id) => chrome.storage.session.remove(['test_' + id, chiaveFrames(id)]));
