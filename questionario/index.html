@@ -37,7 +37,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
 .row2 > *{min-width:0}
 @media (max-width:520px){.row2{grid-template-columns:1fr}}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{font:inherit;font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:10px 15px;cursor:pointer;transition:background .2s,color .2s,border-color .2s,transform .12s}
+.chip{font:inherit;font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:10px 15px;min-height:44px;max-width:100%;overflow-wrap:anywhere;cursor:pointer;transition:background .2s,color .2s,border-color .2s,transform .12s}
 .chip:hover{border-color:var(--faint)}
 .chip:active{transform:scale(.96)}
 .chip[aria-pressed=true]{background:var(--sel);color:var(--sel-ink);border-color:var(--sel)}
@@ -54,7 +54,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
 .card[aria-pressed=true] .n{opacity:1;transform:none}
 .search{position:relative}
 .drop{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:20;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px rgba(0,0,0,.12);padding:6px;max-height:300px;overflow:auto}
-.opt{display:block;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:10px 12px;font:inherit;font-size:15px;color:var(--ink);cursor:pointer}
+.opt{display:block;width:100%;min-height:44px;text-align:left;background:none;border:0;border-radius:10px;padding:10px 12px;font:inherit;font-size:15px;color:var(--ink);cursor:pointer}
 .opt:hover,.opt.act{background:var(--soft)}
 .picked{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
 .picked b{color:var(--ink)}
@@ -76,7 +76,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
 .voice > div{min-width:0}
 .voice b{display:block;font-size:15.5px}
 .voice p{margin:3px 0 10px;font-size:13.5px;color:var(--muted)}
-.check{display:flex;gap:12px;align-items:flex-start;font-size:14px;color:var(--muted);cursor:pointer}
+.check{display:flex;min-height:44px;gap:12px;align-items:flex-start;font-size:14px;color:var(--muted);cursor:pointer}
 .check input{width:20px;height:20px;margin-top:1px;accent-color:#1d1d1f;flex:none}
 .sum{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:4px 16px}
 .sum div{display:grid;grid-template-columns:130px minmax(0,1fr);gap:12px;padding:11px 0;border-bottom:1px solid var(--soft);font-size:14.5px}
@@ -94,6 +94,9 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
 .btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
 .btn.ghost{border-color:transparent;background:transparent}
 .btn[hidden]{display:none!important}
+.nav .btn{min-width:0;min-height:44px}
+.nav .btn.primary{white-space:normal;text-align:center}
+.btn.wait{opacity:.55;pointer-events:none}
 .done{display:flex;flex-direction:column;gap:16px}
 .tick{width:64px;height:64px;border-radius:50%;background:var(--ok);display:grid;place-items:center;animation:pop .5s var(--ease)}
 .tick svg{width:30px;height:30px}
@@ -103,13 +106,67 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
 .actions{display:flex;flex-wrap:wrap;gap:10px}
 .num{font-size:15px;color:var(--muted)}
 .num b{color:var(--ink);user-select:all}
+.toast{max-width:calc(100% - 32px);text-align:center;position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);background:var(--ink);color:#fff;font-size:14px;border-radius:999px;padding:9px 16px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:30}
+.toast.show{opacity:1;transform:translate(-50%,0)}
 .book{display:flex;flex-direction:column;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin-top:6px}
 .book h2{font-size:clamp(20px,4.5vw,24px)}
 .book ul{margin:6px 0 0;padding-left:20px;font-size:15px;color:var(--ink)}
 .book li{margin:3px 0}
 .book .btn{width:100%}
-.toast{max-width:calc(100% - 32px);text-align:center;position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);background:var(--ink);color:#fff;font-size:14px;border-radius:999px;padding:9px 16px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:30}
-.toast.show{opacity:1;transform:translate(-50%,0)}
+.hp{position:absolute!important;left:-10000px!important;top:auto;width:1px;height:1px;overflow:hidden}
+.gbranch{display:flex;flex-direction:column;gap:22px}.gbranch[hidden]{display:none}.gbranch:not([hidden]){animation:in .4s var(--ease)}
+/* ===== Pacchetti (schermata «Ecco cosa potremmo fare per te»): card chiare stile Apple, come i piani della Mappa ma senza prezzi ===== */
+.wrap.wide{max-width:1040px}
+.pk-hook{margin:0;font-size:17px;line-height:1.4;background:#eef5ff;color:#1d1d1f;border-radius:16px;padding:14px 16px}
+.pk-hook b{color:#0071e3;font-weight:650}
+.pk-vuoto{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px}
+.pk-vuoto b{font-size:19px;letter-spacing:-.01em}.pk-vuoto p{margin:6px 0 0;color:var(--muted)}
+.pk-swipe{display:none;margin:-4px 0 0;font-size:13px;color:var(--muted);text-align:center}
+.pk-non{justify-content:center}
+.pz{--pz-ink:#1d1d1f;--pz-muted:#6e6e73;--pz-faint:#a1a1a6;--pz-line:#e5e5ea;--pz-bg:#f5f5f7;--pz-blue:#0071e3;--pz-ok:#34c759;--pz-ko:#ff3b30;color-scheme:light;color:var(--pz-ink);min-width:0}
+.pz *{box-sizing:border-box}
+.pz-grid{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));grid-template-rows:auto repeat(var(--r),auto) auto;column-gap:16px;padding:22px 4px 10px;align-items:stretch}
+.pz-card{position:relative;grid-row:1 / -1;display:grid;grid-template-rows:subgrid;background:#fff;border:1px solid var(--pz-line);border-radius:24px;padding:24px 20px 20px;cursor:pointer;
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(0,0,0,.05);transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s cubic-bezier(.2,.8,.2,1),border-color .3s;
+  animation:pzIn .7s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i) * 90ms);min-width:0}
+.pz-card:hover{transform:translateY(-6px);box-shadow:0 2px 4px rgba(0,0,0,.04),0 22px 50px rgba(0,0,0,.10)}
+.pz-card.hl{border:2px solid var(--pz-blue);transform:translateY(-10px);box-shadow:0 2px 6px rgba(0,113,227,.08),0 26px 60px rgba(0,113,227,.16)}
+.pz-card.hl:hover{transform:translateY(-14px)}
+.pz-card.sel{border-color:var(--pz-ink);box-shadow:0 0 0 3px var(--pz-ink),0 18px 44px rgba(0,0,0,.14)}
+.pz-card.hl.sel{border-color:var(--pz-blue);box-shadow:0 0 0 3px var(--pz-blue),0 26px 60px rgba(0,113,227,.2)}
+@keyframes pzIn{from{opacity:0;transform:translateY(26px) scale(.98)}}
+.pz-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--pz-blue);color:#fff;font-size:12.5px;font-weight:650;letter-spacing:.01em;border-radius:999px;padding:6px 14px;box-shadow:0 6px 16px rgba(0,113,227,.28)}
+.pz-h h3{margin:0;font-size:22px;font-weight:700;letter-spacing:-.022em;line-height:1.15;overflow-wrap:anywhere}
+.pz-h p{margin:6px 0 0;font-size:14.5px;line-height:1.4;color:var(--pz-muted)}
+.pz-time{margin-top:14px;display:flex;flex-direction:column;gap:6px;padding-bottom:10px}
+.pz-time b{font-size:14.5px;font-weight:650;letter-spacing:-.005em}
+.pz-card.hl .pz-time b{color:var(--pz-blue)}
+.pz-all{align-self:flex-start;font-size:12.5px;font-weight:600;color:#1f8f45;background:#ebf9ef;border-radius:999px;padding:4px 10px}
+.pz-left{font-size:12.5px;line-height:1.4;color:#c9372c;background:#fff4f3;border-radius:10px;padding:7px 10px}
+.pz-list{display:contents;list-style:none;margin:0;padding:0}
+.pz-list li{display:flex;align-items:flex-start;gap:10px;font-size:15px;line-height:1.38;padding:8px 8px;margin:0 -8px;border-radius:12px;
+  animation:pzRow .5s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i) * 90ms + 220ms + var(--j) * 28ms)}
+@keyframes pzRow{from{opacity:0;transform:translateX(-6px)}}
+.pz-list li svg{flex:none;width:20px;height:20px;margin-top:1px}
+.pz-list li.no{color:var(--pz-faint)}
+.pz-list li.no span{text-decoration:line-through;text-decoration-color:rgba(161,161,166,.55)}
+.pz-list li.sep{margin-top:6px}
+.pz-list li.sub{font-size:13.5px;color:var(--pz-muted);padding-top:0;margin-top:-4px}
+.pz-list li.sub.no{color:var(--pz-faint)}
+.pz-cta{padding-top:16px;display:flex;align-items:flex-end}
+.pz-btn{width:100%;min-height:44px;text-align:center;font:inherit;font-size:15px;font-weight:600;border-radius:999px;padding:12px 16px;border:1px solid var(--pz-line);background:var(--pz-bg);color:var(--pz-ink);cursor:pointer;transition:background .25s,transform .15s,color .25s}
+.pz-btn:active{transform:scale(.97)}
+.pz-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.pz-card.hl .pz-btn{background:var(--pz-blue);border-color:var(--pz-blue);color:#fff}
+.pz-btn[aria-pressed=true]{background:var(--pz-ink);border-color:var(--pz-ink);color:#fff}
+.pz-card.hl .pz-btn[aria-pressed=true]{background:#005bb8;border-color:#005bb8}
+@media (max-width:900px){
+  .pz-grid{grid-template-columns:repeat(var(--n),minmax(272px,84%));overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:24px 2px 14px;scrollbar-width:none}
+  .pz-grid::-webkit-scrollbar{display:none}
+  .pz-card{scroll-snap-align:center}
+  .pz-card.hl,.pz-card.hl:hover,.pz-card:hover{transform:none}
+  .pk-swipe{display:block}
+}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 <div class="wrap">
@@ -123,7 +180,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
       <div class="sum" aria-label="Cosa ti chiedo">
         <div><dt>Cosa ti chiedo</dt><dd>Che lavoro fai, come lavori oggi, cosa ti pesa e cosa vorresti ottenere.</dd></div>
         <div><dt>Quanto ci metti</dt><dd>Circa 5 minuti. Puoi scrivere o mandarmi un vocale.</dd></div>
-        <div><dt>Cosa succede dopo</dt><dd>Le risposte arrivano a me su WhatsApp e preparo la call su misura per te.</dd></div>
+        <div><dt>Cosa succede dopo</dt><dd>Le risposte arrivano a me in modo protetto e su WhatsApp, e preparo la call su misura per te.</dd></div>
       </div>
     </section>
 
@@ -195,38 +252,64 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
     </section>
 
     <section class="step" data-s="7">
+      <h2>Ti serve un gestionale?</h2>
+      <p class="lead">Un gestionale è un unico pannello dove tieni in ordine clienti, appuntamenti e pagamenti. Domanda facoltativa: se non ti interessa, vai avanti.</p>
+      <div class="q"><span class="lab">Ti piacerebbe averne uno?</span><div class="chips" id="cGServe"></div></div>
+      <div class="gbranch" id="gBranch" hidden>
+        <p class="note san" hidden>Per favore non scrivere nomi o dati dei tuoi pazienti o clienti: bastano esempi generici.</p>
+        <div class="q"><span class="lab">Come gestisci tutto oggi?</span><div class="chips" id="cGOggi"></div></div>
+        <div class="q"><span class="lab">Cosa vorresti avere chiaro in un unico pannello?</span><span class="hint">Anche più di una risposta.</span><div class="chips" id="cGPannello"></div></div>
+        <div class="q"><span class="lab">Cosa ti fa perdere più tempo o ti crea più confusione?</span><span class="hint">Anche più di una risposta.</span><div class="chips" id="cGPerdite"></div>
+          <label class="hint" for="fGestPerdite" style="margin-top:4px">Altro (facoltativo)</label><textarea id="fGestPerdite" maxlength="300" placeholder="Raccontalo come lo diresti a voce"></textarea></div>
+        <div class="row2">
+          <div class="q"><span class="lab">Chi lo userebbe ogni giorno?</span><div class="chips" id="cGChi"></div></div>
+          <div class="q"><span class="lab">Quante persone?</span><div class="chips" id="cGPersone"></div></div>
+        </div>
+        <div class="q"><span class="lab">Da dove lo useresti?</span><span class="hint">Anche più di una risposta.</span><div class="chips" id="cGDove"></div></div>
+        <div class="q"><span class="lab">Hai già dati da portare dentro?</span><div class="chips" id="cGDati"></div></div>
+        <div class="q"><label for="fGestNonManchi">Una cosa che non deve mancare (facoltativo)</label><textarea id="fGestNonManchi" maxlength="300" placeholder="Es. vedere in un colpo d'occhio chi deve ancora pagare"></textarea></div>
+      </div>
+    </section>
+
+    <section class="step" data-s="8">
+      <h2>Ecco cosa potremmo fare per te</h2>
+      <p class="lead" id="pkLead">Ho messo insieme quello che mi hai raccontato. Non devi scegliere adesso: tocca il pacchetto che ti sembra più adatto, oppure ne parliamo in call. Niente cifre qui: le vediamo insieme.</p>
+      <div id="pkBox"></div>
+    </section>
+
+    <section class="step" data-s="9">
       <h2>Ultime cose</h2>
       <div class="q"><span class="lab">Quando vorresti partire?</span><div class="chips" data-one="tempi" id="cTempi"></div></div>
       <div class="q"><span class="lab">Chi decide insieme a te?</span><span class="hint">Se decidete in due, è meglio che alla call ci siate entrambi.</span><div class="chips" data-one="decide" id="cDecide"></div></div>
-      <div class="q"><span class="lab">Hai già in mente una cifra? (facoltativo)</span><span class="hint">Serve solo a proporti la soluzione giusta per te. Se preferisci, ne parliamo in call.</span><div class="chips" data-one="budget" id="cBudget"></div></div>
       <div class="q"><span class="lab">Come preferiresti pagare?</span><div class="chips" data-one="pag" id="cPag"></div></div>
       <div class="q"><span class="lab">A chi va intestata la ricevuta?</span><span class="hint">Serve per scriverti cifre giuste fin da subito (per esempio se c'è la ritenuta d'acconto).</span><div class="chips" data-one="iva" id="cIva"></div></div>
       <div class="q"><label for="fTel">Il tuo numero WhatsApp</label><input id="fTel" maxlength="25" type="tel" autocomplete="tel" placeholder="Es. 333 123 4567"></div>
-      <div class="privacy"><b>Come uso le tue risposte</b>Le risposte arrivano solo ad Alessandro Mauro, tramite WhatsApp (servizio di Meta), e servono a preparare la call e la proposta per la tua attività. Non vengono cedute a nessuno e non servono per pubblicità. Le tengo solo per il tempo necessario: se non lavoriamo insieme le cancello, e puoi chiederne la cancellazione quando vuoi scrivendo a +39 339 405 2935 o alessandromauro.works@gmail.com. Se prenoti la call, il tuo nome, la tua email e un breve riassunto delle risposte passano al servizio di prenotazione (Cal.com) e al calendario Google di Alessandro, solo per fissare l'appuntamento. Finché non invii, la bozza resta solo su questo telefono o computer.</div>
+      <div class="hp" aria-hidden="true"><label for="fSitoWeb2">Lascia vuoto questo campo</label><input id="fSitoWeb2" name="sito_web2" type="text" tabindex="-1" autocomplete="off"></div>
+      <div class="privacy"><b>Come uso le tue risposte</b>Le risposte arrivano solo ad Alessandro Mauro: vengono salvate in modo protetto su Supabase, con server nell'Unione Europea, e ti si apre WhatsApp (servizio di Meta) con il messaggio già pronto. Servono solo a preparare la call e la proposta per la tua attività. Non vengono cedute a nessuno e non servono per pubblicità. Se non lavoriamo insieme vengono cancellate dopo 12 mesi, e puoi chiederne la cancellazione quando vuoi scrivendo a +39 339 405 2935 o alessandromauro.works@gmail.com. Se prenoti la call, il tuo nome e un breve riassunto delle risposte passano al servizio di prenotazione e al calendario di Alessandro, solo per fissare l'appuntamento. Finché non invii, la bozza resta solo su questo telefono o computer.</div>
       <label class="check" for="fPriv"><input id="fPriv" type="checkbox"><span>Ho letto e acconsento a questo uso delle mie risposte.</span></label>
       <p class="err" id="err7"></p>
     </section>
 
-    <section class="step" data-s="8">
+    <section class="step" data-s="10">
       <h2>Controlla e invia</h2>
       <p class="lead">Se è tutto giusto, tocca «Invia su WhatsApp»: si apre la chat con il messaggio già pronto, devi solo premere invio.</p>
       <dl class="sum" id="sum"></dl>
-      <p class="note" id="lungo" hidden>Le risposte sono molto lunghe e WhatsApp potrebbe tagliarle. Se puoi, accorcia un po' i testi liberi: il resto me lo racconti in call o con un vocale.</p>
+      <p class="note" id="lungo" hidden>Le tue risposte sono troppo lunghe per aprire WhatsApp già pronto. Tocca «Copia e apri WhatsApp»: il messaggio viene copiato e si apre la chat con Alessandro. Tu devi solo incollarlo nella chat e premere invio.</p>
     </section>
 
-    <section class="step" data-s="9">
+    <section class="step" data-s="11">
       <div class="done">
         <div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
         <h2>Ultimo passo: premi invio</h2>
         <p class="lead" id="doneTxt">Se si è aperta la chat di WhatsApp, premi invio: il messaggio è già scritto. Appena lo ricevo preparo la call sulla tua attività.</p>
-        <p class="lead">Se non vedi WhatsApp, tocca «Apri WhatsApp» oppure copia le risposte e mandale a questo numero:</p>
+        <p class="lead" id="doneTxt2">Se non vedi WhatsApp, tocca «Apri WhatsApp» oppure copia il messaggio e mandalo a questo numero:</p>
         <p class="num"><b>+39 339 405 2935</b></p>
         <div class="actions">
           <a class="btn primary" id="waAgain" href="#" target="_blank" rel="noopener">Apri WhatsApp</a>
-          <button class="btn" type="button" id="copyBtn">Copia le risposte</button>
+          <button class="btn" type="button" id="copyBtn">Copia il messaggio</button>
           <button class="btn ghost" type="button" id="editBtn">Modifica le risposte</button>
         </div>
-        <textarea id="copyArea" readonly hidden aria-label="Risposte da copiare"></textarea>
+        <textarea id="copyArea" readonly hidden aria-label="Messaggio da copiare"></textarea>
         <div class="book" aria-labelledby="bookT">
           <h2 id="bookT">Prenota la call conoscitiva</h2>
           <p class="lead">Dura circa 30 minuti, online. Guardiamo insieme come lavori oggi, dove si perdono tempo e soldi, i problemi che mi hai segnalato e cosa si può sistemare. Nessun impegno.</p>
@@ -254,6 +337,10 @@ const WA = "393394052935";
    Funziona anche con "Pianificazione appuntamenti" di Google Calendar o con Calendly (il link si apre così com'è).
    Con cal.com nome e riassunto delle risposte vengono precompilati. Se resta vuoto, il cliente ti scrive su WhatsApp. */
 const PRENOTA_URL = "";
+/* SALVATAGGIO PROTETTO. Le risposte vanno anche alla funzione del progetto Supabase di Alessandro (server UE),
+   così arrivano da sole nella Mappa Call Live. Nessuna chiave qui: la funzione è pubblica e accetta solo
+   questo questionario. Se non risponde entro 8 secondi non succede niente: resta l'invio su WhatsApp. */
+const SALVA_URL = "https://udubhzamghhlkxgepmmc.supabase.co/functions/v1/questionario-ricevi";
 const SANITA = /dentist|medic|dietist|nutrizion|fisioterap|osteopat|psicolog|veterinar|farmacia|altra attivit/i;
 const GOALS = [["clienti","Più clienti","Nuove persone che ti scelgono"],["visibilita","Più visibilità","Farti trovare online e sui social"],["tempo","Risparmiare tempo","Più ore per te e per il lavoro vero"],["ordine","Più ordine","Meno errori, dimenticanze e carta"],["ritorno","Clienti che tornano","Richiami, fedeltà, passaparola"],["messaggi","Meno messaggi ripetitivi","Telefonate e chat sempre uguali"]];
 const OPZ = {
@@ -262,24 +349,32 @@ const OPZ = {
   str:["Agenda di carta","Excel o fogli","Un gestionale","WhatsApp e memoria","Niente di preciso"],
   tempi:["Subito","Entro 1-3 mesi","Sto valutando"],
   decide:["Solo io","Con un socio","Con la famiglia","Con altre persone"],
-  budget:["Ne parliamo in call","Fino a 500 €","500 – 1.500 €","1.500 – 3.000 €","Oltre 3.000 €"],
   pag:["Tutto subito","A rate mensili","Mi è indifferente"],
   iva:["A me come privato","Alla mia ditta o società","Libero professionista (regime ordinario)","Regime forfettario","Non lo so"]
 };
 const ORE = [["Meno di 1 ora",1],["1-3 ore",2],["3-5 ore",4],["Più di 5 ore",6]];
-const STEPS = 10, LAST_Q = 8;
+const STEPS = 12, LAST_Q = 10;
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 const stor = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(k,v); } catch(e){} } };
 
-let A = { s:null, ob:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pag:null, iva:null };
-try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); if (!A.prob || typeof A.prob !== "object" || Array.isArray(A.prob)) A.prob = {}; Object.keys(A.prob).forEach(k => { if (!A.prob[k] || typeof A.prob[k] !== "object") delete A.prob[k]; }); ["team","tempi","decide","pag","iva"].forEach(k => { if (A[k] != null && typeof A[k] !== "string") A[k] = null; }); if (typeof A.budget !== "string") A.budget = "Ne parliamo in call"; A.vocale = A.vocale === true; if (A.s && !SETTORI.some(x => x.n === A.s)) A.s = null; setTimeout(() => { Object.entries(d.f || {}).forEach(([k,v]) => { const el = $(k); if (el && typeof v === "string") el.value = v; }); if (A.s) pickTipo(A.s, true); $("vocaleBtn").setAttribute("aria-pressed", !!A.vocale); }, 0); } } catch(e) {}
+function normGest(g) {
+  const b = { serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null };
+  if (!g || typeof g !== "object" || Array.isArray(g)) return b;
+  ["serve","oggi","chi","persone","dati"].forEach(k => { b[k] = typeof g[k] === "string" ? g[k] : null; });
+  ["pannello","perdite","dove"].forEach(k => { b[k] = Array.isArray(g[k]) ? g[k].filter(x => typeof x === "string") : []; });
+  if (!["Sì","Non so","No"].includes(b.serve)) b.serve = null;
+  return b;
+}
+const PK_VALORI = ["essenziale", "professionale", "completo", "non-so"];
+let A = { s:null, ob:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pk:null, pag:null, iva:null, gest:{ serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null } };
+try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); if (!A.prob || typeof A.prob !== "object" || Array.isArray(A.prob)) A.prob = {}; Object.keys(A.prob).forEach(k => { if (!A.prob[k] || typeof A.prob[k] !== "object") delete A.prob[k]; }); ["team","tempi","decide","pag","iva"].forEach(k => { if (A[k] != null && typeof A[k] !== "string") A[k] = null; }); A.budget = "Ne parliamo in call"; if (!PK_VALORI.includes(A.pk)) A.pk = null; A.vocale = A.vocale === true; A.gest = normGest(A.gest); if (A.s && !SETTORI.some(x => x.n === A.s)) A.s = null; setTimeout(() => { Object.entries(d.f || {}).forEach(([k,v]) => { const el = $(k); if (el && typeof v === "string") el.value = v; }); try { migraGest(A); } catch (er) {} if (A.s) pickTipo(A.s, true); $("vocaleBtn").setAttribute("aria-pressed", !!A.vocale); }, 0); } } catch(e) {}
 const ALIAS_EXTRA = { "Negozio / attività commerciale":"panificio forno macelleria fioraio fiori tabaccheria enoteca lavanderia alimentari abbigliamento ottica gioielleria ferramenta libreria", "Parrucchiere / barbiere":"parrucchiera hair salon acconciature", "Psicologo / psicoterapeuta":"psicologa psicoterapeuta", "Studio legale":"avvocata avvocato legale", "Farmacia / parafarmacia":"farmacista", "Centro estetico":"estetista nail unghie spa", "B&B / hotel / casa vacanze":"bnb b&b affittacamere agriturismo", "Ristorante / pizzeria":"trattoria osteria sushi pub braceria", "Bar / caffetteria":"pasticceria gelateria cornetteria", "Dietista / nutrizionista":"dietologa dietologo", "Fisioterapista / osteopata":"fisioterapista massaggi" };
 const stem = w => w.length > 4 ? w.replace(/[aeiou]$/, "") : w;
-const FIELDS = ["fNome","fAtt","fAltroTipo","fCitta","fObAltro","fIg","fSito","fLavAltro","fProbAltro","fMagia","fProvato","fTel"];
+const FIELDS = ["fNome","fAtt","fAltroTipo","fCitta","fObAltro","fIg","fSito","fLavAltro","fProbAltro","fMagia","fProvato","fGestPerdite","fGestNonManchi","fTel"];
 let saveT; function bozza(){ clearTimeout(saveT); saveT = setTimeout(() => { const f = {}; FIELDS.forEach(k => f[k] = $(k).value); stor.set("qpc:bozza", JSON.stringify({ A, f })); }, 300); }
-document.addEventListener("input", () => { if (cur < 9) bozza(); });
+document.addEventListener("input", () => { if (cur < 11) bozza(); });
 
 const sett = () => SETTORI.find(s => s.n === A.s) || SETTORI[SETTORI.length - 1];
 const v = id => $(id).value.trim();
@@ -290,7 +385,7 @@ function chips(el, list, key, many) {
   el.innerHTML = list.map(x => `<button type="button" class="chip" aria-pressed="false" data-v="${esc(x)}">${esc(x)}</button>`).join("");
   const sync = () => el.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", many ? A[key].includes(b.dataset.v) : A[key] === b.dataset.v));
   el.addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return; const x = b.dataset.v;
-    if (many) A[key] = A[key].includes(x) ? A[key].filter(y => y !== x) : [...A[key], x]; else A[key] = A[key] === x ? null : x;
+    if (many) A[key] = A[key].includes(x) ? A[key].filter(y => y !== x) : [...A[key], x]; else A[key] = A[key] === x ? (key === "budget" ? "Ne parliamo in call" : null) : x;
     sync(); bozza(); });
   sync(); return sync;
 }
@@ -298,6 +393,103 @@ const syncs = [];
 document.querySelectorAll("[data-one]").forEach(el => syncs.push(chips(el, OPZ[el.dataset.one], el.dataset.one, false)));
 document.querySelectorAll("[data-many]").forEach(el => syncs.push(chips(el, OPZ[el.dataset.many], el.dataset.many, true)));
 setTimeout(() => syncs.forEach(f => f()), 0);
+
+/* ramo facoltativo: gestionale */
+const G_GEN = ["Clienti","Appuntamenti","Pagamenti e incassi","Fatture e ricevute","Magazzino e prodotti","Fornitori","Personale e turni","Documenti","Statistiche"];
+const G_LOSS = ["Cerco le cose in più posti","Scrivo le stesse cose due volte","Dimentico scadenze e richiami","Non so quanto incasso davvero","Rincorro i pagamenti","Agenda e appuntamenti confusi","Documenti sparsi ovunque"];
+/* per settore: [voci tipiche (max 6), perdite di tempo tipiche (2), voci generiche da nascondere perché doppie, perdite generiche da nascondere perché doppie] */
+const GEST = {
+  "Concessionaria auto":[["Auto in vendita","Contatti e trattative","Prove su strada e preventivi","Valutazione dell'usato (permute)","Contratti e documenti di vendita","Avvisi su tagliandi e revisioni"],["Contatti da più portali da riunire","Contatti interessati che nessuno richiama in tempo"],["Clienti","Appuntamenti","Magazzino e prodotti","Documenti"],["Documenti sparsi ovunque"]],
+  "Agenzia immobiliare":[["Immobili in portafoglio","Incarichi di vendita e scadenze","Chi cerca casa e cosa cerca","Visite e appuntamenti","Annunci sui portali","Provvigioni"],["Contatti dai portali da smistare","Richieste e immobili da abbinare a mano"],["Clienti","Appuntamenti","Magazzino e prodotti","Fornitori"],[]],
+  "Patronato / CAF":[["Pratiche in corso","Appuntamenti","Documenti dei clienti","Scadenze","Mandati e deleghe","Firme e moduli"],["Documenti che mancano sempre","Telefonate per sapere a che punto è la pratica"],["Documenti","Magazzino e prodotti","Fornitori"],["Documenti sparsi ovunque"]],
+  "Studio dentistico":[["Schede pazienti","Schema dei denti","Piani di cura e preventivi","Agenda per poltrona","Richiami e promemoria","Pagamenti a rate"],["Pazienti che non si presentano","Richiami da fare a mano"],["Clienti","Appuntamenti","Pagamenti e incassi"],["Dimentico scadenze e richiami"]],
+  "Studio medico / poliambulatorio":[["Schede pazienti","Agenda per medico e stanza","Prenotazioni online","Promemoria ai pazienti","Referti e certificati","Richiami e controlli"],["Disdette e buchi in agenda","Moduli e consensi su carta"],["Clienti","Appuntamenti","Fornitori"],["Agenda e appuntamenti confusi"]],
+  "Dietista / nutrizionista":[["Schede pazienti","Piani alimentari","Misure e peso nel tempo","Agenda e controlli","App o area per il paziente","Lista della spesa e ricette"],["Piani fatti a mano da zero","Pazienti che spariscono tra i controlli"],["Clienti","Appuntamenti","Magazzino e prodotti","Fornitori","Personale e turni"],[]],
+  "Ristorante / pizzeria":[["Prenotazioni tavoli","Comande sala e cucina","Ordini asporto e domicilio","Menu e prezzi","Cassa e scontrini","Scorte e costo dei piatti"],["Prenotazioni sparse tra telefono e messaggi","Ordini da portali e delivery separati"],["Appuntamenti","Pagamenti e incassi","Magazzino e prodotti"],["Agenda e appuntamenti confusi"]],
+  "Bar / caffetteria":[["Cassa e scontrini","Ordini ai fornitori","Scorte","Eventi e serate","Ordini di gruppo e pranzi","Carte fedeltà e promozioni"],["Scorte controllate a occhio","Ordini ai fornitori fatti a memoria"],["Appuntamenti","Pagamenti e incassi","Magazzino e prodotti","Fornitori"],["Agenda e appuntamenti confusi"]],
+  "Centro estetico":[["Schede clienti","Agenda per operatore e cabina","Prenotazioni online","Pacchetti e abbonamenti","Promemoria ai clienti","Prodotti in magazzino"],["Clienti che non si presentano","Pacchetti e sedute contati a mano"],["Clienti","Appuntamenti","Magazzino e prodotti"],[]],
+  "Parrucchiere / barbiere":[["Agenda per ogni collaboratore","Prenotazioni online","Schede clienti","Promemoria su WhatsApp","Cassa e incassi","Prodotti venduti"],["Buchi in agenda per chi non arriva","Clienti da richiamare per il prossimo taglio"],["Clienti","Appuntamenti","Pagamenti e incassi","Magazzino e prodotti"],["Agenda e appuntamenti confusi"]],
+  "Palestra / centro sportivo":[["Iscritti","Abbonamenti e rinnovi","Corsi e prenotazioni","Controllo ingressi","Addebiti automatici","Schede di allenamento"],["Chi non ha pagato la rata","Iscritti inattivi o in scadenza da richiamare"],["Clienti","Appuntamenti","Pagamenti e incassi"],["Rincorro i pagamenti"]],
+  "B&B / hotel / casa vacanze":[["Calendario prenotazioni","Collegamento con Booking e Airbnb","Check-in e schedine alloggiati","Messaggi automatici agli ospiti","Pulizie e cambi biancheria","Prezzi e stagioni"],["Prenotazioni da più portali che si sovrappongono","Messaggi agli ospiti a tutte le ore"],["Clienti","Appuntamenti","Magazzino e prodotti"],["Agenda e appuntamenti confusi"]],
+  "Studio commercialista":[["Clienti e incarichi","Scadenze fiscali","Documenti dei clienti","Portale per i clienti","Parcelle e fatturazione","Controlli antiriciclaggio"],["Documenti che arrivano tardi e incompleti","Domande semplici via mail e telefono"],["Clienti","Documenti","Fatture e ricevute","Magazzino e prodotti","Fornitori"],["Documenti sparsi ovunque"]],
+  "Studio legale":[["Pratiche e fascicoli","Udienze e scadenze","Documenti per pratica","Parcelle e fatture","Ore dedicate a ogni pratica","Area riservata per i clienti"],["Clienti che chiedono a che punto siamo","Appuntamenti e udienze su agende diverse"],["Clienti","Documenti","Fatture e ricevute","Magazzino e prodotti","Fornitori"],["Documenti sparsi ovunque","Agenda e appuntamenti confusi"]],
+  "Officina / carrozzeria / autolavaggio":[["Auto in lavorazione","Preventivi","Pratiche assicurative","Ricambi","Storico per targa","Revisioni e tagliandi da ricordare"],["Preventivi che non diventano lavori","Clienti che chiamano per sapere se l'auto è pronta"],["Magazzino e prodotti"],["Dimentico scadenze e richiami"]],
+  "Negozio / attività commerciale":[["Cassa e scontrini","Prodotti, taglie e prezzi","Magazzino e giacenze","Ordini ai fornitori","Clienti con carta fedeltà","Promozioni e sconti"],["Merce finita che scopro troppo tardi","Prezzi e disponibilità da controllare a mano"],["Clienti","Appuntamenti","Magazzino e prodotti","Fornitori"],[]],
+  "Fisioterapista / osteopata":[["Schede pazienti","Cicli di sedute","Programma di esercizi","Agenda e promemoria","Prenotazione online","Misure e progressi"],["Sedute disdette all'ultimo","Pazienti che non tornano ai controlli"],["Clienti","Appuntamenti","Magazzino e prodotti","Fornitori"],[]],
+  "Impresa edile / artigiano":[["Cantieri e stato dei lavori","Preventivi e computi","Stati avanzamento lavori","Ore e squadre","Materiali e costi","Foto e documenti di cantiere"],["Costi e ore scoperti solo a fine lavoro","Cliente da aggiornare sul cantiere"],["Appuntamenti","Magazzino e prodotti","Personale e turni","Documenti"],[]],
+  "Psicologo / psicoterapeuta":[["Agenda sedute","Prenotazione online","Promemoria ai pazienti","Note riservate","Ricevute e Tessera Sanitaria","Videoconsulto"],["Spostamenti e disdette via messaggio","Ricevute da fare a fine mese"],["Clienti","Appuntamenti","Pagamenti e incassi","Fatture e ricevute","Magazzino e prodotti","Fornitori","Personale e turni"],[]],
+  "Veterinario":[["Schede animali e proprietari","Vaccini e richiami","Visite e agenda","Ricetta elettronica veterinaria","Farmaci e scorte","Promemoria ai proprietari"],["Richiami di vaccini fatti a mano","Farmaci e prodotti da controllare a mano"],["Clienti","Appuntamenti","Documenti","Magazzino e prodotti"],["Dimentico scadenze e richiami"]],
+  "Farmacia / parafarmacia":[["Prenotazione servizi","Prodotti da ritirare","Ricette inviate in anticipo","Avvisi ai clienti","Carta fedeltà e premi","Promozioni e coupon"],["Clienti da avvisare uno a uno","Servizi prenotati a voce"],["Appuntamenti"],[]],
+  "Scuola di danza / musica":[["Iscritti","Corsi, sale e insegnanti","Quote mensili","Presenze e recuperi","Avvisi alle famiglie","Certificati medici e tesseramenti"],["Chi non ha pagato la quota","Avvisi su tanti gruppi WhatsApp"],["Clienti","Appuntamenti","Pagamenti e incassi","Magazzino e prodotti","Fornitori"],["Rincorro i pagamenti"]],
+  "Agenzia viaggi":[["Preventivi e pratiche di viaggio","Acconti e saldi","Partenze e liste passeggeri","Contratti e buoni di viaggio","Biglietti aerei, treni e navi","Documenti dei viaggiatori"],["Preventivi rifatti da zero","Saldi e scadenze dei clienti da rincorrere"],["Clienti","Appuntamenti","Documenti","Pagamenti e incassi","Magazzino e prodotti"],["Rincorro i pagamenti"]],
+  "Agenzia assicurativa":[["Polizze dei clienti","Scadenze e rinnovi","Preventivi","Sinistri","Documenti dei clienti","Incassi e provvigioni"],["Gli stessi dati chiesti a ogni preventivo","Promemoria di rinnovo mandati a mano"],["Clienti","Appuntamenti","Documenti","Pagamenti e incassi","Magazzino e prodotti","Fornitori"],["Dimentico scadenze e richiami"]],
+  "Autoscuola":[["Iscritti","Guide e istruttori","Esami e foglio rosa","Rate e pagamenti","Documenti degli allievi","Rinnovi e duplicati patente"],["Agenda delle guide incastrata a mano","Scadenze di esami e certificati da ricordare"],["Clienti","Appuntamenti","Pagamenti e incassi","Documenti","Magazzino e prodotti","Fornitori"],["Agenda e appuntamenti confusi","Rincorro i pagamenti","Dimentico scadenze e richiami"]],
+  "Cantina / agriturismo":[["Visite e degustazioni","Vendite dirette e ordini","Giacenze di cantina","Prenotazioni camere e tavoli","Schedine alloggiati e check-in","Clienti abituali e club del vino"],["Prenotazioni prese al telefono","Giacenze da quadrare a mano con il registro di cantina"],["Clienti","Appuntamenti","Magazzino e prodotti"],[]],
+  "Altra attività":[["Abbonamenti e pacchetti","Pratiche e lavori"],[],[],[]]
+};
+const G_OGGI = ["Carta e quaderno","Excel o fogli","WhatsApp e memoria","Un altro programma","Niente di preciso"];
+const G_CHI = ["Solo io","Io e un collaboratore","Tutto il team","Anche i miei clienti"];
+const G_PERS = ["1","2-3","4-10","Più di 10"];
+const G_DOVE = ["PC","Telefono","Tablet"];
+const G_DATI = ["Sì, Excel o fogli","Sì, rubrica o contatti","Sì, da un altro programma","No, si parte da zero"];
+const gOpts = s => { const x = GEST[s.n] || GEST["Altra attività"]; const u = a => a.filter((t, i) => a.indexOf(t) === i); return { p:u([...x[0], ...G_GEN.filter(t => !(x[2] || []).includes(t))]), l:u([...x[1], ...G_LOSS.filter(t => !(x[3] || []).includes(t))]) }; };
+/* migrazione bozze: etichette dei chip delle versioni precedenti (v6 e v7) -> etichette attuali, per settore.
+   p = «Cosa deve esserci nel pannello», l = «Dove perdi tempo». Chiave = vecchia etichetta, valore = nuova (null = la voce non esiste più).
+   Si applica solo alle voci che oggi non sono più tra le opzioni del settore, prima del filtro che scarta le sconosciute. */
+const MIGRA = {
+  "Concessionaria auto":{ p:{"Trattative aperte":"Contatti e trattative","Clienti":"Contatti e trattative","Magazzino e prodotti":"Auto in vendita","Permute e preventivi":"Valutazione dell'usato (permute)","Documenti":"Contratti e documenti di vendita","Documenti dell'auto":"Contratti e documenti di vendita","Consegne e assistenza":"Avvisi su tagliandi e revisioni","Officina e ricambi":"Avvisi su tagliandi e revisioni","Prove su strada":"Prove su strada e preventivi","Preventivi":"Prove su strada e preventivi"}, l:{"Contatti da più portali":"Contatti da più portali da riunire"} },
+  "Agenzia immobiliare":{ p:{"Visite":"Visite e appuntamenti","Appuntamenti":"Visite e appuntamenti","Clienti":"Chi cerca casa e cosa cerca","Magazzino e prodotti":"Immobili in portafoglio"}, l:{"Contatti da più portali":"Contatti dai portali da smistare"} },
+  "Patronato / CAF":{ p:{"Documenti mancanti":"Documenti dei clienti","Documenti":"Documenti dei clienti","Pratiche e commesse":"Pratiche in corso"}, l:{"Scadenze a memoria":"Dimentico scadenze e richiami"} },
+  "Studio dentistico":{ p:{"Piani di cura":"Piani di cura e preventivi","Preventivi":"Piani di cura e preventivi","Richiami":"Richiami e promemoria","Clienti":"Schede pazienti","Appuntamenti":"Agenda per poltrona","Pagamenti e incassi":"Pagamenti a rate"}, l:{"Richiami dimenticati":"Richiami da fare a mano","Dimentico scadenze e richiami":"Richiami da fare a mano"} },
+  "Studio medico / poliambulatorio":{ p:{"Agenda per medico":"Agenda per medico e stanza","Appuntamenti":"Agenda per medico e stanza","Referti":"Referti e certificati","Richiami":"Richiami e controlli","Clienti":"Schede pazienti"}, l:{"Disdette all'ultimo":"Disdette e buchi in agenda"} },
+  "Dietista / nutrizionista":{ p:{"Controlli":"Agenda e controlli","Appuntamenti":"Agenda e controlli","Misurazioni":"Misure e peso nel tempo","Clienti":"Schede pazienti"}, l:{"Piani fatti a mano":"Piani fatti a mano da zero","Pazienti che spariscono":"Pazienti che spariscono tra i controlli"} },
+  "Ristorante / pizzeria":{ p:{"Scorte di cucina":"Scorte e costo dei piatti","Magazzino e prodotti":"Scorte e costo dei piatti","Appuntamenti":"Prenotazioni tavoli","Pagamenti e incassi":"Cassa e scontrini"}, l:{"Prenotazioni sparse":"Prenotazioni sparse tra telefono e messaggi","Agenda e appuntamenti confusi":"Prenotazioni sparse tra telefono e messaggi"} },
+  "Bar / caffetteria":{ p:{"Eventi":"Eventi e serate","Ordini di gruppo":"Ordini di gruppo e pranzi","Pagamenti e incassi":"Cassa e scontrini","Magazzino e prodotti":"Scorte","Fornitori":"Ordini ai fornitori"}, l:{"Ordini fatti a memoria":"Ordini ai fornitori fatti a memoria","Scorte a occhio":"Scorte controllate a occhio"} },
+  "Centro estetico":{ p:{"Prenotazioni":"Prenotazioni online","Prodotti":"Prodotti in magazzino","Magazzino e prodotti":"Prodotti in magazzino","Clienti":"Schede clienti","Appuntamenti":"Agenda per operatore e cabina","Abbonamenti e pacchetti":"Pacchetti e abbonamenti"}, l:{"Pacchetti contati a mano":"Pacchetti e sedute contati a mano"} },
+  "Parrucchiere / barbiere":{ p:{"Prenotazioni":"Prenotazioni online","Prodotti":"Prodotti venduti","Magazzino e prodotti":"Prodotti venduti","Cassa":"Cassa e incassi","Pagamenti e incassi":"Cassa e incassi","Clienti":"Schede clienti","Appuntamenti":"Agenda per ogni collaboratore"}, l:{"Buchi in agenda":"Buchi in agenda per chi non arriva"} },
+  "Palestra / centro sportivo":{ p:{"Ingressi":"Controllo ingressi","Clienti":"Iscritti","Appuntamenti":"Corsi e prenotazioni","Pagamenti e incassi":"Addebiti automatici","Abbonamenti e pacchetti":"Abbonamenti e rinnovi"}, l:{"Chi non ha pagato":"Chi non ha pagato la rata","Rincorro i pagamenti":"Chi non ha pagato la rata","Rinnovi dimenticati":"Iscritti inattivi o in scadenza da richiamare"} },
+  "B&B / hotel / casa vacanze":{ p:{"Prenotazioni e calendario":"Calendario prenotazioni","Appuntamenti":"Calendario prenotazioni","Check-in":"Check-in e schedine alloggiati","Pulizie":"Pulizie e cambi biancheria"}, l:{"Prenotazioni da più portali":"Prenotazioni da più portali che si sovrappongono","Agenda e appuntamenti confusi":"Prenotazioni da più portali che si sovrappongono","Messaggi degli ospiti":"Messaggi agli ospiti a tutte le ore"} },
+  "Studio commercialista":{ p:{"Pratiche per cliente":"Clienti e incarichi","Clienti":"Clienti e incarichi","Pratiche e commesse":"Clienti e incarichi","Parcelle":"Parcelle e fatturazione","Fatture e ricevute":"Parcelle e fatturazione","Documenti":"Documenti dei clienti"}, l:{"Documenti incompleti":"Documenti che arrivano tardi e incompleti","Scadenze cliente per cliente":"Dimentico scadenze e richiami"} },
+  "Studio legale":{ p:{"Fascicoli":"Pratiche e fascicoli","Pratiche e commesse":"Pratiche e fascicoli","Parcelle":"Parcelle e fatture","Parcelle e acconti":"Parcelle e fatture","Fatture e ricevute":"Parcelle e fatture","Documenti":"Documenti per pratica"}, l:{"Scadenze su agenda di carta":"Dimentico scadenze e richiami","Agenda e appuntamenti confusi":"Appuntamenti e udienze su agende diverse"} },
+  "Officina / carrozzeria / autolavaggio":{ p:{"Veicoli in lavorazione":"Auto in lavorazione","Revisioni e tagliandi":"Revisioni e tagliandi da ricordare","Magazzino e prodotti":"Ricambi"}, l:{} },
+  "Negozio / attività commerciale":{ p:{"Prodotti e scorte":"Prodotti, taglie e prezzi","Vendite":"Cassa e scontrini","Clienti abituali":"Clienti con carta fedeltà","Clienti":"Clienti con carta fedeltà","Magazzino e prodotti":"Magazzino e giacenze","Fornitori":"Ordini ai fornitori"}, l:{"Magazzino controllato a mano":"Merce finita che scopro troppo tardi","Disponibilità da verificare":"Prezzi e disponibilità da controllare a mano"} },
+  "Fisioterapista / osteopata":{ p:{"Esercizi":"Programma di esercizi","Clienti":"Schede pazienti","Appuntamenti":"Agenda e promemoria"}, l:{"Sedute disdette":"Sedute disdette all'ultimo","Pazienti che non tornano":"Pazienti che non tornano ai controlli"} },
+  "Impresa edile / artigiano":{ p:{"Cantieri":"Cantieri e stato dei lavori","Pratiche e commesse":"Cantieri e stato dei lavori","Preventivi":"Preventivi e computi","Squadre e operai":"Ore e squadre","Personale e turni":"Ore e squadre","Materiali":"Materiali e costi","Magazzino e prodotti":"Materiali e costi","Stati avanzamento":"Stati avanzamento lavori","Documenti":"Foto e documenti di cantiere"}, l:{"Aggiornare il cliente sul cantiere":"Cliente da aggiornare sul cantiere"} },
+  "Psicologo / psicoterapeuta":{ p:{"Pagamenti e ricevute":"Ricevute e Tessera Sanitaria","Ricevute e pagamenti":"Ricevute e Tessera Sanitaria","Pagamenti e incassi":"Ricevute e Tessera Sanitaria","Fatture e ricevute":"Ricevute e Tessera Sanitaria","Promemoria":"Promemoria ai pazienti","Appuntamenti":"Agenda sedute"}, l:{"Spostamenti e disdette":"Spostamenti e disdette via messaggio","Ricevute a fine mese":"Ricevute da fare a fine mese"} },
+  "Veterinario":{ p:{"Schede animali":"Schede animali e proprietari","Referti":"Schede animali e proprietari","Referti e documenti":"Schede animali e proprietari","Documenti":"Schede animali e proprietari","Clienti":"Schede animali e proprietari","Prodotti":"Farmaci e scorte","Farmaci e prodotti":"Farmaci e scorte","Magazzino e prodotti":"Farmaci e scorte","Appuntamenti":"Visite e agenda"}, l:{"Richiami ricordati a mano":"Richiami di vaccini fatti a mano","Dimentico scadenze e richiami":"Richiami di vaccini fatti a mano"} },
+  "Farmacia / parafarmacia":{ p:{"Prenotazioni servizi":"Prenotazione servizi","Appuntamenti":"Prenotazione servizi","Ordini":"Fornitori","Ordini ai fornitori":"Fornitori","Promozioni":"Promozioni e coupon","Carte fedeltà":"Carta fedeltà e premi"}, l:{"Clienti da avvisare":"Clienti da avvisare uno a uno"} },
+  "Scuola di danza / musica":{ p:{"Corsi e orari":"Corsi, sale e insegnanti","Appuntamenti":"Corsi, sale e insegnanti","Comunicazioni alle famiglie":"Avvisi alle famiglie","Clienti":"Iscritti","Pagamenti e incassi":"Quote mensili","Presenze":"Presenze e recuperi"}, l:{"Avvisi su mille gruppi":"Avvisi su tanti gruppi WhatsApp","Rincorro i pagamenti":"Chi non ha pagato la quota"} },
+  "Agenzia viaggi":{ p:{"Preventivi":"Preventivi e pratiche di viaggio","Prenotazioni":"Preventivi e pratiche di viaggio","Pratiche e commesse":"Preventivi e pratiche di viaggio","Richieste dei clienti":"Preventivi e pratiche di viaggio","Partenze":"Partenze e liste passeggeri","Promemoria prima della partenza":"Partenze e liste passeggeri","Pagamenti e incassi":"Acconti e saldi","Prenotazioni e acconti":"Acconti e saldi","Documenti":"Documenti dei viaggiatori"}, l:{"Preventivi che rubano ore":"Preventivi rifatti da zero","Rincorro i pagamenti":"Saldi e scadenze dei clienti da rincorrere"} },
+  "Agenzia assicurativa":{ p:{"Polizze":"Polizze dei clienti","Clienti":"Polizze dei clienti","Pagamenti e incassi":"Incassi e provvigioni","Documenti":"Documenti dei clienti"}, l:{"Scadenze cliente per cliente":"Promemoria di rinnovo mandati a mano","Dimentico scadenze e richiami":"Promemoria di rinnovo mandati a mano"} },
+  "Autoscuola":{ p:{"Guide pratiche":"Guide e istruttori","Appuntamenti":"Guide e istruttori","Esami":"Esami e foglio rosa","Rate":"Rate e pagamenti","Pagamenti e incassi":"Rate e pagamenti","Clienti":"Iscritti","Documenti":"Documenti degli allievi"}, l:{"Agenda delle guide":"Agenda delle guide incastrata a mano","Agenda e appuntamenti confusi":"Agenda delle guide incastrata a mano","Dimentico scadenze e richiami":"Scadenze di esami e certificati da ricordare"} },
+  "Cantina / agriturismo":{ p:{"Ordini":"Vendite dirette e ordini","Ordini e spedizioni":"Vendite dirette e ordini","Eventi":"Visite e degustazioni","Eventi e cene":"Visite e degustazioni","Appuntamenti":"Visite e degustazioni","Scorte di cantina":"Giacenze di cantina","Magazzino e prodotti":"Giacenze di cantina","Clienti":"Clienti abituali e club del vino","Clienti abituali":"Clienti abituali e club del vino"}, l:{"Prenotazioni al telefono":"Prenotazioni prese al telefono"} },
+  "Altra attività":{ p:{"Pratiche e commesse":"Pratiche e lavori"}, l:{} }
+};
+const mig1 = (lista, opzioni, mappa) => lista.map(x => opzioni.includes(x) ? x : (Object.prototype.hasOwnProperty.call(mappa, x) ? mappa[x] : x)).filter((x, i, a) => x && a.indexOf(x) === i);
+function migraGest(a) {
+  const o = gOpts({ n:a.s }), m = MIGRA[a.s] || {}, g = a.gest;
+  const persi = [...(g.pannello || []).filter(x => !o.p.includes(x) && !(m.p || {})[x]), ...(g.perdite || []).filter(x => !o.l.includes(x) && !(m.l || {})[x])];
+  g.pannello = mig1(g.pannello, o.p, m.p || {}); g.perdite = mig1(g.perdite, o.l, m.l || {});
+  /* le scelte vecchie senza equivalente non si perdono: finiscono nel campo libero */
+  if (persi.length) { const t = [g.libero || "", persi.join(", ")].filter(Boolean).join("; "); g.libero = t.slice(0, 300); }
+}
+function gSync(el, key, many) { el.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", many ? A.gest[key].includes(b.dataset.v) : A.gest[key] === b.dataset.v)); }
+function gDraw(el, list, key, many) { el.innerHTML = list.map(x => `<button type="button" class="chip" aria-pressed="false" data-v="${esc(x)}">${esc(x)}</button>`).join(""); gSync(el, key, many); }
+function gShow() { $("gBranch").hidden = !(A.gest.serve === "Sì" || A.gest.serve === "Non so"); }
+[["cGServe","serve",["Sì","Non so","No"],false],["cGOggi","oggi",G_OGGI,false],["cGChi","chi",G_CHI,false],["cGPersone","persone",G_PERS,false],["cGDove","dove",G_DOVE,true],["cGDati","dati",G_DATI,false],["cGPannello","pannello",[],true],["cGPerdite","perdite",[],true]].forEach(([id, key, list, many]) => {
+  const el = $(id); if (list.length) gDraw(el, list, key, many);
+  el.addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return; const x = b.dataset.v, g = A.gest;
+    if (many) g[key] = g[key].includes(x) ? g[key].filter(y => y !== x) : [...g[key], x]; else g[key] = g[key] === x ? null : x;
+    gSync(el, key, many); if (key === "serve") gShow(); bozza(); });
+  syncs.push(() => { gSync(el, key, many); gShow(); });
+});
+function renderGest() {
+  const o = gOpts(sett()), g = A.gest;
+  g.pannello = g.pannello.filter(x => o.p.includes(x)); g.perdite = g.perdite.filter(x => o.l.includes(x));
+  gDraw($("cGPannello"), o.p, "pannello", true); gDraw($("cGPerdite"), o.l, "perdite", true); gShow();
+}
+const gTesto = g => g.serve === "No" ? "No" : [g.serve, g.oggi && "Oggi: " + g.oggi, g.pannello.length && "Nel pannello: " + g.pannello.join(", "), (g.perdite.length || g.libero) && "Perdo tempo: " + [...g.perdite, g.libero].filter(Boolean).join(", "), g.chi && "Lo usa: " + g.chi + (g.persone ? " (" + g.persone + " persone)" : ""), g.dove.length && "Da: " + g.dove.join(", "), g.dati && "Dati: " + g.dati, g.nonManchi && "Non deve mancare: " + g.nonManchi].filter(Boolean).join(" · ");
+
 
 /* obiettivi in ordine */
 function renderGoals() {
@@ -362,22 +554,195 @@ $("probs").addEventListener("click", e => { const b = e.target.closest(".chip");
   A.prob[i] = st; renderProbs(); bozza(); });
 $("vocaleBtn").addEventListener("click", () => { A.vocale = !A.vocale; $("vocaleBtn").setAttribute("aria-pressed", A.vocale); bozza(); });
 
+/* =====================================================================
+   PACCHETTI — stessa logica della Mappa (pzsrc/pzlogic.js e pzview.js), SENZA prezzi, rate, canoni o totali.
+   PK_S = per ogni settore le soluzioni della Mappa (SETTORI[].S) ridotte a [id del catalogo, [indici dei problemi che risolvono]].
+   I nomi dei servizi sono tradotti in id come fa idGeneratore() nella Mappa (sito → sito2, gestionale → gest1, social e video → vf1).
+   Gli indici dei problemi sono gli stessi di SETTORI[].P qui sopra. Le frasi PK_RIGA sono le PZ_RIGA della Mappa.
+   ===================================================================== */
+const PK_S = {
+ "Concessionaria auto":[["aut",[0]],["ass",[1,2]],["gest1",[3,4]]],
+ "Agenzia immobiliare":[["ass",[0,2]],["vf1",[1,4]],["gest1",[3]]],
+ "Patronato / CAF":[["ass",[0]],["aut",[1]],["gest1",[2,3]]],
+ "Studio dentistico":[["ass",[0,1]],["gest1",[2,4]],["pren",[3]]],
+ "Studio medico / poliambulatorio":[["pren",[0]],["aut",[1,2]],["pren",[3]]],
+ "Dietista / nutrizionista":[["ass",[0]],["gest1",[1,2]],["vf1",[3]]],
+ "Ristorante / pizzeria":[["pren",[0,1,2]],["aut",[3]],["vf1",[4]]],
+ "Bar / caffetteria":[["gest1",[0]],["pren",[1]],["vf1",[2,3]]],
+ "Centro estetico":[["pren",[0,1]],["gest1",[2,3]],["aut",[4]]],
+ "Parrucchiere / barbiere":[["pren",[0,1]],["gest1",[2]],["vf1",[3]]],
+ "Palestra / centro sportivo":[["ass",[0]],["gest1",[1,2]],["aut",[3]]],
+ "B&B / hotel / casa vacanze":[["sito2",[0]],["ass",[1,2]],["aut",[3]]],
+ "Studio commercialista":[["aut",[0]],["ass",[1,3]],["pren",[2]]],
+ "Studio legale":[["ass",[0]],["gest1",[1,2]],["pren",[3]]],
+ "Officina / carrozzeria / autolavaggio":[["ass",[0,1,5]],["aut",[2]],["gest1",[3,4]],["aut",[6]],["goo",[7]]],
+ "Negozio / attività commerciale":[["vf1",[0]],["ass",[1]],["gest1",[2,3]]],
+ "Fisioterapista / osteopata":[["pren",[0,1]],["gest1",[2]],["aut",[3]]],
+ "Impresa edile / artigiano":[["aut",[0]],["aut",[1,2]],["vf1",[3]]],
+ "Psicologo / psicoterapeuta":[["pren",[0,1]],["gest1",[2]],["vf1",[3]]],
+ "Veterinario":[["ass",[0]],["aut",[1]],["gest1",[2,3]]],
+ "Farmacia / parafarmacia":[["pren",[0]],["ass",[1]],["vf1",[2,3]]],
+ "Scuola di danza / musica":[["ass",[0]],["gest1",[1,2]],["vf1",[3]]],
+ "Agenzia viaggi":[["ass",[0]],["aut",[1,2]],["aut",[3]]],
+ "Agenzia assicurativa":[["aut",[0,1]],["pren",[2]],["ass",[3]]],
+ "Autoscuola":[["ass",[0]],["gest1",[1,3]],["aut",[2]]],
+ "Cantina / agriturismo":[["pren",[0]],["pren",[1]],["vf1",[2,3]]],
+ "Altra attività":[["ass",[0,1]],["aut",[2]]]
+};
+const PK_RIGA = {
+  sito2: "Sito professionale con servizi, recensioni e movimento allo scroll",
+  gest1: "Agenda, schede clienti, caparre e promemoria in un unico pannello",
+  gest2: "Pannello completo: pacchetti, rinnovi, staff, magazzino e cassa",
+  pren: "Prenotazioni online con promemoria automatico su WhatsApp",
+  aut: "Lavori ripetitivi fatti da soli: richiami, preventivi, documenti",
+  ass: "Risposte automatiche su WhatsApp, anche di notte",
+  goo: "Scheda Google curata: foto, categorie e risposte alle recensioni",
+  pag: "Pagina social sistemata: nome, bio, link e copertine",
+  vf1: "8 contenuti social al mese, nati dalle domande vere dei clienti"
+};
+const PK_FISSE = ["Assistenza dopo la consegna, con una persona vera", "Ti spiego come usare tutto, passo passo"];
+const PK_NOMI = { base: ["Essenziale", "Per togliere subito il problema più pesante", "essenziale"], cons: ["Professionale", "Tutto quello che serve per lavorare meglio", "professionale"], tutto: ["Completo", "Per chi vuole tutto, senza pensieri", "completo"] };
+const PK_NOMI_N = { 1: ["tutto"], 2: ["base", "tutto"], 3: ["base", "cons", "tutto"] };
+const PK_GRUPPO = { sito2: "sito", gest1: "gest", gest2: "gest", pren: "auto", aut: "auto", ass: "auto", goo: "vis", pag: "vis", vf1: "vf" };
+const PK_CORRELATI = { sito: ["goo"], vis: ["goo"], auto: ["ass"], gest: ["ass"], vf: ["pag"] };
+const PK_GRANDE = /pacchett|abbonament|magazzin|personale|turni|cassa/i;
+const ORE_MESE = 4.3;
+
+/* dai problemi segnati dal cliente ai 1-3 pacchetti a scalare */
+function pkCalcola() {
+  const s = sett(), tab = PK_S[s.n] || [];
+  const pr = Object.entries(A.prob).filter(([, x]) => x && x.si).map(([k, x]) => { const i = Number(k); if (!s.P[i]) return null;
+    return { i, t: s.P[i][1], h: x.o != null && ORE[x.o] ? ORE[x.o][1] : s.P[i][2], ids: [...new Set(tab.filter(z => z[1].includes(i)).map(z => z[0]))] }; })
+    .filter(Boolean).sort((a, b) => b.h - a.h || a.i - b.i);
+  const out = { pr, piani: [], righe: [], gancio: null, voci: [] };
+  if (!pr.length) return out;
+  const seq = [], presi = new Set();
+  const marg = id => pr.reduce((t, p) => t + (!presi.has(p.i) && p.ids.includes(id) ? p.h : 0), 0);
+  const metti = id => { if (!seq.includes(id)) { seq.push(id); return true; } return false; };
+  const segna = id => pr.forEach(p => { if (p.ids.includes(id)) presi.add(p.i); });
+  /* si parte dal servizio che risolve il problema più pesante (il gancio), poi uno per volta in ordine di ore ancora da risolvere */
+  const con = pr.filter(p => p.ids.length);
+  if (con.length) {
+    const top = con.reduce((a, b) => b.h > a.h ? b : a); out.gancio = top;
+    const primo = [...top.ids].sort((a, b) => marg(b) - marg(a))[0]; metti(primo); segna(primo);
+    const cand = [...new Set(con.flatMap(p => p.ids))];
+    for (;;) { const best = cand.map((id, n) => ({ id, n, h: marg(id) })).filter(x => x.h > 0).sort((a, b) => b.h - a.h || a.n - b.n)[0];
+      if (!best) break; metti(best.id); segna(best.id); }
+  }
+  /* gestionale chiesto («Sì» dopo il primo servizio, quindi dal piano centrale; «Non so» solo nel completo) */
+  const gd = A.gest.serve ? gestDati(s) : null, chiesto = !!gd && (gd.serve === "Sì" || gd.serve === "Non so");
+  if (chiesto) {
+    let ig = seq.findIndex(x => PK_GRUPPO[x] === "gest");
+    if (ig < 0) { if (gd.serve === "Sì" && seq.length) seq.splice(1, 0, "gest1"); else seq.push("gest1"); ig = seq.findIndex(x => PK_GRUPPO[x] === "gest"); }
+    if (gd.pannello.some(v => PK_GRANDE.test(v))) { seq[ig] = "gest2"; pr.forEach(p => { p.ids = p.ids.map(x => x === "gest1" ? "gest2" : x); }); }
+    out.voci = gd.pannello;
+  }
+  /* se i servizi sono meno di 3 non si riescono a fare tre pacchetti a scalare: si aggiungono (al massimo 2) i servizi vicini del listino (prima i correlati, poi scheda Google, assistente, pagina social) */
+  let ex = 0; [...seq].forEach(id => { if (seq.length < 3) (PK_CORRELATI[PK_GRUPPO[id]] || []).forEach(x => { if (ex < 2 && seq.length < 3 && metti(x)) ex++; }); });
+  if (seq.length) ["goo", "ass", "pag"].forEach(x => { if (seq.length < 3) metti(x); });
+  if (!seq.length) return out;
+  const n = seq.length, tagli = n >= 3 ? [1, Math.max(2, Math.ceil(n / 2)), n] : n === 2 ? [1, 2] : [1];
+  const ruoli = PK_NOMI_N[tagli.length];
+  const risolto = (ids, p) => p.ids.some(x => ids.includes(x));
+  out.piani = tagli.map((k, i) => { const ids = seq.slice(0, k), nm = PK_NOMI[ruoli[i]];
+    const fuori = pr.filter(p => !risolto(ids, p));
+    return { id: nm[2], nome: nm[0], perChi: nm[1], ids, hl: tagli.length === 3 && i === 1,
+      ore: Math.round(pr.filter(p => risolto(ids, p)).reduce((t, p) => t + p.h, 0) * ORE_MESE),
+      tutto: !fuori.length, scop: fuori.map(p => p.t), persi: Math.round(fuori.reduce((t, p) => t + p.h, 0) * ORE_MESE) }; });
+  /* righe uguali per tutti i pacchetti: prima il servizio del gancio, poi quelli che risolvono i problemi (dal più pesante), poi gli altri, poi le voci fisse */
+  const peso = id => pr.reduce((t, p) => t + (p.ids.includes(id) ? p.h : 0), 0);
+  const nAut = Math.max(1, Math.min(10, tab.filter(z => z[0] === "aut" && pr.some(p => z[1].includes(p.i))).length));
+  seq.map((id, k) => ({ id, k, w: peso(id) })).sort((a, b) => (b.id === seq[0]) - (a.id === seq[0]) || (b.w > 0) - (a.w > 0) || b.w - a.w || a.k - b.k).forEach(r => {
+    out.righe.push({ t: r.id === "aut" && nAut > 1 ? `${nAut} lavori ripetitivi fatti da soli: richiami, preventivi, documenti` : PK_RIGA[r.id], inc: out.piani.map(p => p.ids.includes(r.id)) });
+    if (PK_GRUPPO[r.id] === "gest" && out.voci.length) out.righe.push({ t: "Nel pannello: " + out.voci.slice(0, 6).join(", ") + (out.voci.length > 6 ? ` e altre ${out.voci.length - 6} voci` : ""), inc: out.piani.map(p => p.ids.includes(r.id)), sub: true });
+  });
+  PK_FISSE.forEach((t, j) => out.righe.push({ t, sep: j === 0, inc: out.piani.map(() => true) }));
+  return out;
+}
+/* disegno delle card (come pzHTML della Mappa, senza prezzi; la card si tocca per sceglierla) */
+function pkHTML(C) {
+  const OK = '<svg viewBox="0 0 20 20" aria-label="Incluso"><circle cx="10" cy="10" r="10" fill="#34c759"/><path d="M5.8 10.3l2.7 2.7 5.7-6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const KO = '<svg viewBox="0 0 20 20" aria-label="Non incluso"><circle cx="10" cy="10" r="9.25" fill="#fff0ef" stroke="#ffd2cf" stroke-width="1.5"/><path d="M7 7l6 6M13 7l-6 6" fill="none" stroke="#ff3b30" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  const P = C.piani, Rg = C.righe;
+  return `<p class="pk-hook"><b>Risolviamo prima questo:</b> «${esc(C.gancio ? C.gancio.t : C.pr[0].t)}»</p>
+  <div class="pz" style="--n:${P.length};--r:${Rg.length}"><div class="pz-grid" role="group" aria-label="Pacchetti">${P.map((p, i) => `
+    <article class="pz-card ${p.hl ? "hl" : ""}" style="--i:${i}" data-pk="${p.id}">
+      ${p.hl ? '<span class="pz-badge">Il più scelto</span>' : ""}
+      <header class="pz-h"><h3>${esc(p.nome)}</h3><p>${esc(p.perChi)}</p>
+        <div class="pz-time">${p.ore > 0 ? `<b>Ti fa risparmiare circa ${p.ore} ore al mese</b>` : ""}
+          ${p.tutto ? '<span class="pz-all">Risolve tutti i tuoi problemi</span>' : `<span class="pz-left">Restano scoperti: ${p.scop.map(x => "«" + esc(x) + "»").join(", ")}${p.persi ? ` · circa ${p.persi} ore al mese ancora perse` : ""}</span>`}</div></header>
+      <ul class="pz-list">${Rg.map((r, j) => `<li class="${r.inc[i] ? "si" : "no"}${r.sep ? " sep" : ""}${r.sub ? " sub" : ""}" style="--j:${j}">${r.inc[i] ? OK : KO}<span>${esc(r.t)}</span></li>`).join("")}</ul>
+      <div class="pz-cta"><button type="button" class="pz-btn" data-pk="${p.id}" aria-pressed="false">Scelgo ${esc(p.nome)}</button></div>
+    </article>`).join("")}</div></div>
+  <p class="pk-swipe">Scorri di lato per vedere gli altri pacchetti.</p>
+  <div class="chips pk-non"><button type="button" class="chip" data-pk="non-so" aria-pressed="false">Non so ancora, ne parliamo in call</button></div>`;
+}
+let pkC = null;
+function renderPacchetti() {
+  pkC = pkCalcola();
+  if (A.pk && A.pk !== "non-so" && !pkC.piani.some(p => p.id === A.pk)) A.pk = null;
+  $("pkBox").innerHTML = pkC.piani.length ? pkHTML(pkC)
+    : `<div class="pk-vuoto"><b>Ne parliamo in call</b><p>Non hai segnato problemi da sistemare, quindi non ti propongo niente a caso. In call mi racconti meglio come lavori e vediamo insieme da dove ha senso partire.</p></div>`;
+  $("pkLead").hidden = !pkC.piani.length;
+  pkSync();
+}
+function pkSync() {
+  $("pkBox").querySelectorAll("[data-pk]").forEach(el => { const on = el.dataset.pk === A.pk;
+    if (el.matches(".pz-card")) el.classList.toggle("sel", on);
+    else { el.setAttribute("aria-pressed", on); if (el.matches(".pz-btn")) el.textContent = (on ? "Hai scelto " : "Scelgo ") + (PK_NOMI[Object.keys(PK_NOMI).find(k => PK_NOMI[k][2] === el.dataset.pk)] || [""])[0]; } });
+}
+$("pkBox").addEventListener("click", e => { const b = e.target.closest("[data-pk]"); if (!b) return; A.pk = A.pk === b.dataset.pk ? null : b.dataset.pk; pkSync(); bozza(); });
+/* sul telefono i pacchetti scorrono di lato: all'apertura si vede quello centrale */
+function pkCentra() {
+  const gr = document.querySelector("#pkBox .pz-grid"), hl = gr && (gr.querySelector(".pz-card.hl") || gr.querySelector(".pz-card:last-child"));
+  if (!hl || gr.scrollWidth <= gr.clientWidth + 2) return;
+  gr.scrollTo({ left: hl.getBoundingClientRect().left - gr.getBoundingClientRect().left + gr.scrollLeft - (gr.clientWidth - hl.offsetWidth) / 2, behavior: "instant" });
+}
+/* dati da mandare: pacchetti proposti, quello scelto e il problema da cui si parte */
+function pkDati() {
+  const C = pkCalcola(), ok = A.pk && (A.pk === "non-so" || C.piani.some(p => p.id === A.pk));
+  return { scelto: ok ? A.pk : null, piani: C.piani.map(p => ({ nome: p.nome, servizi: p.ids, ore: p.ore })), gancio: C.gancio ? C.gancio.t : "" };
+}
+const pkNome = k => k === "non-so" ? "Ne parliamo in call" : (PK_NOMI[Object.keys(PK_NOMI).find(x => PK_NOMI[x][2] === k)] || [""])[0];
+/* ===================== fine blocco PACCHETTI ===================== */
+
 /* risposte e messaggio */
+function gestDati(s) {
+  const g = A.gest, o = gOpts(s), si = g.serve !== "No";
+  return { serve:g.serve, oggi:si ? (g.oggi || "") : "", pannello:si ? g.pannello.filter(x => o.p.includes(x)) : [], perdite:si ? g.perdite.filter(x => o.l.includes(x)) : [], libero:si ? taglia(v("fGestPerdite"), 300) : "", chi:si ? (g.chi || "") : "", persone:si ? (g.persone || "") : "", dove:si ? g.dove.filter(x => G_DOVE.includes(x)) : [], dati:si ? (g.dati || "") : "", nonManchi:si ? taglia(v("fGestNonManchi"), 300) : "" };
+}
 function dati() {
   const s = sett();
   const prob = Object.entries(A.prob).filter(([, x]) => x.si).map(([i, x]) => [Number(i), x.o != null ? ORE[x.o][1] : null]);
   const no = Object.entries(A.prob).filter(([, x]) => x.si === false).map(([i]) => Number(i));
   return { v:1, data:new Date().toISOString().slice(0, 10), s:s.n, tipoAltro:s.n === "Altra attività" ? taglia(v("fAltroTipo"), 80) : "", nome:taglia(v("fNome"), 80), attivita:taglia(v("fAtt"), 80), citta:taglia(v("fCitta"), 60), tel:taglia(v("fTel"), 25),
     ig:taglia(v("fIg"), 80), sito:taglia(v("fSito"), 120), ob:A.ob, obAltro:taglia(v("fObAltro"), 120), team:A.team, can:A.can, str:A.str, lav:A.lav, lavAltro:taglia(v("fLavAltro"), 300),
-    prob, no, probAltro:taglia(v("fProbAltro"), 300), magia:taglia(v("fMagia"), 300), provato:taglia(v("fProvato"), 300),
-    vocale:A.vocale, tempi:A.tempi, decide:A.decide, budget:A.budget, pag:A.pag, iva:A.iva,
-    consenso:{ v:"2026-11-04", data:new Date().toISOString() } };
+    prob, probT:prob.map(([i]) => s.P[i] ? s.P[i][1] : ""), no, noT:no.map(i => s.P[i] ? s.P[i][1] : ""), probAltro:taglia(v("fProbAltro"), 300), magia:taglia(v("fMagia"), 300), provato:taglia(v("fProvato"), 300),
+    vocale:A.vocale, tempi:A.tempi, decide:A.decide, budget:"Ne parliamo in call", pag:A.pag, iva:A.iva,
+    ...(A.gest.serve ? { gest:gestDati(s) } : {}),
+    pk:pkDati(),
+    consenso:{ v:"2026-11-08", data:new Date().toISOString() } };
 }
 const goalName = k => (GOALS.find(g => g[0] === k) || [, k])[1];
 const oreTxt = h => h == null ? "" : " (" + ORE.find(o => o[1] === h)[0].toLowerCase() + " a settimana)";
-function codice(d) { const b = btoa(unescape(encodeURIComponent(JSON.stringify(d)))); return "QC1." + b.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
-function messaggio(d, breve) {
-  const s = sett(); const r = [];
+const LIM = 3800;
+const b64u = bytes => { let t = ""; for (let i = 0; i < bytes.length; i += 0x8000) t += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(t).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
+/* QC2 = JSON compresso (deflate-raw) in base64url; se il browser non lo sa fare resta QC1 = JSON in base64url. Il codice non viene mai tagliato. */
+async function codice(d) {
+  const raw = new TextEncoder().encode(JSON.stringify(d));
+  if (typeof CompressionStream === "function" && typeof Response === "function") {
+    try {
+      const cs = new CompressionStream("deflate-raw"), w = cs.writable.getWriter();
+      w.write(raw).catch(() => {}); w.close().catch(() => {});
+      const out = new Uint8Array(await new Response(cs.readable).arrayBuffer());
+      if (out.length) return "QC2." + b64u(out);
+    } catch (e) {}
+  }
+  return "QC1." + b64u(raw);
+}
+function messaggio(d, liv, cod) {
+  const s = sett(), breve = liv >= 1, r = [];
+  if (liv >= 2) return `Ciao Alessandro, sono ${d.nome} di ${d.attivita}: ecco le mie risposte per la call.\n\nCodice delle risposte (non modificarlo):\n${cod}`;
   const corto = t => { const a = Array.from(t); return a.length > 160 ? a.slice(0, 160).join("") + "…" : t; };
   r.push("Ciao Alessandro, ecco le mie risposte per preparare la call.");
   r.push(""); r.push(`*${d.attivita || "La mia attività"}* · ${d.s === "Altra attività" ? (d.tipoAltro || "altra attività") : d.s}${d.citta ? " · " + d.citta : ""}`);
@@ -386,11 +751,27 @@ function messaggio(d, breve) {
   if (d.prob.length) { r.push("Dove perdo tempo:"); d.prob.forEach(([i, h]) => r.push("• " + s.P[i][1] + oreTxt(h))); }
   if (!breve && d.probAltro) r.push("Altro: " + corto(d.probAltro));
   if (!breve && d.magia) r.push("Vorrei sistemare: " + corto(d.magia));
-  r.push([d.tempi && "Partenza: " + d.tempi, d.decide && "Decide: " + d.decide, d.budget && "Budget: " + d.budget].filter(Boolean).join(" · "));
+  if (d.gest) {
+    const g = d.gest;
+    if (g.serve === "No") r.push("Gestionale: No");
+    else if (breve) r.push("Gestionale: " + g.serve + " (dettagli nel codice)");
+    else {
+      r.push("Gestionale: " + g.serve);
+      if (g.oggi) r.push("• Oggi: " + g.oggi);
+      if (g.pannello.length) r.push("• Nel pannello: " + g.pannello.join(", "));
+      if (g.perdite.length || g.libero) r.push("• Mi fa perdere tempo: " + [...g.perdite, g.libero && corto(g.libero)].filter(Boolean).join(", "));
+      if (g.chi || g.persone) r.push("• Lo usano: " + [g.chi, g.persone && g.persone + " persone"].filter(Boolean).join(", "));
+      if (g.dove.length) r.push("• Da: " + g.dove.join(", "));
+      if (g.dati) r.push("• Dati da importare: " + g.dati);
+      if (g.nonManchi) r.push("• Non deve mancare: " + corto(g.nonManchi));
+    }
+  }
+  r.push([d.tempi && "Partenza: " + d.tempi, d.decide && "Decide: " + d.decide].filter(Boolean).join(" · "));
+  if (d.pk && d.pk.scelto) r.push("Pacchetto che mi interessa: " + pkNome(d.pk.scelto));
   if (d.vocale) r.push("Ti mando anche un vocale.");
   if (breve) r.push("Le risposte complete sono nel codice qui sotto.");
-  r.push(""); r.push("Codice delle risposte (non modificarlo):"); r.push(codice(d));
-  return r.filter(x => x !== "").join("\n").replace("\nCodice", "\n\nCodice");
+  r.push(""); r.push("Codice delle risposte (non modificarlo):"); r.push(cod);
+  return r.filter(x => x !== "").join("\n").replace(/\n(Obiettivo|Dove perdo tempo|Gestionale|Partenza|Codice)/g, "\n\n$1");
 }
 function riepilogo() {
   const d = dati(), s = sett();
@@ -402,15 +783,29 @@ function riepilogo() {
     riga("Passaggi pesanti", d.lav.map(i => s.L[i]).join(", ")) +
     riga("Dove perdi tempo", d.prob.map(([i, h]) => s.P[i][1] + oreTxt(h)).join("; ")) +
     riga("Altro", d.probAltro) + riga("Da sistemare", d.magia) + riga("Già provato", d.provato) +
-    riga("Sul tuo lavoro", d.lavAltro) +
-    riga("Partenza", d.tempi) + riga("Chi decide", d.decide) + riga("Budget", d.budget) + riga("Pagamento", d.pag) +
+    riga("Sul tuo lavoro", d.lavAltro) + riga("Gestionale", d.gest ? gTesto(d.gest) : "") +
+    riga("Partenza", d.tempi) + riga("Chi decide", d.decide) + riga("Pacchetto", d.pk && d.pk.scelto ? pkNome(d.pk.scelto) : "") + riga("Pagamento", d.pag) +
     riga("Ricevuta", d.iva) + riga("Instagram o Facebook", d.ig) + riga("Sito", d.sito) + riga("WhatsApp", d.tel) +
     riga("Vocale", d.vocale ? "Te lo mando su WhatsApp" : "");
-  let testo = messaggio(d, false), url = "https://wa.me/" + WA + "?text=" + encodeURIComponent(testo);
-  if (url.length > 3800) { testo = messaggio(d, true); url = "https://wa.me/" + WA + "?text=" + encodeURIComponent(testo); }
-  if (url.length > 3800) { testo = `Ciao Alessandro, sono ${d.nome} di ${d.attivita}: ecco le mie risposte per la call.\n\nCodice delle risposte (non modificarlo):\n${codice(d)}`; url = "https://wa.me/" + WA + "?text=" + encodeURIComponent(testo); }
-  $("sendBtn").href = url; $("waAgain").href = url; $("copyArea").value = testo;
-  $("lungo").hidden = url.length <= 3800;
+  const tok = ++rtoken, bs = $("sendBtn");
+  bs.classList.add("wait"); bs.setAttribute("aria-disabled", "true"); $("lungo").hidden = true; invio = null;
+  prepara(d).then(r => {
+    if (tok !== rtoken) return;
+    invio = r;
+    bs.href = r.url; $("waAgain").href = r.url; $("copyArea").value = r.testo; $("copyArea").hidden = !r.copia;
+    bs.textContent = r.copia ? "Copia e apri WhatsApp" : "Invia su WhatsApp";
+    $("lungo").hidden = !r.copia; $("copyBtn").textContent = "Copia il messaggio";
+    $("doneTxt").textContent = r.copia ? "Il messaggio è troppo lungo per aprirsi da solo: l'ho copiato. Nella chat di WhatsApp con Alessandro tieni premuto nella casella di testo, scegli «Incolla» e premi invio." : "Se si è aperta la chat di WhatsApp, premi invio: il messaggio è già scritto. Appena lo ricevo preparo la call sulla tua attività.";
+    $("doneTxt2").textContent = r.copia ? "Se non si è copiato, tocca «Copia il messaggio» qui sotto e incollalo nella chat WhatsApp con Alessandro (+39 339 405 2935)." : "Se non vedi WhatsApp, tocca «Apri WhatsApp» oppure copia il messaggio e mandalo a questo numero:";
+    bs.classList.remove("wait"); bs.removeAttribute("aria-disabled");
+  });
+}
+let rtoken = 0, invio = null;
+/* tre livelli di testo leggibile (completo, breve, minimo); il codice resta sempre intero. Se non basta: copia e incolla. */
+async function prepara(d) {
+  const cod = await codice(d), mk = t => "https://wa.me/" + WA + "?text=" + encodeURIComponent(t);
+  for (let liv = 0; liv <= 2; liv++) { const testo = messaggio(d, liv, cod), url = mk(testo); if (url.length <= LIM) return { testo, url, copia:false, liv, cod, d }; }
+  return { testo:messaggio(d, 2, cod), url:"https://wa.me/" + WA, copia:true, liv:2, cod, d };
 }
 
 /* prenotazione della call */
@@ -441,40 +836,57 @@ function prenota() {
   $("bookHint").textContent = "Si apre una pagina dove scegli l'orario libero. L'invito arriva nel tuo calendario.";
 }
 
+/* salvataggio protetto: parte insieme a WhatsApp, non lo blocca mai e non si ripete per lo stesso invio */
+let salvato = "";
+function salvaOnline(r) {
+  try {
+    if (!r || !r.cod || salvato === r.cod || !SALVA_URL || typeof fetch !== "function") return;
+    salvato = r.cod;
+    const d = r.d || dati(), ctl = typeof AbortController === "function" ? new AbortController() : null;
+    const t = ctl ? setTimeout(() => ctl.abort(), 8000) : 0;
+    fetch(SALVA_URL, { method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true, credentials: "omit", ...(ctl ? { signal: ctl.signal } : {}),
+      body: JSON.stringify({ d, codice: r.cod, hp: $("fSitoWeb2").value }) })
+      .then(x => { if (!x.ok) salvato = ""; }, () => { salvato = ""; })
+      .finally(() => clearTimeout(t));
+  } catch (e) { salvato = ""; }
+}
+
 /* navigazione */
 let cur = 0;
 function valida(n) {
   if (n === 1) { if (!v("fNome") || !v("fAtt")) return ["err1", "Scrivi il tuo nome e quello dell'attività."]; if (!A.s) return ["err1", "Scegli il tipo di attività dall'elenco (se non c'è, scegli «Altra attività»)."]; }
   if (n === 5 && Object.values(A.prob).some(x => x && x.si && x.o == null)) return ["err5", "Per ogni «Sì, mi succede» scegli più o meno quanto tempo ti porta via."];
   if (n === 2 && !A.ob.length && !v("fObAltro")) return ["err2", "Scegli almeno un obiettivo."];
-  if (n === 7) { if (v("fTel").replace(/\D/g, "").length < 8) return ["err7", "Scrivi il tuo numero WhatsApp, così ti confermo la call."]; if (!$("fPriv").checked) return ["err7", "Per inviare serve il tuo consenso qui sopra."]; }
+  if (n === 9) { if (v("fTel").replace(/\D/g, "").length < 8) return ["err7", "Scrivi il tuo numero WhatsApp, così ti confermo la call."]; if (!$("fPriv").checked) return ["err7", "Per inviare serve il tuo consenso qui sopra."]; }
   return null;
 }
 function go(n, back) {
   if (!back) { const e = valida(cur); document.querySelectorAll(".err").forEach(x => x.textContent = ""); if (e) { $(e[0]).textContent = e[1]; return; } }
   cur = Math.max(0, Math.min(STEPS - 1, n));
-  if (cur === 4) renderLav(); if (cur === 5) renderProbs(); if (cur === 2) renderGoals(); if (cur === LAST_Q) riepilogo(); if (cur === 9) prenota();
+  if (cur === 7) renderGest(); if (cur === 4) renderLav(); if (cur === 5) renderProbs(); if (cur === 2) renderGoals(); if (cur === 8) renderPacchetti(); if (cur === LAST_Q) riepilogo(); if (cur === 11) prenota();
+  document.querySelector(".wrap").classList.toggle("wide", cur === 8); if (cur === 8) requestAnimationFrame(() => requestAnimationFrame(pkCentra));
   document.querySelectorAll(".step").forEach(s => { const on = Number(s.dataset.s) === cur; s.classList.toggle("on", on); s.classList.toggle("back", on && !!back); });
   $("barI").style.width = (cur / LAST_Q * 100) + "%";
   $("count").textContent = cur > 0 && cur < LAST_Q ? `${cur} di ${LAST_Q - 1}` : "";
-  $("backBtn").style.visibility = cur > 0 && cur < 9 ? "visible" : "hidden";
+  $("backBtn").style.visibility = cur > 0 && cur < 11 ? "visible" : "hidden";
   $("nextBtn").hidden = cur >= LAST_Q; $("sendBtn").hidden = cur !== LAST_Q;
-  $("nextBtn").textContent = cur === 0 ? "Inizia" : cur === 7 ? "Controlla" : "Avanti";
-  document.querySelector(".nav").hidden = cur === 9;
+  $("nextBtn").textContent = cur === 0 ? "Inizia" : cur === 9 ? "Controlla" : "Avanti";
+  document.querySelector(".nav").hidden = cur === 11;
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 $("nextBtn").onclick = () => go(cur + 1);
 $("backBtn").onclick = () => go(cur - 1, true);
-$("sendBtn").addEventListener("click", () => { try { localStorage.removeItem("qpc:bozza"); } catch (e) {} clearTimeout(saveT); setTimeout(() => go(9), 250); });
-$("editBtn").addEventListener("click", () => go(8, true));
+$("sendBtn").addEventListener("click", e => { if (!invio) { e.preventDefault(); toast("Un attimo, preparo il messaggio…"); return; } salvaOnline(invio); if (invio.copia) copia(invio.testo); try { localStorage.removeItem("qpc:bozza"); } catch (e) {} clearTimeout(saveT); setTimeout(() => go(11), 250); });
+$("editBtn").addEventListener("click", () => go(10, true));
 let toastT; function toast(t) { $("toast").textContent = t; $("toast").classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => $("toast").classList.remove("show"), 2200); }
-$("copyBtn").onclick = () => {
-  const t = $("copyArea").value;
-  const ok = () => toast("Risposte copiate");
-  const fall = () => { const a = $("copyArea"); a.hidden = false; a.style.minHeight = "180px"; a.focus(); a.select(); toast("Tieni premuto e scegli Copia"); };
+function copia(t) {
+  const ok = () => toast("Messaggio copiato"), fall = () => { const a = $("copyArea"); a.hidden = false; a.style.minHeight = "180px"; a.focus(); a.select(); let fatto = false; try { a.setSelectionRange(0, a.value.length); fatto = !!(document.execCommand && document.execCommand("copy")); } catch (er) {} toast(fatto ? "Messaggio copiato" : "Tieni premuto sul testo e scegli Copia"); };
   try { navigator.clipboard.writeText(t).then(ok, fall); } catch (e) { fall(); }
-};
+}
+$("copyBtn").onclick = () => copia($("copyArea").value);
 renderGoals(); go(0, true);
 </script>
+
+
 
 </body></html>
