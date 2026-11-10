@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Analizza">
+<title>Analizza</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icona.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icona.svg">
+<style>
+:root{
+  --sfondo:#f5f5f7; --carta:#fff; --testo:#1d1d1f; --tenue:#6e6e73; --linea:#e5e5ea;
+  --blu:#0a84ff; --verde:#30a14e; --arancio:#e08600; --rosso:#d92d20; --grigio:#8e8e93;
+  --campo:#f2f2f7; --ombra:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --sfondo:#000; --carta:#1c1c1e; --testo:#f5f5f7; --tenue:#98989d; --linea:#38383a;
+    --blu:#0a84ff; --verde:#32d74b; --arancio:#ff9f0a; --rosso:#ff453a; --grigio:#98989d;
+    --campo:#2c2c2e; --ombra:none;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;overflow-x:hidden}
+body{background:var(--sfondo);color:var(--testo);font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,system-ui,sans-serif;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+main{max-width:560px;margin:0 auto;padding:16px 16px 40px}
+header{display:flex;align-items:center;justify-content:space-between;margin:8px 0 14px}
+h1{font-size:30px;letter-spacing:-.02em;margin:0}
+.piccolo{font-size:14px;color:var(--tenue)}
+.carta{background:var(--carta);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:var(--ombra);animation:sali .35s ease both}
+@keyframes sali{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+button{font:inherit;border:0;cursor:pointer;color:inherit}
+.tasto{display:block;width:100%;min-height:54px;border-radius:16px;background:var(--blu);color:#fff;font-weight:600;font-size:18px;transition:transform .12s,opacity .2s}
+.tasto:active{transform:scale(.97);opacity:.85}
+.tasto:disabled{opacity:.5}
+.secondario{min-height:44px;padding:0 16px;border-radius:12px;background:var(--campo);color:var(--blu);font-weight:600;transition:transform .12s}
+.secondario:active{transform:scale(.96)}
+.testo-tasto{background:none;color:var(--blu);padding:8px;font-size:15px}
+label.lbl{display:block;font-weight:600;margin-bottom:8px}
+.riga{display:flex;gap:8px}
+input[type=text],input[type=password],input[type=url]{flex:1;min-width:0;height:50px;border-radius:14px;border:1px solid var(--linea);background:var(--campo);color:var(--testo);padding:0 14px;font:inherit;font-size:16px}
+input:focus{outline:2px solid var(--blu);outline-offset:0}
+.interruttore{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0;min-height:44px}
+.interruttore input{appearance:none;-webkit-appearance:none;width:51px;height:31px;border-radius:16px;background:var(--linea);position:relative;flex:none;transition:background .2s;margin:0}
+.interruttore input::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.interruttore input:checked{background:var(--verde)}
+.interruttore input:checked::after{transform:translateX(20px)}
+.stato-pc{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;font-size:15px;margin-bottom:14px;font-weight:500}
+.stato-pc.ok{background:color-mix(in srgb,var(--verde) 15%,transparent);color:var(--verde)}
+.stato-pc.no{background:color-mix(in srgb,var(--arancio) 16%,transparent);color:var(--arancio)}
+.stato-pc.neutro{background:var(--campo);color:var(--tenue)}
+.pallino{width:10px;height:10px;border-radius:50%;background:currentColor;flex:none}
+.pulsa{animation:pulsa 1.4s ease-in-out infinite}
+@keyframes pulsa{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,currentColor 50%,transparent)}50%{box-shadow:0 0 0 6px transparent}}
+.avviso{margin-top:12px;font-size:15px;color:var(--tenue)}
+.avviso.errore{color:var(--rosso)}
+.avviso.bene{color:var(--verde);font-weight:600}
+h2{font-size:20px;margin:22px 4px 10px;letter-spacing:-.01em}
+.voce{display:block;width:100%;text-align:left;background:var(--carta);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:var(--ombra);animation:sali .35s ease both}
+.voce .link{font-size:15px;word-break:break-all;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.voce .meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;font-size:14px;color:var(--tenue)}
+.badge{display:inline-flex;align-items:center;gap:7px;font-weight:600}
+.badge.in_attesa{color:var(--grigio)} .badge.in_lavoro{color:var(--arancio)} .badge.fatto{color:var(--verde)} .badge.errore{color:var(--rosso)}
+.badge .pallino{width:9px;height:9px}
+.vuoto{text-align:center;color:var(--tenue);padding:24px 0}
+.istr{font-size:14px;color:var(--tenue)} .istr b{color:var(--testo)} .istr p{margin:6px 0}
+.dettaglio-err{margin-top:8px;color:var(--rosso);font-size:14px;white-space:pre-wrap;word-break:break-word}
+#vista{position:fixed;inset:0;background:var(--sfondo);z-index:10;display:none;flex-direction:column;padding-top:env(safe-area-inset-top)}
+#vista.aperta{display:flex;animation:sali .25s ease both}
+#vista .barra{display:flex;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--linea);background:var(--sfondo)}
+#vista .barra .spazio{flex:1}
+#vista pre{flex:1;margin:0;overflow:auto;padding:16px;white-space:pre-wrap;word-break:break-word;font:15px/1.55 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;-webkit-overflow-scrolling:touch}
+#vista .piede{padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;border-top:1px solid var(--linea)}
+#vista .piede .tasto{min-height:50px;font-size:16px}
+#vista .piede .grigio{background:var(--campo);color:var(--blu)}
+.nascosto{display:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Analizza</h1>
+    <button class="testo-tasto nascosto" id="esci" type="button">Esci</button>
+  </header>
+
+  <!-- Primo avvio: codice personale -->
+  <section class="carta nascosto" id="schermataCodice">
+    <label class="lbl" for="campoCodice">Il tuo codice personale</label>
+    <p class="piccolo" style="margin:0 0 12px">Lo inserisci una volta sola. Resta salvato su questo telefono.</p>
+    <div class="riga"><input type="password" id="campoCodice" autocomplete="current-password" placeholder="Codice"></div>
+    <button class="tasto" id="tastoCodice" type="button" style="margin-top:12px">Entra</button>
+    <div class="avviso" id="avvisoCodice" role="status"></div>
+  </section>
+
+  <!-- Schermata principale -->
+  <div id="principale" class="nascosto">
+    <div class="stato-pc neutro" id="statoPc"><span class="pallino"></span><span id="testoPc">Controllo il PC...</span></div>
+
+    <section class="carta">
+      <label class="lbl" for="campoLink">Incolla il link</label>
+      <div class="riga">
+        <input type="url" id="campoLink" inputmode="url" autocomplete="off" autocapitalize="off" placeholder="https://www.instagram.com/reel/...">
+        <button class="secondario" id="tastoIncolla" type="button">📋 Incolla</button>
+      </div>
+      <div class="interruttore">
+        <label for="campoRifai">Rifai anche se già analizzato</label>
+        <input type="checkbox" id="campoRifai">
+      </div>
+      <button class="tasto" id="tastoAnalizza" type="button">Analizza</button>
+      <div class="avviso" id="avvisoInvio" role="status"></div>
+    </section>
+
+    <h2>Ultime analisi</h2>
+    <div id="lista"><div class="vuoto">Carico...</div></div>
+
+    <section class="carta">
+      <div class="istr">
+        <b>Come aggiungerla alla Home</b>
+        <p><b>iPhone:</b> apri in Safari, tocca Condividi, poi "Aggiungi alla schermata Home".</p>
+        <p><b>Android:</b> menu ⋮ di Chrome, poi "Installa app". Dopo, da Instagram puoi usare Condividi e scegliere Analizza.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div id="vista" aria-hidden="true">
+  <div class="barra">
+    <button class="secondario" id="chiudiVista" type="button">‹ Indietro</button>
+    <span class="spazio"></span>
+    <span class="piccolo" id="titoloVista"></span>
+  </div>
+  <pre id="testoReport"></pre>
+  <div class="piede">
+    <button class="tasto grigio" id="copiaReport" type="button">Copia report</button>
+    <button class="tasto" id="condividiReport" type="button">Condividi</button>
+  </div>
+</div>
+
+<script>
+const FUNZIONE = "https://udubhzamghhlkxgepmmc.supabase.co/functions/v1/analizza-coda";
+const CHIAVE_CODICE = "analizza_codice";
+
+const $ = (id) => document.getElementById(id);
+let codice = "";
+let timer = null;
+let righeCache = [];
+
+function leggiCodice(){ try { return localStorage.getItem(CHIAVE_CODICE) || ""; } catch(e){ return ""; } }
+function salvaCodice(c){ try { localStorage.setItem(CHIAVE_CODICE, c); } catch(e){} }
+function cancellaCodice(){ try { localStorage.removeItem(CHIAVE_CODICE); } catch(e){} }
+
+class ErroreApp extends Error { constructor(m, stato){ super(m); this.stato = stato; } }
+
+async function chiama(azione, dati){
+  let r;
+  try {
+    r = await fetch(FUNZIONE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-codice": codice },
+      body: JSON.stringify(Object.assign({ azione }, dati || {}))
+    });
+  } catch(e){
+    throw new ErroreApp("Non riesco a collegarmi. Controlla la connessione e riprova.", 0);
+  }
+  let j = null;
+  try { j = await r.json(); } catch(e){}
+  if (!r.ok) {
+    let m = (j && j.errore) || "Qualcosa non ha funzionato, riprova tra poco.";
+    if (r.status === 401) m = "Codice non corretto.";
+    throw new ErroreApp(m, r.status);
+  }
+  return j || {};
+}
+
+function mostra(el, si){ el.classList.toggle("nascosto", !si); }
+
+function schermataCodice(){
+  mostra($("schermataCodice"), true); mostra($("principale"), false); mostra($("esci"), false);
+  fermaAggiornamento();
+}
+function schermataPrincipale(){
+  mostra($("schermataCodice"), false); mostra($("principale"), true); mostra($("esci"), true);
+  aggiorna();
+  avviaAggiornamento();
+}
+
+async function entra(){
+  const c = $("campoCodice").value.trim();
+  const av = $("avvisoCodice");
+  av.className = "avviso";
+  if (!c){ av.textContent = "Scrivi il codice."; av.classList.add("errore"); return; }
+  $("tastoCodice").disabled = true;
+  av.textContent = "Controllo...";
+  codice = c;
+  try {
+    await chiama("ping");
+    salvaCodice(c);
+    $("campoCodice").value = "";
+    av.textContent = "";
+    schermataPrincipale();
+  } catch(e){
+    codice = "";
+    av.textContent = e.message; av.classList.add("errore");
+  } finally { $("tastoCodice").disabled = false; }
+}
+
+function esci(){
+  cancellaCodice(); codice = "";
+  $("lista").innerHTML = '<div class="vuoto">Carico...</div>';
+  schermataCodice();
+}
+
+function trovaLink(testo){
+  const m = String(testo || "").match(/https?:\/\/[^\s<>"']+/i);
+  return m ? m[0].replace(/[).,;]+$/, "") : "";
+}
+
+async function incolla(){
+  const av = $("avvisoInvio"); av.className = "avviso";
+  try {
+    const t = await navigator.clipboard.readText();
+    const l = trovaLink(t) || (t || "").trim();
+    if (l){ $("campoLink").value = l; av.textContent = ""; }
+    else { av.textContent = "Gli appunti sono vuoti."; }
+  } catch(e){
+    av.textContent = "Non posso leggere gli appunti: tieni premuto nel campo e scegli Incolla.";
+  }
+}
+
+async function analizza(){
+  const av = $("avvisoInvio"); av.className = "avviso";
+  const link = $("campoLink").value.trim();
+  if (!link){ av.textContent = "Incolla prima un link."; av.classList.add("errore"); return; }
+  const b = $("tastoAnalizza"); b.disabled = true;
+  av.textContent = "Invio...";
+  try {
+    await chiama("aggiungi", { link, rifai: $("campoRifai").checked });
+    $("campoLink").value = ""; $("campoRifai").checked = false;
+    av.textContent = "In coda"; av.classList.add("bene");
+    aggiornaLista();
+    aggiornaPc();
+  } catch(e){
+    av.textContent = e.message; av.classList.add("errore");
+    if (e.stato === 401) esci();
+  } finally { b.disabled = false; }
+}
+
+async function aggiornaPc(){
+  const box = $("statoPc"), t = $("testoPc");
+  try {
+    const j = await chiama("ping");
+    if (j.ponte_attivo){
+      box.className = "stato-pc ok"; t.textContent = "PC collegato";
+      box.firstElementChild.classList.add("pulsa");
+    } else {
+      box.className = "stato-pc no"; t.textContent = "PC spento: i link aspettano e partono quando lo accendi";
+      box.firstElementChild.classList.remove("pulsa");
+    }
+  } catch(e){
+    box.className = "stato-pc neutro"; t.textContent = e.message;
+    if (e.stato === 401) esci();
+  }
+}
+
+const ETICHETTE = { in_attesa: "In attesa", in_lavoro: "In lavoro", fatto: "Fatto", errore: "Errore" };
+
+function quando(s){
+  if (!s) return "";
+  const d = new Date(s); if (isNaN(d)) return "";
+  return d.toLocaleString("it-IT", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+function disegnaLista(righe){
+  const box = $("lista");
+  box.textContent = "";
+  if (!righe.length){ box.innerHTML = '<div class="vuoto">Ancora nessuna analisi.</div>'; return; }
+  righe.forEach((r) => {
+    const stato = ETICHETTE[r.stato] ? r.stato : "in_attesa";
+    const el = document.createElement("button");
+    el.type = "button"; el.className = "voce";
+    const l = document.createElement("div"); l.className = "link"; l.textContent = r.link;
+    const meta = document.createElement("div"); meta.className = "meta";
+    const b = document.createElement("span"); b.className = "badge " + stato;
+    const p = document.createElement("span"); p.className = "pallino" + (stato === "in_lavoro" || stato === "in_attesa" ? " pulsa" : "");
+    b.appendChild(p); b.appendChild(document.createTextNode(ETICHETTE[stato]));
+    const q = document.createElement("span"); q.textContent = quando(r.finito_il || r.creato_il);
+    meta.appendChild(b); meta.appendChild(q);
+    el.appendChild(l); el.appendChild(meta);
+    if (stato === "errore"){
+      const d = document.createElement("div"); d.className = "dettaglio-err";
+      d.textContent = r.errore || "Analisi non riuscita.";
+      el.appendChild(d);
+      const rb = document.createElement("span"); rb.className = "secondario"; rb.style.cssText = "display:inline-flex;align-items:center;margin-top:10px";
+      rb.textContent = "Riprova"; el.appendChild(rb);
+      el.addEventListener("click", () => riprova(r.id));
+    } else if (stato === "fatto"){
+      el.addEventListener("click", () => apriReport(r.id));
+    }
+    box.appendChild(el);
+  });
+}
+
+async function aggiornaLista(){
+  try {
+    const j = await chiama("elenco", { limite: 20 });
+    righeCache = j.righe || [];
+    disegnaLista(righeCache);
+  } catch(e){
+    if (e.stato === 401) { esci(); return; }
+    if (!righeCache.length) $("lista").innerHTML = '<div class="vuoto"></div>';
+    if (!righeCache.length) $("lista").firstChild.textContent = e.message;
+  }
+}
+
+function aggiorna(){ aggiornaPc(); aggiornaLista(); }
+
+function avviaAggiornamento(){
+  fermaAggiornamento();
+  timer = setInterval(() => { if (!document.hidden && codice && !$("vista").classList.contains("aperta")) aggiorna(); }, 10000);
+}
+function fermaAggiornamento(){ if (timer){ clearInterval(timer); timer = null; } }
+
+document.addEventListener("visibilitychange", () => { if (!document.hidden && codice) aggiorna(); });
+
+async function riprova(id){
+  try { await chiama("riprova", { id }); aggiorna(); }
+  catch(e){ $("avvisoInvio").className = "avviso errore"; $("avvisoInvio").textContent = e.message; window.scrollTo({ top: 0, behavior: "smooth" }); }
+}
+
+let testoCorrente = "";
+async function apriReport(id){
+  $("testoReport").textContent = "Carico il report...";
+  $("titoloVista").textContent = "";
+  apriVista(true);
+  try {
+    const j = await chiama("report", { id });
+    const riga = j.riga || {};
+    testoCorrente = riga.report || "";
+    $("testoReport").textContent = testoCorrente || "Questo report è vuoto.";
+    $("titoloVista").textContent = "Analisi n. " + id;
+    $("condividiReport").classList.toggle("nascosto", !navigator.share);
+  } catch(e){
+    testoCorrente = "";
+    $("testoReport").textContent = e.message;
+  }
+}
+function apriVista(si){
+  $("vista").classList.toggle("aperta", si);
+  $("vista").setAttribute("aria-hidden", si ? "false" : "true");
+  document.body.style.overflow = si ? "hidden" : "";
+}
+
+async function copia(){
+  if (!testoCorrente) return;
+  const b = $("copiaReport"); const orig = "Copia report";
+  try { await navigator.clipboard.writeText(testoCorrente); b.textContent = "Copiato"; }
+  catch(e){
+    try {
+      const range = document.createRange(); range.selectNodeContents($("testoReport"));
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      b.textContent = "Testo selezionato: copialo a mano";
+    } catch(e2){ b.textContent = "Non riesco a copiare"; }
+  }
+  setTimeout(() => { b.textContent = orig; }, 2000);
+}
+async function condividi(){
+  if (!testoCorrente || !navigator.share) return;
+  try { await navigator.share({ title: "Report Analizza", text: testoCorrente }); } catch(e){}
+}
+
+// Condivisione da Instagram (share_target): mette il link nel campo senza inviare
+function leggiCondivisione(){
+  try {
+    const p = new URLSearchParams(location.search);
+    if (!p.has("url") && !p.has("text") && !p.has("title")) return;
+    const l = trovaLink(p.get("url")) || trovaLink(p.get("text")) || trovaLink(p.get("title"));
+    if (l) $("campoLink").value = l;
+    history.replaceState(null, "", location.pathname);
+  } catch(e){}
+}
+
+$("tastoCodice").addEventListener("click", entra);
+$("campoCodice").addEventListener("keydown", (e) => { if (e.key === "Enter") entra(); });
+$("esci").addEventListener("click", esci);
+$("tastoIncolla").addEventListener("click", incolla);
+$("tastoAnalizza").addEventListener("click", analizza);
+$("campoLink").addEventListener("keydown", (e) => { if (e.key === "Enter") analizza(); });
+$("chiudiVista").addEventListener("click", () => apriVista(false));
+$("copiaReport").addEventListener("click", copia);
+$("condividiReport").addEventListener("click", condividi);
+
+(function avvio(){
+  codice = leggiCodice();
+  if (codice) schermataPrincipale(); else schermataCodice();
+  leggiCondivisione();
+  if ("serviceWorker" in navigator){
+    window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+  }
+})();
+</script>
+</body>
+</html>
