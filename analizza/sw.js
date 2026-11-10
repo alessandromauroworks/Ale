@@ -1,6 +1,6 @@
 // Service worker: rete prima, cache se offline. Solo i file della pagina, mai la funzione.
-const CACHE = "analizza-v1";
-const FILE = ["./", "./index.html", "./manifest.webmanifest", "./icona.svg"];
+const CACHE = "analizza-v2";
+const FILE = ["./", "./index.html", "./manifest.webmanifest", "./icona.svg", "./icona-180.png", "./icona-192.png", "./icona-512.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILE)).catch(() => {}));
