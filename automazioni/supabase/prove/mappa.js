@@ -14,17 +14,18 @@ const righe = JSON.parse(fs.readFileSync(righeF, 'utf8')); const lista = Array.i
     const snapOf = path => ({ exists: path in store, id: path.split('/').pop(), data: () => JSON.parse(JSON.stringify(store[path])) });
     const notif = () => subs.forEach(f => f());
     const db = {
-      doc: path => ({ get: async () => snapOf(path), set: async o => { store[path] = JSON.parse(JSON.stringify(o)); notif(); }, delete: async () => { delete store[path]; notif(); },
+      doc: path => ({ get: async () => snapOf(path), set: async o => { store[path] = JSON.parse(JSON.stringify(o)); notif(); },
+        update: async o => { store[path] = Object.assign(store[path] || {}, o); notif(); }, delete: async () => { delete store[path]; notif(); },
         onSnapshot: (cb) => { const f = () => cb(snapOf(path)); subs.push(f); setTimeout(f, 0); return () => {}; } }),
       collection: c => { const filtri = []; const q = { where: (f, op, v) => { filtri.push([f, op, v]); return q; }, orderBy: () => q, limit: () => q,
-        _docs: () => Object.keys(store).filter(k => k.startsWith(c + '/') && filtri.every(([f, op, v]) => op === '<' ? store[k][f] < v : true)).map(k => snapOf(k)),
+        _docs: () => Object.keys(store).filter(k => k.startsWith(c + '/') && filtri.every(([f, op, v]) => op === '<' ? store[k][f] < v : op === '==' ? store[k][f] === v : true)).map(k => snapOf(k)),
         get: async () => ({ docs: q._docs() }),
         onSnapshot: cb => { const f = () => cb({ docs: Object.keys(store).filter(k => k.startsWith(c + '/')).map(k => snapOf(k)) }); subs.push(f); setTimeout(f, 0); return () => {}; } }; return q; }
     };
     const mcp = { callTool: async (srv, tool, args) => {
       window.__sql.push(args.query);
       if (mcpModo !== 'ok') throw { code: mcpModo };
-      if (/stato = 'cliente'/.test(args.query)) { const tag = 'abcd1234-0000'; return { content: [{ type: 'text', text: JSON.stringify({ result: `<untrusted-data-${tag}>` + JSON.stringify([{ j: ['22222222-2222-4222-8222-222222222222'] }]) + `</untrusted-data-${tag}>` }) }] }; }
+      if (/stato = 'cliente'/.test(args.query) && /^select/i.test(args.query)) { const tag = 'abcd1234-0000'; return { content: [{ type: 'text', text: JSON.stringify({ result: `<untrusted-data-${tag}>` + JSON.stringify([{ j: { id: ['22222222-2222-4222-8222-222222222222'], tel: [] } }]) + `</untrusted-data-${tag}>` }) }] }; }
       if (/^select/i.test(args.query)) { const tag = 'abcd1234-0000'; return { content: [{ type: 'text', text: JSON.stringify({ result: `Below...<untrusted-data-${tag}>\n` + JSON.stringify([{ j: lista }]) + `\n</untrusted-data-${tag}>` }) }] }; }
       return { content: [{ type: 'text', text: '{"result":"<untrusted-data-abcd1234-0000>[]</untrusted-data-abcd1234-0000>"}' }] };
     } };
