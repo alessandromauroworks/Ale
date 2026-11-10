@@ -1,4 +1,10 @@
 {
+  "permissions": {
+    "allow": [
+      "mcp__Supabase__create_edge_function_secret",
+      "mcp__claude-code-remote__create_trigger"
+    ]
+  },
   "hooks": {
     "PostToolUseFailure": [
       {
