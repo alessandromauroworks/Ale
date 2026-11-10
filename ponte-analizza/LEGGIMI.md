@@ -17,5 +17,5 @@
 
 Per fare un solo giro di prova: `python ponte_analizza.py --una-volta`. Il registro di cosa succede e' nel file `ponte.log`.
 
-## Da fare la prima volta
-Il pezzo `avvia_analisi` va collegato all'app Analizza vera: la prima volta apri una sessione locale di Claude Code sul PC e chiedi «collega il ponte ad Analizza»; Claude legge il codice di Analizza e lo adatta.
+## Collegamento ad Analizza (fatto il 10/11/2026)
+`avvia_analisi` e' collegata all'app Analizza vera: manda il link a `/api/analizza`, poi controlla `/api/lavoro/<id>` finche' il report e' pronto. Il ponte usa la cartella «Lavoro IA» che lo contiene (quella in OneDrive\Desktop), non la vecchia copia in Desktop.

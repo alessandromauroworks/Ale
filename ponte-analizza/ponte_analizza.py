@@ -68,15 +68,32 @@ def leggi_env(percorso):
     return valori
 
 
-def trova_cartella_report():
-    """Prova Desktop e OneDrive\\Desktop. Ritorna un Path o None."""
+def cartelle_lavoro_ia():
+    """
+    Le possibili cartelle «Lavoro IA», dalla piu' probabile.
+    Prima quella che contiene questo ponte (Lavoro IA\\App\\ponte-analizza),
+    poi OneDrive\\Desktop, e solo alla fine il Desktop normale: sul PC di
+    Alessandro c'e' anche una vecchia copia in Desktop\\Lavoro IA da non usare.
+    """
     casa = Path.home()
-    base_possibili = [casa / "Desktop", casa / "OneDrive" / "Desktop"]
+    basi = [CARTELLA_SCRIPT.parent.parent]
     for var in ("OneDrive", "OneDriveConsumer", "OneDriveCommercial"):
         if os.environ.get(var):
-            base_possibili.append(Path(os.environ[var]) / "Desktop")
-    for base in base_possibili:
-        candidata = base / "Lavoro IA" / "Analisi" / "Reel"
+            basi.append(Path(os.environ[var]) / "Desktop" / "Lavoro IA")
+    basi += [casa / "OneDrive" / "Desktop" / "Lavoro IA", casa / "Desktop" / "Lavoro IA"]
+    viste, uniche = set(), []
+    for b in basi:
+        chiave = str(b).lower()
+        if chiave not in viste:
+            viste.add(chiave)
+            uniche.append(b)
+    return uniche
+
+
+def trova_cartella_report():
+    """Cartella Analisi\\Reel accanto alla stessa Analizza usata dal ponte. Ritorna un Path o None."""
+    for base in cartelle_lavoro_ia():
+        candidata = base / "Analisi" / "Reel"
         if candidata.is_dir():
             return candidata
     return None
@@ -98,8 +115,8 @@ def carica_config():
         trovata = trova_cartella_report()
         CONFIG["CARTELLA_REPORT"] = str(trovata) if trovata else ""
     if not CONFIG["ANALIZZA_AVVIO"]:
-        for base in (Path.home() / "Desktop", Path.home() / "OneDrive" / "Desktop"):
-            bat = base / "Lavoro IA" / "App" / "Analizza" / "AVVIA.bat"
+        for base in cartelle_lavoro_ia():
+            bat = base / "App" / "Analizza" / "AVVIA.bat"
             if bat.exists():
                 CONFIG["ANALIZZA_AVVIO"] = str(bat)
                 break
@@ -208,32 +225,77 @@ def assicura_analizza_acceso():
     flag = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
     subprocess.Popen(["cmd", "/c", avvio] if os.name == "nt" else [avvio],
                      cwd=str(Path(avvio).parent), creationflags=flag)
-    for _ in range(30):
+    # AVVIA.bat aggiorna yt-dlp prima di partire: puo' metterci qualche minuto
+    for _ in range(90):
         time.sleep(2)
         if analizza_risponde():
             log("Analizza e' acceso.")
             return
-    raise RuntimeError("Analizza non si e' acceso entro 60 secondi.")
+    raise RuntimeError("Analizza non si e' acceso entro 3 minuti.")
+
+
+def chiedi_analizza(metodo, percorso, corpo=None, timeout=30):
+    """Chiamata all'API locale di Analizza (app.py, FastAPI). Ritorna il JSON."""
+    dati = json.dumps(corpo).encode("utf-8") if corpo is not None else None
+    req = urllib.request.Request(CONFIG["ANALIZZA_URL"] + percorso, data=dati, method=metodo,
+                                 headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read().decode("utf-8") or "null")
 
 
 def avvia_analisi(link):
     """
-    DA ADATTARE: questo pezzo va collegato all'app Analizza vera.
-    Ora prova un POST JSON {"link": link} su {ANALIZZA_URL}/api/analizza.
-    Se l'API di Analizza e' diversa, cambia qui (indirizzo, nome dei campi)
-    oppure usa COMANDO_ANALISI nel file .env.
+    Collegato all'app Analizza vera (App\\Analizza\\app.py):
+    POST {ANALIZZA_URL}/api/analizza con {"link": ...} -> {"id": "<lavoro>"}.
+    Analizza rifa' sempre l'analisi da capo, quindi il «!» di «rifai» non serve e si toglie.
+    Ritorna l'id del lavoro.
     """
-    url = CONFIG["ANALIZZA_URL"] + "/api/analizza"
-    req = urllib.request.Request(
-        url, data=json.dumps({"link": link}).encode("utf-8"), method="POST",
-        headers={"Content-Type": "application/json"})
+    pulito = (link or "").strip().rstrip("!")
     try:
-        with urllib.request.urlopen(req, timeout=60):
-            return
+        risposta = chiedi_analizza("POST", "/api/analizza", {"link": pulito}, timeout=60)
+    except urllib.error.HTTPError as e:
+        dettaglio = e.read().decode("utf-8", "replace")[:300]
+        raise RuntimeError("Analizza ha rifiutato il link (%s): %s" % (e.code, dettaglio))
     except Exception as e:
-        raise RuntimeError(
-            "Non riesco a dare il link ad Analizza (%s). La funzione avvia_analisi "
-            "va adattata all'API vera di Analizza." % e)
+        raise RuntimeError("Non riesco a dare il link ad Analizza: %s" % e)
+    id_lavoro = (risposta or {}).get("id")
+    if not id_lavoro:
+        raise RuntimeError("Analizza non ha restituito l'id del lavoro: %s" % risposta)
+    return id_lavoro
+
+
+def aspetta_lavoro(id_lavoro, link, inizio):
+    """
+    Chiede ad Analizza lo stato del lavoro ogni 10 secondi.
+    Ritorna (cartella_o_file, testo_report). Se Analizza si riavvia e perde il lavoro,
+    passa alla ricerca del report nella cartella.
+    """
+    limite = time.time() + CONFIG["TEMPO_MAX_MINUTI"] * 60
+    ultimo_passo = None
+    while time.time() < limite:
+        try:
+            lav = chiedi_analizza("GET", "/api/lavoro/%s" % id_lavoro, timeout=15)
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                log("Analizza non conosce piu' il lavoro (si e' riavviato?): cerco il report nella cartella.")
+                return aspetta_report(link, inizio, limite)
+            lav = None
+        except Exception:
+            lav = None  # Analizza occupato o un attimo giu': riprovo
+        if lav:
+            passi = lav.get("log") or []
+            if passi and passi[-1] != ultimo_passo:
+                ultimo_passo = passi[-1]
+                log("Analizza: %s" % ultimo_passo)
+            if lav.get("stato") == "fatto":
+                testo = lav.get("report") or ""
+                if not testo:
+                    raise RuntimeError("Analizza ha finito ma il report e' vuoto.")
+                return lav.get("cartella") or "?", testo
+            if lav.get("stato") == "errore":
+                raise RuntimeError("Analizza: %s" % (lav.get("errore") or "errore sconosciuto"))
+        time.sleep(10)
+    raise RuntimeError("Il report non e' arrivato entro %d minuti." % CONFIG["TEMPO_MAX_MINUTI"])
 
 
 def avvia_con_comando(link):
@@ -294,8 +356,12 @@ def cerca_report(cartella, link, inizio):
     return migliore
 
 
-def aspetta_report(link, inizio):
-    limite = time.time() + CONFIG["TEMPO_MAX_MINUTI"] * 60
+def aspetta_report(link, inizio, limite=None):
+    """Cerca il report nella cartella (usato con COMANDO_ANALISI o se Analizza perde il lavoro)."""
+    if limite is None:
+        limite = time.time() + CONFIG["TEMPO_MAX_MINUTI"] * 60
+    if not CONFIG["CARTELLA_REPORT"]:
+        raise RuntimeError("Non trovo la cartella dei report: scrivi CARTELLA_REPORT nel file .env")
     while time.time() < limite:
         trovato = cerca_report(CONFIG["CARTELLA_REPORT"], link, inizio)
         if trovato:
@@ -317,13 +383,16 @@ def esegui_lavoro(riga):
     inizio = time.time() - 2
     link_da_dare = link + "!" if rifai else link
     try:
-        assicura_analizza_acceso()
         if CONFIG["COMANDO_ANALISI"]:
             avvia_con_comando(link_da_dare)
+            log("Analisi avviata, aspetto il report (max %d minuti)..." % CONFIG["TEMPO_MAX_MINUTI"])
+            file_report, testo = aspetta_report(link, inizio)
         else:
-            avvia_analisi(link_da_dare)
-        log("Analisi avviata, aspetto il report (max %d minuti)..." % CONFIG["TEMPO_MAX_MINUTI"])
-        file_report, testo = aspetta_report(link, inizio)
+            assicura_analizza_acceso()
+            id_lavoro = avvia_analisi(link_da_dare)
+            log("Analisi avviata (lavoro %s), aspetto il report (max %d minuti)..."
+                % (id_lavoro, CONFIG["TEMPO_MAX_MINUTI"]))
+            file_report, testo = aspetta_lavoro(id_lavoro, link, inizio)
         log("Report trovato: %s" % file_report)
         segna_fatto(id_riga, testo)
         log("Lavoro #%s finito." % id_riga)
@@ -336,6 +405,9 @@ def esegui_lavoro(riga):
             log("Non riesco nemmeno a scrivere l'errore su Supabase: %s" % e2)
 
 
+STATO = {"in_attesa_scritto": False}
+
+
 def un_giro():
     """Un controllo della coda. Gli errori di rete non fanno crashare."""
     manda_battito()
@@ -343,11 +415,15 @@ def un_giro():
         riga = prendi_prossima_analisi()
     except Exception as e:
         log("Non riesco a parlare con Supabase (riprovo al prossimo giro): %s" % e)
+        STATO["in_attesa_scritto"] = False
         return
     if riga:
+        STATO["in_attesa_scritto"] = False
         esegui_lavoro(riga)
-    else:
-        log("Niente da fare.")
+    elif not STATO["in_attesa_scritto"]:
+        # lo scrivo una volta sola, non ogni 30 secondi (il registro resterebbe piccolo)
+        log("Niente da fare. Resto in ascolto.")
+        STATO["in_attesa_scritto"] = True
 
 
 def prova():
@@ -395,7 +471,12 @@ def main():
         return
     try:
         while True:
-            un_giro()
+            try:
+                un_giro()
+            except KeyboardInterrupt:
+                raise
+            except Exception as e:  # qualsiasi imprevisto: lo scrivo e vado avanti, il ponte non si ferma
+                log("Imprevisto (continuo lo stesso): %r" % e)
             time.sleep(CONFIG["ATTESA_SECONDI"])
     except KeyboardInterrupt:
         log("Ponte fermato.")
