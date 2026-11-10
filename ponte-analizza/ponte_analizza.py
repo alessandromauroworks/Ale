@@ -395,7 +395,10 @@ def main():
         return
     try:
         while True:
-            un_giro()
+            try:
+                un_giro()
+            except Exception as e:  # qualsiasi imprevisto: lo scrivo e vado avanti
+                log("Imprevisto (continuo comunque): %r" % e)
             time.sleep(CONFIG["ATTESA_SECONDI"])
     except KeyboardInterrupt:
         log("Ponte fermato.")
