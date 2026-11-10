@@ -1,7 +1,7 @@
 // Edge Function «questionario-ricevi» (progetto Supabase «Alessandro»).
 // Riceve il Questionario Prima Call dalla pagina pubblica e lo salva nella tabella public.questionari.
 // verify_jwt = false: la chiama una pagina pubblica. Protezioni: solo POST JSON, CORS solo dalle origini
-// del questionario, corpo max 48 KB, campo trappola anti-bot, limite per IP e per numero, validazione.
+// del questionario, corpo max 48 KB, campo trappola anti-bot, limite per IP, per numero e globale (30 l'ora), validazione.
 // Chiavi: solo variabili d'ambiente della funzione (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY), mai nel codice.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -11,6 +11,7 @@ const ORIGINI = new Set([
 const MAX_BYTE = 48_000;
 const LIMITE_IP_ORA = 5;        // invii per ora dallo stesso IP
 const LIMITE_TEL_GIORNO = 3;    // invii in 24 ore dallo stesso numero
+const LIMITE_GLOBALE_ORA = 30;  // questionari salvati in un'ora in tutto: ferma un attacco che cambia IP e numero a ogni invio
 const SETTORI = new Set([
   "Concessionaria auto", "Agenzia immobiliare", "Patronato / CAF", "Studio dentistico",
   "Studio medico / poliambulatorio", "Dietista / nutrizionista", "Ristorante / pizzeria", "Bar / caffetteria",
@@ -107,15 +108,18 @@ Deno.serve(async (req) => {
   if (!consenso || typeof consenso !== "object" || typeof consenso.data !== "string") errori.push("consenso");
   if (errori.length) { await log("validazione", errori.join(",")); return risposta(400, { ok: false, errore: "campi", campi: errori }, origin); }
 
-  // limite semplice: per IP (impronta) e per numero
-  const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || req.headers.get("cf-connecting-ip") || "sconosciuto";
+  // limiti: per IP (impronta, mai l'IP in chiaro), per numero e globale
+  // cf-connecting-ip lo scrive Cloudflare e non si può falsificare; x-forwarded-for solo se manca
+  const ip = req.headers.get("cf-connecting-ip") || (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "sconosciuto";
   const chiaveIp = "ip:" + await impronta(ip);
   const unOraFa = new Date(Date.now() - 3600_000).toISOString(), ieri = new Date(Date.now() - 86400_000).toISOString();
-  const [{ count: nIp }, { count: nTel }] = await Promise.all([
+  const [{ count: nIp }, { count: nTel }, { count: nOra }] = await Promise.all([
     supa.from("questionari_limiti").select("id", { count: "exact", head: true }).eq("chiave", chiaveIp).gte("creato_il", unOraFa),
     supa.from("questionari").select("id", { count: "exact", head: true }).eq("telefono", tel).gte("creato_il", ieri),
+    supa.from("questionari").select("id", { count: "exact", head: true }).gte("creato_il", unOraFa),
   ]);
   if ((nIp ?? 0) >= LIMITE_IP_ORA || (nTel ?? 0) >= LIMITE_TEL_GIORNO) { await log("limite"); return risposta(429, { ok: false, errore: "troppi invii" }, origin); }
+  if ((nOra ?? 0) >= LIMITE_GLOBALE_ORA) { await log("limite_globale"); return risposta(429, { ok: false, errore: "troppi invii" }, origin); }
   await supa.from("questionari_limiti").insert({ chiave: chiaveIp });
 
   // doppio invio (stesso numero e stessa attività negli ultimi 10 minuti): già salvato, rispondo ok
