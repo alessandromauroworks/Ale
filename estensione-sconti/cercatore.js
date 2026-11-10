@@ -77,7 +77,24 @@
     dalTesto(attr.join(' \n'), forti);
     Object.assign(scad, forti.scad);
     for (const c of forti) deboli.delete(c);
-    return { forti: [...forti], deboli: [...deboli], scad };
+    // Codici che potrebbero essere personali (pagina di account/ordini/referral, o "il tuo codice", "personale", "esclusivo per te"...): restano privati, non si condividono.
+    const pers = self.CS_personale;
+    const tuttaPagina = pers && pers.paginaPersonale(location.href, document.title);
+    const privati = [];
+    if (pers) {
+      const testo = testoPagina();
+      const elementi = document.querySelectorAll('[class*="coupon" i],[class*="promo" i],[class*="voucher" i],[class*="code" i],[id*="coupon" i],[id*="promo" i],[id*="code" i],[data-code],[data-coupon],[data-coupon-code],[data-promo],[data-promo-code],[data-voucher],[data-clipboard-text],input[readonly][value]');
+      for (const c of [...forti, ...deboli]) {
+        if (tuttaPagina || pers.contestoPersonale(testo, c)) { privati.push(c); continue; }
+        let k = 0;
+        for (const el of elementi) {
+          if (++k > 600) break;
+          const v = (el.value || el.getAttribute('data-code') || el.getAttribute('data-coupon') || el.getAttribute('data-clipboard-text') || el.textContent || '').trim();
+          if (v === c && el.parentElement && pers.contestoPersonale((el.parentElement.textContent || '').slice(0, 600), c)) { privati.push(c); break; }
+        }
+      }
+    }
+    return { forti: [...forti], deboli: [...deboli], scad, privati };
   }
 
   const visti = new Set();
@@ -88,7 +105,7 @@
     const nuoviF = r.forti.filter((c) => !visti.has(c)), nuoviD = r.deboli.filter((c) => !visti.has(c));
     if (!nuoviF.length && !nuoviD.length) return;
     nuoviF.concat(nuoviD).forEach((c) => visti.add(c));
-    try { chrome.runtime.sendMessage({ type: 'trovati', dominio, codici: nuoviF, deboli: nuoviD, scadenze: r.scad }).catch(() => {}); } catch (e) {}
+    try { chrome.runtime.sendMessage({ type: 'trovati', dominio, codici: nuoviF, deboli: nuoviD, scadenze: r.scad, privati: (r.privati || []).filter((c) => nuoviF.includes(c) || nuoviD.includes(c)) }).catch(() => {}); } catch (e) {}
   }
   CS.scansiona = scansiona;
   CS.codiceValido = valido;

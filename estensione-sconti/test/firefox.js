@@ -151,6 +151,18 @@ async function finche(fn, ms, passo = 300) { const fine = Date.now() + ms; let v
     verifica('Firefox 1.4.1: robots.txt con parametri (Disallow: /p/scarpe?vietato=1) rispettato; reindirizzamento verso un altro sito rifiutato (nessun prezzo nuovo)', ctlFF && ctlFF.vietati === 1 && ctlFF.errori === 1 && recRedirFF && recRedirFF.punti.length === 1 && recRedirFF.punti[0][1] === 50, { ctlFF, recRedirFF });
     server2.close();
     await estensione('const r = await browser.storage.local.get("prezzi"); delete r.prezzi[arguments[0]]; delete r.prezzi[arguments[1]]; await browser.storage.local.set({ prezzi: r.prezzi });', kFF('/p/scarpe?vietato=1'), kFF('/p/redir'));
+    // --- 1.4.2: Gmail spento di base, reindirizzamento www ammesso, reindirizzamento verso una pagina vietata da robots.txt scartato
+    const gmFF = await msgBg({ type: 'opzioniPagina' });
+    verifica('Firefox 1.4.2: Gmail spento di base', gmFF && gmFF.gmail === false, gmFF);
+    const wwwFF = (p) => `http://www.prd.localhost:${porta}${p}`;
+    const setRec = (k, u) => estensione('const r = await browser.storage.local.get("prezzi"); r.prezzi[arguments[0]] = arguments[1]; await browser.storage.local.set({ prezzi: r.prezzi });', k, vecchioFF(u));
+    await setRec(kFF('/p/redir?w=1'), kFF('/p/redir') + '?w=1&to=' + encodeURIComponent(wwwFF('/p/micro')));
+    const ctlW = await msgBg({ type: 'prezziControlla' });
+    verifica('Firefox 1.4.2: reindirizzamento verso www dello stesso sito ammesso', ctlW && ctlW.controllati === 1 && ctlW.errori === 0, ctlW);
+    await setRec(kFF('/p/redir?v=1'), kFF('/p/redir') + '?v=1&to=' + encodeURIComponent(kFF('/p/vietato')));
+    const ctlV = await msgBg({ type: 'prezziControlla' });
+    verifica('Firefox 1.4.2: reindirizzamento verso una pagina vietata da robots.txt scartato', ctlV && ctlV.controllati === 0 && ctlV.errori === 1, ctlV);
+    await estensione('const r = await browser.storage.local.get("prezzi"); delete r.prezzi[arguments[0]]; delete r.prezzi[arguments[1]]; await browser.storage.local.set({ prezzi: r.prezzi });', kFF('/p/redir?w=1'), kFF('/p/redir?v=1'));
 
     // --- Popup con i codici
     await d.switchTo().window(popupHandle);

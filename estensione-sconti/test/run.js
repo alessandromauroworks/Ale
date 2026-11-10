@@ -1030,6 +1030,9 @@ console.log(JSON.stringify(out));
   await msgExt({ type: 'opzioni', opzioni: { endpoint: null, usaComuni: true } });
 
   console.log('\n[w6] Gmail web: codici dalle email aperte');
+  // 1.4.2: Gmail è SPENTO di base; per provare la lettura si accende come farebbe l'utente
+  verifica('Gmail 1.4.2: spento di base (opzioniPagina e stato dicono false; il fondo rifiuta emailLetta)', (await msgExt({ type: 'opzioniPagina' })).gmail === false && (await msgExt({ type: 'stato', dominio: 'x.it' })).opzioni.gmail === false);
+  await msgExt({ type: 'opzioni', opzioni: { gmail: true } });
   const GMAIL = (hash) => `<!doctype html><html><head><title>Posta in arrivo - Gmail</title></head><body><div id="lista"><table><tr><td>Offerte Negozio Prova: codice LISTA10 per te</td></tr></table></div><div id="vista"></div></body></html>`;
   await ctx.route('https://mail.google.com/**', (route) => route.fulfill({ status: 200, contentType: 'text/html', body: GMAIL() }));
   const apriMsg = (page, id, mittente, oggetto, corpo) => page.evaluate(([id, mittente, oggetto, corpo]) => {
@@ -1130,7 +1133,7 @@ console.log(JSON.stringify(out));
 
   console.log('\n[w9] Permessi e codice del pacchetto');
   const man2 = JSON.parse(fs.readFileSync(path.join(EXT, 'manifest.json'), 'utf8'));
-  verifica('Manifest 1.4.1: permessi storage, scripting, notifications, alarms (e basta); niente cookies/activeTab', man2.version === '1.4.1' && man2.permissions.slice().sort().join() === 'alarms,notifications,scripting,storage', man2.permissions);
+  verifica('Manifest 1.4.1: permessi storage, scripting, notifications, alarms (e basta); niente cookies/activeTab', man2.version === '1.4.2' && man2.permissions.slice().sort().join() === 'alarms,notifications,scripting,storage', man2.permissions);
   const sorgenti = fs.readdirSync(EXT).filter((f) => f.endsWith('.js')).map((f) => fs.readFileSync(path.join(EXT, f), 'utf8')).join('\n');
   verifica('Nessun codice remoto: niente eval, new Function, importScripts/script da indirizzi http', !/\beval\s*\(|new Function\s*\(|importScripts\(\s*['"]https?:|createElement\(['"]script['"]\)/.test(sorgenti));
   verifica('Nessun cookie: il codice non usa chrome.cookies né document.cookie', !/chrome\.cookies|document\.cookie/.test(sorgenti));
@@ -1326,6 +1329,112 @@ console.log(JSON.stringify(out));
   verifica('Informativa: spiega la richiesta con la chiave personale (chiave + dominio, solo se la chiave c\'è, indipendente dalla condivisione) e resta la BOZZA', /Richiesta di rete con la chiave personale/.test(priv) && /indipendente dalla condivisione/.test(priv) && /solo se hai inserito la chiave/.test(priv) && /<b>BOZZA:<\/b>/.test(priv));
   verifica('STORE.md: scopo unico riscritto ("Aiutarti a risparmiare sugli acquisti online...") con la spiegazione di ogni funzione; alarms motivato', /Aiutarti a risparmiare sugli acquisti online: codici sconto provati alla cassa, con funzioni collegate \(storico prezzi, promemoria cashback, codici dalle tue email\)/.test(store) && /Come ogni funzione serve a questo unico scopo/.test(store) && /\*\*alarms\*\*/.test(store));
   verifica('README: spiega alarms (nessun avviso all\'installazione), token di almeno 32 caratteri e il limite di 10 chiavi sbagliate', /`alarms`[^\n]*nessun avviso all'installazione/.test(readme) && /almeno 32 caratteri/.test(readme) && /10 chiavi sbagliate/.test(readme) && !/Non ci sono i permessi[^\n]*`alarms`/.test(readme));
+  }
+
+  { // ---- sezione 1.4.2 (revisione finale)
+  console.log('\n[z1] 1.4.2: Gmail spento di base, opt-in nelle Opzioni, suggerimento una sola volta');
+  const srcBG2 = fs.readFileSync(path.join(EXT, 'background.js'), 'utf8'), srcGM = fs.readFileSync(path.join(EXT, 'gmail.js'), 'utf8');
+  verifica('Gmail: OPZIONI_BASE gmail:false e controlli "=== true" (niente "!== false" per gmail) in fondo, gmail.js e popup', /couponAperti: false, gmail: false,/.test(srcBG2) && !/gmail !== false|gmail === false/.test(srcBG2 + srcGM + fs.readFileSync(path.join(EXT, 'popup.js'), 'utf8')) && /gmail === true/.test(srcGM));
+  await sw.evaluate(() => chrome.storage.local.get('opzioni').then((r) => { delete r.opzioni.gmail; return chrome.storage.local.set({ opzioni: r.opzioni }); }));
+  await sw.evaluate(() => chrome.storage.local.remove('hintGmailVisto'));
+  verifica('Gmail: senza scelta dell\'utente l\'opzione risulta spenta', (await msgExt({ type: 'opzioniPagina' })).gmail === false);
+  const pH = await ctx.newPage(); await pH.goto(url('prd', '/p/shop'));
+  const popH = await apriPopup(await idScheda('*://prd.localhost/p/shop*'));
+  verifica('Popup: mostra una volta il suggerimento "Leggi i codici dalle email aperte in Gmail? Attiva"', await finche(async () => await popH.locator('#gmail-hint').isVisible(), 4000) && /Leggi i codici dalle email aperte in Gmail/.test(await popH.locator('#gmail-hint').textContent()));
+  const popH2 = await apriPopup(await idScheda('*://prd.localhost/p/shop*'));
+  await dorme(1500);
+  verifica('Popup: il suggerimento non ricompare la seconda volta', !(await popH2.locator('#gmail-hint').isVisible()));
+  verifica('Opzioni: la casella Gmail è spenta e spiega in una riga cosa fa', !(await popH.locator('#gmail').isChecked()) && /solo sul tuo computer/.test(await popH.locator('#gmail').locator('xpath=following-sibling::*[1]|../following-sibling::p[1]').first().textContent()));
+  await popH.locator('#gmail-attiva').click();
+  verifica('Popup: "Attiva" accende Gmail (opzione salvata) e nasconde il suggerimento', await finche(async () => (await msgExt({ type: 'opzioniPagina' })).gmail === true, 3000) && !(await popH.locator('#gmail-hint').isVisible()) && await popH.locator('#gmail').isChecked());
+  await popH.close(); await popH2.close(); await pH.close();
+  const docs142 = ['privacy.html', 'STORE.md', 'README.md'].map((f) => fs.readFileSync(path.join(EXT, f), 'utf8'));
+  verifica('Testi: informativa, STORE e README dicono che Gmail è spento di base; manifest lo dice', docs142.every((t) => /SPENTO di base|spento di base/.test(t.slice(t.indexOf('Gmail')))) && !/Gmail nel browser<\/b> \(acceso di base/.test(docs142[0]) && !/Gmail web\*\* \(acceso di base/.test(docs142[2]) && /Gmail e condivisione sono spenti di base/.test(JSON.parse(fs.readFileSync(path.join(EXT, 'manifest.json'), 'utf8')).description));
+
+  console.log('\n[z2] 1.4.2: la firma del prezzo cambia anche se la lunghezza è la stessa (29,90 -> 39,90)');
+  const pf = await ctx.newPage();
+  await pf.setContent('<!doctype html><html><head><title>P</title><script type="application/ld+json" id="ld">{"@type":"Product","name":"A","offers":{"price":"29.90","priceCurrency":"EUR"}}</script></head><body></body></html>');
+  await pf.addScriptTag({ path: path.join(EXT, 'domain.js') }); await pf.addScriptTag({ path: path.join(EXT, 'estrattore.js') }); await pf.addScriptTag({ path: path.join(EXT, 'lib-extra.js') });
+  const fir = await pf.evaluate(() => {
+    const L = self.CS_lib, f1 = L.firmaPrezzo(document), f1b = L.firmaPrezzo(document);
+    document.getElementById('ld').textContent = document.getElementById('ld').textContent.replace('29.90', '39.90');
+    const f2 = L.firmaPrezzo(document);
+    document.head.insertAdjacentHTML('beforeend', '<meta property="product:price:amount" content="10.00">');
+    const f3 = L.firmaPrezzo(document);
+    document.querySelector('meta[property="product:price:amount"]').setAttribute('content', '20.00');
+    return { f1, f1b, f2, f3, f4: L.firmaPrezzo(document) };
+  });
+  verifica('Firma prezzo: stessa pagina = stessa firma; 29,90 -> 39,90 (stessa lunghezza) = firma diversa; meta con la stessa lunghezza diversa = firma diversa', fir.f1 === fir.f1b && fir.f1 !== fir.f2 && fir.f2 !== fir.f3 && fir.f3 !== fir.f4, fir);
+  await pf.close();
+  const srcPE2 = fs.readFileSync(path.join(EXT, 'pagina-extra.js'), 'utf8');
+  verifica('Firma prezzo: usata dalla pagina per decidere se rileggere (firmaPrezzo)', /firmaPrezzo/.test(srcPE2));
+
+  console.log('\n[z3] 1.4.2: i codici personali non si condividono');
+  const P = self.CS_personale;
+  verifica('Pagina personale: /account, /my-account, /account/ordini, /area-riservata, /referral, /profilo; titolo "Il mio account" / "Invita un amico"', ['https://x.it/account', 'https://x.it/my-account/ordini', 'https://x.it/it/account/ordini', 'https://x.it/area-riservata', 'https://x.it/programma/referral', 'https://x.it/profilo', 'https://x.it/orders'].every((u) => P.paginaPersonale(u, '')) && P.paginaPersonale('https://x.it/', 'Il mio account - Negozio') && P.paginaPersonale('https://x.it/', 'Invita un amico'));
+  verifica('Pagine pubbliche (home, prodotto, carrello, promo, "accounting") non sono personali', ['https://x.it/', 'https://x.it/prodotto/scarpe', 'https://x.it/carrello', 'https://x.it/offerte', 'https://x.it/blog/accounting-tips'].every((u) => !P.paginaPersonale(u, 'Negozio')));
+  verifica('Contesto personale: "il tuo codice personale", "esclusivo per te", "riservato a te", invita/referral/amico, "your code", "exclusive for you", "refer a friend"', ['Il tuo codice personale: ABC123 vale 10%', 'ABC123 esclusivo per te', 'Sconto riservato a te: ABC123', 'Invita un amico e usa ABC123', 'Il tuo referral ABC123', 'Your code ABC123 gets 10% off', 'ABC123 is exclusive for you', 'Refer a friend: ABC123'].every((t) => P.contestoPersonale(t, 'ABC123')));
+  verifica('Contesto normale ("Usa il codice ABC123 per il 10%") o personale LONTANO (oltre 100 caratteri) non basta', !P.contestoPersonale('Usa il codice ABC123 per il 10% di sconto', 'ABC123') && !P.contestoPersonale('Codice personale ' + 'x '.repeat(80) + 'usa ABC123 per lo sconto ' + 'y '.repeat(80), 'ABC123'));
+  await leggiUrl(url('cond', '/__azzera'));
+  await msgExt({ type: 'opzioni', opzioni: { usaComuni: false, esplora: false, condividi: true, endpoint: url('cond', '/fn') } });
+  const pp = await ctx.newPage();
+  for (const pg of ['/', '/account/ordini', '/amici']) { await pp.goto(url('per', pg)); await dorme(1800); }
+  const codPer = async (c) => await conCodice('per.localhost', c);
+  await finche(async () => (await codPer('TUTTI10')) && (await codPer('PUBBLICO10')) && (await codPer('ACCOUNT15')) && (await codPer('AMICO20')), 8000);
+  const cE = { PUBBLICO10: await codPer('PUBBLICO10'), TUTTI10: await codPer('TUTTI10'), ACCOUNT15: await codPer('ACCOUNT15'), AMICO20: await codPer('AMICO20') };
+  verifica('Archivio: codice pubblico e "per tutti" NON privati; codice su /account/ordini e "il tuo codice personale" privati', cE.PUBBLICO10 && !cE.PUBBLICO10.privato && cE.TUTTI10 && !cE.TUTTI10.privato && cE.ACCOUNT15 && cE.ACCOUNT15.privato === true && cE.AMICO20 && cE.AMICO20.privato === true, cE);
+  for (const c of Object.keys(cE)) await msgExt({ type: 'risultato', dominio: 'per.localhost', codice: c, ok: true, sconto: 5, pct: 10, simbolo: '€', totale: 50 });
+  await dorme(1500);
+  const invPer = (JSON.parse(await leggiUrl(url('cond', '/__log')))).filter((x) => x.metodo === 'POST').map((x) => x.corpo.code).sort();
+  verifica('Condivisione: partono solo PUBBLICO10 e TUTTI10; ACCOUNT15 e AMICO20 (personali) NON partono', JSON.stringify(invPer) === JSON.stringify(['PUBBLICO10', 'TUTTI10']), invPer);
+  await pp.close();
+  await sw.evaluate(() => chrome.storage.local.get('archivio').then((r) => { delete r.archivio['per.localhost']; return chrome.storage.local.set({ archivio: r.archivio }); }));
+  await msgExt({ type: 'opzioni', opzioni: { condividi: false, endpoint: null, usaComuni: true } });
+
+  console.log('\n[z4] 1.4.2: timer dei codici personali, attesa massima 300 ms, reindirizzamenti');
+  verifica('Allarme personali: chiama scaricaPersonali(null, true, true) (non più "false" che saltava con la regola delle 6 ore)', /ALLARME_PERSONALI\) scaricaPersonali\(null, true, true\)/.test(srcBG2) && /daAllarme && Date\.now\(\) - Math\.max\(st\.tentativo \|\| 0, st\.ts \|\| 0\) < 5 \* 60 \* 1000/.test(srcBG2));
+  const prSet = (k, rec) => sw.evaluate(([k, rec]) => chrome.storage.local.get('prezzi').then((r) => { r.prezzi = r.prezzi || {}; r.prezzi[k] = rec; return chrome.storage.local.set({ prezzi: r.prezzi }); }), [k, rec]);
+  const prGet = async (k) => ((await sw.evaluate(() => chrome.storage.local.get('prezzi'))).prezzi || {})[k];
+  const vecchioRec = (u, extra) => Object.assign({ nome: 'Prova', dominio: 'prd.localhost', valuta: '€', url: u, punti: [[20261101, 50]], avvisa: true, visto: Date.now(), ultimoControllo: Date.now() - 3 * 86400000, minSerie: { visita: 50 } }, extra || {});
+  await msgExt({ type: 'opzioni', opzioni: { endpoint: url('pers', '/f'), usaComuni: false } });
+  await msgExt({ type: 'chiaveImposta', chiave: 'segreto-di-prova' });
+  await leggiUrl(url('pers', '/__azzera'));
+  // 7 ore fa: l'ultimo aggiornamento è vecchio, ma abbastanza vicino da saltare con la vecchia regola (6 ore) dopo 5 ore e 59 minuti
+  await sw.evaluate(() => chrome.storage.local.set({ statoPersonali: { ts: Date.now() - (5 * 3600 + 59 * 60) * 1000, tentativo: 0 } }));
+  const viaAllarme = await sw.evaluate(() => scaricaPersonali(null, true, true));
+  const viaAllarme2 = await sw.evaluate(() => scaricaPersonali(null, true, true));
+  const viaVecchia = await sw.evaluate(() => { return scaricaPersonali(null, false, false); });
+  verifica('Allarme: dopo 5 h 59 min (meno di 6 ore) scarica comunque; un secondo allarme entro 5 minuti è saltato; la vecchia chiamata (forza=false, non da allarme) salta', viaAllarme && !viaAllarme.saltato && viaAllarme2 && viaAllarme2.saltato === 'tentativo recente' && viaVecchia && viaVecchia.saltato === 'recente', { viaAllarme, viaAllarme2, viaVecchia });
+  await msgExt({ type: 'chiaveImposta', chiave: '' });
+  await sw.evaluate(() => chrome.storage.local.remove('statoPersonali'));
+  await msgExt({ type: 'opzioni', opzioni: { endpoint: null, usaComuni: true } });
+  // coda: i condivisi lenti non fanno aspettare più di 300 ms
+  await msgExt({ type: 'opzioni', opzioni: { condividi: true, endpoint: url('pers', '/lenta'), usaComuni: false } });
+  const t0 = Date.now();
+  await msgExt({ type: 'coda', dominio: 'lento.localhost', avvio: true });
+  const durata = Date.now() - t0;
+  verifica('Coda: con il servizio dei condivisi lento (risponde dopo 3 s) la coda arriva in meno di 1,2 s (attesa massima 300 ms, aggiornamento in secondo piano)', durata < 1200, durata);
+  await msgExt({ type: 'opzioni', opzioni: { condividi: false, endpoint: null, usaComuni: true } });
+  verifica('Coda: l\'attesa dei condivisi è limitata con conTempo(..., 300)', /conTempo\(scaricaCondivisi\(m\.dominio, await leggiOpzioni\(\), !!m\.avvio\), 300\)/.test(srcBG2));
+  // reindirizzamenti: stesso sito (www <-> senza www) ammesso; verso un robots-vietato dello stesso sito: pagina scartata
+  const kRd = (p) => `http://prd.localhost:${porta}${p}`;
+  const www = (p) => `http://www.prd.localhost:${porta}${p}`;
+  await prSet(kRd('/p/redir?w=1'), vecchioRec(kRd('/p/redir') + '?w=1&to=' + encodeURIComponent(www('/p/micro'))));
+  await leggiUrl(url('prd', '/__azzera'));
+  const ctlW = await msgExt({ type: 'prezziControlla' });
+  verifica('Reindirizzamento da prd.localhost a www.prd.localhost (stesso sito): ammesso, il prezzo si legge', ctlW.controllati === 1 && ctlW.errori === 0, ctlW);
+  await sw.evaluate((k) => chrome.storage.local.get('prezzi').then((r) => { delete r.prezzi[k]; return chrome.storage.local.set({ prezzi: r.prezzi }); }), kRd('/p/redir?w=1'));
+  await prSet(kRd('/p/redir?v=1'), vecchioRec(kRd('/p/redir') + '?v=1&to=' + encodeURIComponent(kRd('/p/vietato'))));
+  const ctlV = await msgExt({ type: 'prezziControlla' });
+  const recV = await prGet(kRd('/p/redir?v=1'));
+  verifica('Reindirizzamento verso /p/vietato (stesso sito ma vietato da robots.txt): la pagina NON si usa (nessun prezzo nuovo)', ctlV.controllati === 0 && ctlV.errori === 1 && recV.punti.length === 1 && recV.punti[0][1] === 50, { ctlV, recV });
+  await sw.evaluate((k) => chrome.storage.local.get('prezzi').then((r) => { delete r.prezzi[k]; return chrome.storage.local.set({ prezzi: r.prezzi }); }), kRd('/p/redir?v=1'));
+  verifica('Reindirizzamenti: stessoSito ammette www <-> senza www e rifiuta altri siti; robots.txt controllato anche sull\'indirizzo d\'arrivo', /senzaWww/.test(srcBG2) && /r\.redirected/.test(srcBG2) && /consentito\(await leggiRobots\(f\.origin\), f\.pathname \+ f\.search\)/.test(srcBG2));
+
+  console.log('\n[z5] 1.4.2: testi di condivisione e versione');
+  const st2 = fs.readFileSync(path.join(EXT, 'STORE.md'), 'utf8');
+  verifica('STORE.md: regola reale di condivisione (solo pagine pubbliche, comuni, condivisi riconfermati; mai manuali, email, siti di coupon, fonti tue, personali) e non più "mai i codici scritti a mano" da solo', /Non si condividono MAI: codici scritti a mano, codici delle email, dei siti di coupon, delle fonti che scegli tu, né codici che sembrano personali/.test(st2) && !/\(mai i codici scritti a mano, nessun IP salvato\)/.test(st2));
+  verifica('Versione 1.4.2 nel manifest e nel CHANGELOG', JSON.parse(fs.readFileSync(path.join(EXT, 'manifest.json'), 'utf8')).version === '1.4.2' && /^# Novità\s+## 1\.4\.2/.test(fs.readFileSync(path.join(EXT, 'CHANGELOG.md'), 'utf8')));
   }
 
   // ================= (s) Versione, novità, permessi =================

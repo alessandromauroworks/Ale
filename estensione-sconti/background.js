@@ -7,10 +7,11 @@ const SETTE_GIORNI = 7 * 24 * 3600 * 1000;
 const avviiInCorso = new Set(); // schede dove una prova sta partendo
 const OPZIONI_BASE = {
   usaComuni: true, maxCodici: 20, esplora: true, condividi: false, ricaricaAuto: false, fonti: [],
-  soloIcona: false, googleBadge: false, couponAperti: false, gmail: true, storicoPrezzi: true,
+  soloIcona: false, googleBadge: false, couponAperti: false, gmail: false, storicoPrezzi: true,
   cashback: { attivo: false, servizio: 'beruby', url: '', nomeAltro: '', tutti: true, negozi: [] }
 };
-// Solo i codici che chiunque può vedere (pagina del negozio, codici comuni, già pubblici) possono essere segnalati. Tutto il resto è privato.
+// Solo i codici che chiunque può vedere (pagina pubblica del negozio, codici comuni, già condivisi) possono essere segnalati. Tutto il resto è privato.
+// I codici letti in una pagina ('pagina', 'pagina (classe)') si segnalano solo se la pagina non è personale (account, ordini, profilo, referral) e vicino al codice non ci sono parole personali (entry.privato).
 const ORIGINI_CONDIVISIBILI = ['pagina', 'pagina (classe)', 'sito del negozio', 'comune', 'condivisi'];
 const FONTE_EMAIL = 'email', FONTE_EMAIL_AUTO = 'email (automatico)', FONTE_COUPON = 'sito di coupon (aperto da te)';
 
@@ -240,8 +241,9 @@ const aUnFrame = async (tabId, frameId, m) => {
 const FONTE_DEBOLE = 'pagina (classe)';
 const ETICHETTE_FONTE = ['pagina', 'sito del negozio', 'fonte indicata da te', 'condivisi', FONTE_EMAIL, FONTE_EMAIL_AUTO, FONTE_COUPON];
 // scadenze: { CODICE: timestamp } quando la pagina scrive fino a quando vale il codice.
-function salvaTrovati(dominio, codici, fonte, scadenze, info) {
+function salvaTrovati(dominio, codici, fonte, scadenze, info, privati) {
   info = info || {};
+  const priv = new Set((Array.isArray(privati) ? privati : []).map((x) => normalizza(x)).filter(Boolean));
   scadenze = scadenze || (codici && codici.scad) || {};
   return inFila(async () => {
     const arch = await leggiArchivio();
@@ -253,11 +255,13 @@ function salvaTrovati(dominio, codici, fonte, scadenze, info) {
       const sc = Number(scadenze[grezzo]) || Number(scadenze[c]) || null;
       if (sc && sc < inizioOggi()) continue;
       if (sito[c]) {
+        if (priv.has(c) && !sito[c].privato) { sito[c].privato = true; nuovi++; } // un codice visto come personale resta privato
         // già noto: aggiorno solo la scadenza, se la pagina ne scrive una
         if (sc && sito[c].scade !== sc) { sito[c].scade = sc; nuovi++; }
         continue;
       }
       sito[c] = { code: c, source: fonte, origine: fonte, esito: 'mai', sconto: null, data: null, trovato: Date.now() };
+      if (priv.has(c)) sito[c].privato = true;
       if (sc) sito[c].scade = sc;
       const inf = info[grezzo] || info[c];
       if (inf) sito[c].info = String(inf).slice(0, 40);
@@ -273,7 +277,8 @@ function salvaTrovati(dominio, codici, fonte, scadenze, info) {
 function stessaOrigine(da, a) {
   try {
     const x = new URL(da), y = new URL(a);
-    return x.hostname === y.hostname && (x.port || '') === (y.port || '') ? true : false;
+    const senzaWww = (h) => h.replace(/^www\./, ''); // www.negozio.it e negozio.it sono lo stesso sito
+    return senzaWww(x.hostname) === senzaWww(y.hostname) && (x.port || '') === (y.port || '') ? true : false;
   } catch (e) { return false; }
 }
 async function scarica(url, ms) {
@@ -351,6 +356,11 @@ async function paginaHtml(url) {
   try {
     const r = await scarica(url, 5000);
     if (!r.ok || !/html|text/i.test(r.headers.get('content-type') || 'text/html')) return null;
+    // Dopo un reindirizzamento (ammesso solo dentro lo stesso sito, www compreso) si controlla robots.txt anche per l'indirizzo d'arrivo (percorso + parametri).
+    if (r.redirected || (r.url && r.url !== url)) {
+      const f = new URL(r.url);
+      if (!consentito(await leggiRobots(f.origin), f.pathname + f.search)) return null;
+    }
     return (await r.text()).slice(0, 600000);
   } catch (e) { return null; }
 }
@@ -567,12 +577,14 @@ const RE_DOM = /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/;
 const leggiChiave = async () => ((await chrome.storage.local.get('chiavePersonale')).chiavePersonale) || '';
 const fineGiornoIso = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s || '')); if (!m) return null; const d = new Date(+m[1], +m[2] - 1, +m[3], 23, 59, 59, 999); return isNaN(d) ? null : d.getTime(); };
 let personaliInCorso = null;
-function scaricaPersonali(dominio, forza) {
+function scaricaPersonali(dominio, forza, daAllarme) {
   if (personaliInCorso && !dominio) return personaliInCorso;
   const p = (async () => {
     const chiave = await leggiChiave();
     if (!chiave) return { saltato: 'senza chiave' };
     const st = (await chrome.storage.local.get('statoPersonali')).statoPersonali || {};
+    // Il timer ogni 6 ore passa forza=true (con la regola "dopo 6 ore" resterebbe ogni 12), ma mai più di un tentativo ogni 5 minuti.
+    if (!dominio && daAllarme && Date.now() - Math.max(st.tentativo || 0, st.ts || 0) < 5 * 60 * 1000) return { saltato: 'tentativo recente' };
     if (!dominio && !forza && (Date.now() - (st.ts || 0) < SEI_ORE || Date.now() - (st.tentativo || 0) < 15 * 60 * 1000)) return { saltato: 'recente' };
     const opz = await leggiOpzioni();
     const aggiorna = (x) => inFila(async () => {
@@ -580,6 +592,7 @@ function scaricaPersonali(dominio, forza) {
       await scrivi({ statoPersonali: Object.assign(s2, x) });
     });
     try {
+      if (!dominio) await aggiorna({ tentativo: Date.now() });
       const ac = new AbortController();
       const t = setTimeout(() => ac.abort(), 5000);
       const h = intestazioniCondiviso();
@@ -662,7 +675,7 @@ async function creaAllarmi() {
 try {
   chrome.alarms.onAlarm.addListener((a) => {
     if (a.name === ALLARME_PREZZI) controllaOsservati(true);
-    else if (a.name === ALLARME_PERSONALI) scaricaPersonali(null, false);
+    else if (a.name === ALLARME_PERSONALI) scaricaPersonali(null, true, true);
   });
 } catch (e) {}
 // (Il ricaricamento da cartella ha senso solo per l'estensione caricata a mano; con gli store aggiornano gli store.)
@@ -679,8 +692,12 @@ async function gestisci(m, sender) {
   }
   switch (m.type) {
     case 'trovati': {
-      const a = await salvaTrovati(m.dominio, m.codici, 'pagina', m.scadenze);
-      const b = (m.deboli && m.deboli.length) ? await salvaTrovati(m.dominio, m.deboli, FONTE_DEBOLE, m.scadenze) : { nuovi: 0 };
+      // Pagina personale (account, ordini, referral...) o codice con parole personali vicino: resta privato, non si condivide mai.
+      let url = '';
+      try { url = sender && sender.tab ? sender.tab.url || '' : ''; } catch (e) {}
+      const tutti = self.CS_personale.paginaPersonale(url, '') ? (m.codici || []).concat(m.deboli || []) : (Array.isArray(m.privati) ? m.privati : []);
+      const a = await salvaTrovati(m.dominio, m.codici, 'pagina', m.scadenze, null, tutti);
+      const b = (m.deboli && m.deboli.length) ? await salvaTrovati(m.dominio, m.deboli, FONTE_DEBOLE, m.scadenze, null, tutti) : { nuovi: 0 };
       return { nuovi: a.nuovi + b.nuovi };
     }
     case 'aggiungi':
@@ -723,7 +740,7 @@ async function gestisci(m, sender) {
         await scriviArchivio(potatura(arch));
         // Si segnala solo ciò che dice qualcosa sul CODICE: "funziona" o "non esiste/non vale". Mai i motivi che dipendono dal carrello.
         // Elenco di origini consentite (non di escluse): email, siti di coupon, fonti tue, codici scritti a mano restano SEMPRE privati.
-        if (ORIGINI_CONDIVISIBILI.includes(e.origine) && e.esito !== 'riprova') inviaRisultato(await leggiOpzioni(), m.dominio, c, m.ok, m.ok ? m.pct : null);
+        if (ORIGINI_CONDIVISIBILI.includes(e.origine) && !e.privato && e.esito !== 'riprova') inviaRisultato(await leggiOpzioni(), m.dominio, c, m.ok, m.ok ? m.pct : null);
         return { ok: true };
       });
     case 'stato': {
@@ -734,7 +751,8 @@ async function gestisci(m, sender) {
       return { codici, nComuni, opzioni: opz };
     }
     case 'coda': {
-      await scaricaCondivisi(m.dominio, await leggiOpzioni(), !!m.avvio);
+      // Si usano subito i codici già in archivio; l'aggiornamento dei condivisi parte in secondo piano e non fa aspettare più di 300 ms.
+      await conTempo(scaricaCondivisi(m.dominio, await leggiOpzioni(), !!m.avvio), 300);
       // Prima di una prova: si usano subito i codici delle email già scaricati (ultime 6 ore). Se sono vecchi, l'aggiornamento parte in secondo piano
       // e la prova aspetta al massimo 300 millisecondi (di solito i codici nuovi si vedono dalla prova dopo).
       if (m.avvio) await conTempo(scaricaPersonali(null, false), 300);
@@ -786,7 +804,7 @@ async function gestisci(m, sender) {
             const vecchio = sito[c];
             if (!vecchio || (e.data || 0) > (vecchio.data || 0)) {
               sito[c] = { code: c, source: e.source || 'manuale', origine: e.origine || 'manuale', esito: e.esito || 'mai',
-                sconto: e.sconto || null, simbolo: e.simbolo ? simboloValuta(e.simbolo) : '€', data: e.data || null, trovato: e.trovato || Date.now(), motivo: e.motivo || null, scade: Number(e.scade) || null, totaleAl: typeof e.totaleAl === 'number' ? e.totaleAl : null };
+                sconto: e.sconto || null, simbolo: e.simbolo ? simboloValuta(e.simbolo) : '€', data: e.data || null, trovato: e.trovato || Date.now(), motivo: e.motivo || null, scade: Number(e.scade) || null, totaleAl: typeof e.totaleAl === 'number' ? e.totaleAl : null, privato: e.privato === true ? true : undefined };
             }
           }
         }
@@ -819,7 +837,7 @@ async function gestisci(m, sender) {
         nuove.soloIcona = nuove.soloIcona === true;
         nuove.googleBadge = nuove.googleBadge === true;
         nuove.couponAperti = nuove.couponAperti === true;
-        nuove.gmail = nuove.gmail !== false;
+        nuove.gmail = nuove.gmail === true;
         nuove.storicoPrezzi = nuove.storicoPrezzi !== false;
         const cb = Object.assign({}, OPZIONI_BASE.cashback, nuove.cashback || {});
         cb.attivo = cb.attivo === true;
@@ -925,7 +943,7 @@ async function gestisci(m, sender) {
     // ----- Prezzi -----
     case 'opzioniPagina': {
       const o = await leggiOpzioni();
-      return { googleBadge: o.googleBadge === true, gmail: o.gmail !== false, couponAperti: o.couponAperti === true, storicoPrezzi: o.storicoPrezzi !== false, soloIcona: o.soloIcona === true };
+      return { googleBadge: o.googleBadge === true, gmail: o.gmail === true, couponAperti: o.couponAperti === true, storicoPrezzi: o.storicoPrezzi !== false, soloIcona: o.soloIcona === true };
     }
     case 'prezzoVisto': {
       const p = m.prodotto || {};
@@ -981,7 +999,7 @@ async function gestisci(m, sender) {
       return { conta };
     }
     case 'emailLetta': {
-      if (sitoDelMittente(sender) !== 'mail.google.com' || (await leggiOpzioni()).gmail === false) return { saltato: true };
+      if (sitoDelMittente(sender) !== 'mail.google.com' || (await leggiOpzioni()).gmail !== true) return { saltato: true };
       const d = String(m.negozio || '').toLowerCase();
       if (!RE_DOM.test(d) || d.length > 253 || !Array.isArray(m.codici)) return { errore: 'dati non validi' };
       const scad = {}, info = {};

@@ -30,7 +30,7 @@
     try {
       const id = idMessaggio();
       if (!id) return;
-      if (attivo === null) { const o = await msg({ type: 'opzioniPagina' }); attivo = !!(o && o.gmail !== false); }
+      if (attivo === null) { const o = await msg({ type: 'opzioniPagina' }); attivo = !!(o && o.gmail === true); }
       if (!attivo) return;
       const oggetto = (document.querySelector('h2.hP') || {}).textContent || '';
       for (const m of document.querySelectorAll('div.adn')) {
@@ -54,7 +54,7 @@
   // Se accendi o spegni l'opzione mentre Gmail è aperto, vale subito (senza ricaricare).
   try {
     chrome.storage.onChanged.addListener((c, area) => {
-      if (area === 'local' && c.opzioni) { attivo = !(c.opzioni.newValue && c.opzioni.newValue.gmail === false); if (attivo) giro(); }
+      if (area === 'local' && c.opzioni) { attivo = !!(c.opzioni.newValue && c.opzioni.newValue.gmail === true); if (attivo) giro(); }
     });
   } catch (e) {}
   setTimeout(giro, 800);

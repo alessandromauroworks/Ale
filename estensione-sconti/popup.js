@@ -60,7 +60,7 @@
     $('ricaricaAuto').checked = !!s.opzioni.ricaricaAuto;
     $('soloIcona').checked = !!s.opzioni.soloIcona;
     $('storicoPrezzi').checked = s.opzioni.storicoPrezzi !== false;
-    $('gmail').checked = s.opzioni.gmail !== false;
+    $('gmail').checked = s.opzioni.gmail === true;
     $('googleBadge').checked = !!s.opzioni.googleBadge;
     $('couponAperti').checked = !!s.opzioni.couponAperti;
     const cb = s.opzioni.cashback || {};
@@ -342,6 +342,15 @@
     try {
       if ((await chrome.storage.local.get('avvisoSpazio')).avvisoSpazio) $('spazio').hidden = false;
       $('spazio-btn').onclick = async () => { $('spazio').hidden = true; try { await chrome.storage.local.remove('avvisoSpazio'); } catch (e) {} };
+    } catch (e) {}
+    // Suggerimento una volta sola: Gmail è spento di base e si accende solo se lo vuoi.
+    try {
+      const gh = await chrome.storage.local.get(['opzioni', 'hintGmailVisto']);
+      if (!(gh.opzioni && gh.opzioni.gmail === true) && !gh.hintGmailVisto) {
+        $('gmail-hint').hidden = false;
+        await chrome.storage.local.set({ hintGmailVisto: true });
+      }
+      $('gmail-attiva').onclick = async () => { await msg({ type: 'opzioni', opzioni: { gmail: true } }); $('gmail').checked = true; $('gmail-hint').hidden = true; };
     } catch (e) {}
     const ag = (await chrome.storage.local.get('aggiornamentoPronto')).aggiornamentoPronto;
     if (ag && ag !== v) { $('agg-v').textContent = ag; $('aggiorna-banner').hidden = false; }

@@ -110,6 +110,29 @@
     out.scad = trovati.scad || {};
     return out;
   }
+  // ---------- Codici personali: non si condividono mai ----------
+  // Pagine di account, ordini, profilo, referral: i codici che vi compaiono possono essere solo tuoi.
+  const RE_PAG_PERSONALE_URL = /(^|[\/_.-])(account|my-?account|il-?mio-?account|mio-?account|area-?riservata|area-?personale|ordini|i-?miei-?ordini|orders?|my-?orders?|profil[eo]|referral|referrals|refer-?a-?friend|invita|invita-?un-?amico|customer|dashboard|wishlist|login|signin|accedi)([\/_.?#-]|$)/i;
+  const RE_PAG_PERSONALE_TITOLO = /(il mio account|my account|area riservata|area personale|i miei ordini|my orders|il mio profilo|my profile|referral|invita un amico|refer a friend|programma amico|dashboard)/i;
+  const RE_PAROLE_PERSONALI = /(tuo codice|il tuo codice personale|codice personale|personale|esclusiv[oa] per te|riservat[oa] a te|riservat[oa] per te|invit[ai]|referral|amico|amica|your code|your personal|personal|exclusive for you|exclusive to you|refer\b|refer a)/i;
+  function paginaPersonale(url, titolo) {
+    let percorso = '';
+    try { const u = new URL(url); percorso = u.pathname + u.search; } catch (e) { percorso = String(url || ''); }
+    return RE_PAG_PERSONALE_URL.test(percorso) || RE_PAG_PERSONALE_TITOLO.test(String(titolo || ''));
+  }
+  // Il testo intorno al codice (circa 100 caratteri prima e dopo, in ogni punto in cui compare) parla di qualcosa di personale?
+  function contestoPersonale(testo, codice) {
+    testo = String(testo || ''); codice = String(codice || '');
+    if (!codice) return false;
+    let da = 0, n = 0;
+    for (;;) {
+      const i = testo.indexOf(codice, da);
+      if (i < 0 || n++ >= 8) return false;
+      if (RE_PAROLE_PERSONALI.test(testo.slice(Math.max(0, i - 100), i + codice.length + 100))) return true;
+      da = i + codice.length;
+    }
+  }
+  self.CS_personale = { paginaPersonale, contestoPersonale };
   self.CS_valido = valido;
   self.CS_dalTesto = dalTesto;
   self.CS_dalHtml = dalHtml;

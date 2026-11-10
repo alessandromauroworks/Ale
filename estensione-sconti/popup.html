@@ -14,6 +14,7 @@
 
 <div id="aggiorna-banner" class="avviso-box" hidden><span>Nuova versione pronta: <b id="agg-v"></b></span> <button id="agg-btn" type="button">Clicca per ricaricare</button></div>
 <div id="spazio" class="avviso-box" hidden><span>Lo spazio del browser era quasi finito: ho tolto i dati più vecchi (prodotti non seguiti, storico, codici scartati). Salva un file dei tuoi codici dalle Opzioni.</span> <button id="spazio-btn" type="button">Ho capito</button></div>
+<div id="gmail-hint" class="avviso-box" hidden><span>Leggi i codici dalle email aperte in Gmail?</span> <button id="gmail-attiva" type="button">Attiva</button></div>
 <div id="permessi" class="avviso-box" hidden><span>Per funzionare serve il permesso su <b>tutti i siti</b>.</span> <button id="perm-btn" type="button">Dai il permesso</button></div>
 
 <nav>
@@ -86,7 +87,8 @@
   <label class="riga"><input type="checkbox" id="ricaricaAuto"> Ricarica da sola quando la cartella dell'estensione si aggiorna (prova)</label>
   <label class="riga"><input type="checkbox" id="soloIcona"> Modalità solo icona (niente scheda sulla pagina, solo il numero sull'icona)</label>
   <label class="riga"><input type="checkbox" id="storicoPrezzi"> Salva lo storico dei prezzi dei prodotti che guardi (solo sul computer)</label>
-  <label class="riga"><input type="checkbox" id="gmail"> Gmail: quando apri un'email, cerca i codici sconto (solo sul computer)</label>
+  <label class="riga"><input type="checkbox" id="gmail"> Leggi i codici dalle email aperte in Gmail (spento di base)</label>
+  <p class="piccolo">Se lo accendi, quando apri un messaggio in Gmail l'estensione ne legge il testo, solo sul tuo computer, per trovare i codici sconto. Il testo non viene salvato né inviato: si salvano solo negozio, codici e scadenza.</p>
   <label class="riga"><input type="checkbox" id="googleBadge"> Google: segna i risultati dei siti per cui hai codici</label>
   <label class="riga"><input type="checkbox" id="couponAperti"> Leggi i codici dai siti di coupon che apri tu</label>
   <p class="piccolo">Alcuni siti di coupon vietano nei loro termini la lettura automatica. L'estensione legge solo ciò che la pagina già mostra mentre la guardi tu: non apre pagine e non clicca "mostra codice". Controlla i termini del sito.</p>

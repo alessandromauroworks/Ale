@@ -1,5 +1,16 @@
 # Novità
 
+## 1.4.2
+Correzioni dopo la revisione finale della 1.4.1.
+- **Gmail spento di base**: la lettura delle email aperte in Gmail ora è una scelta tua. Si accende dalle Opzioni (con una riga che spiega cosa fa) o dal piccolo suggerimento "Leggi i codici dalle email aperte in Gmail? Attiva" che il popup mostra una sola volta. Informativa, scheda dello store, README e descrizione allineati.
+- **Prezzi**: la firma che decide se rileggere la pagina ora include un breve hash del testo (JSON-LD, meta, itemprop): un prezzo che cambia senza cambiare lunghezza (29,90 -> 39,90) non passa più inosservato.
+- **Codici personali**: i codici letti in una pagina si condividono solo se la pagina non è di account, ordini, profilo o referral e se vicino al codice non ci sono parole come "il tuo codice", "personale", "esclusivo per te", "riservato a te", "invita", "referral", "amico". Altrimenti restano privati.
+- **Timer dei codici personali**: l'aggiornamento ogni 6 ore ora parte davvero ogni 6 ore (prima, per la regola "dopo 6 ore", poteva saltare e ridursi a ogni 12), con al massimo un tentativo ogni 5 minuti.
+- **Più veloce**: prima di una prova i codici condivisi non fanno aspettare più di 0,3 secondi (si usano subito quelli già in archivio e l'aggiornamento prosegue in secondo piano; prima si poteva aspettare fino a 4 secondi).
+- **Reindirizzamenti**: negozio.it e www.negozio.it contano come lo stesso sito; dopo un reindirizzamento si controlla robots.txt anche per l'indirizzo d'arrivo (percorso e parametri) e, se vieta la pagina, non la si usa. Limite del browser: la destinazione di un reindirizzamento non si può leggere prima di seguirlo, quindi la verifica avviene subito dopo, prima di usare il contenuto.
+- **Testi**: la scheda dello store, il README e l'informativa spiegano la regola vera della condivisione: si condividono solo codici trovati sulle pagine pubbliche del negozio, codici comuni e condivisi riconfermati; mai quelli scritti a mano, delle email, dei siti di coupon, delle fonti che scegli tu e quelli che sembrano personali.
+- Il servizio dei codici (Edge Function) non cambia.
+
 ## 1.4.1
 Correzioni dopo la revisione indipendente della 1.4.0.
 - **Condivisione**: ora si inviano solo i codici che chiunque può vedere (trovati nella pagina o nel sito del negozio, comuni, già condivisi). I codici delle email, dei siti di coupon, delle fonti che indichi tu e quelli scritti a mano restano sempre privati.

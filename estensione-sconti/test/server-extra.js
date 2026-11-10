@@ -43,7 +43,13 @@ const OVL = (extra) => base('Carrello', `<h1>Carrello</h1><p>Promo: usa il codic
 // Ritorna true se ha gestito la richiesta.
 async function gestisciExtra(host, url, req, res, html, leggiCorpo) {
   const json = (o, st) => { res.writeHead(st || 200, { 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' }); res.end(JSON.stringify(o)); };
-  if (host.startsWith('prd.')) {
+  if (host.startsWith('per.')) { // 1.4.2: codici personali o pubblici
+    const PAD = '<p>' + 'Testo di riempimento della pagina del negozio senza niente di speciale. '.repeat(8) + '</p>';
+    if (url.pathname === '/account/ordini') { html(base('I miei ordini', '<h1>Ordini</h1><p>Usa il codice ACCOUNT15 per il 15% di sconto.</p>')); return true; }
+    if (url.pathname === '/amici') { html(base('Offerte', '<h1>Offerte</h1><p>Invita un amico: usa il tuo codice AMICO20, esclusivo per te: 20% di sconto.</p>' + PAD + '<p>Per tutti: usa il codice TUTTI10 per il 10% di sconto.</p>')); return true; }
+    html(base('Negozio', '<h1>Negozio</h1><p>Usa il codice PUBBLICO10 per il 10% di sconto sul primo ordine.</p>')); return true;
+  }
+  if (/^(www\.)?prd\./.test(host)) {
     if (url.pathname === '/__hits') return json({ hits: hitsPrd }), true;
     if (url.pathname === '/__azzera') { hitsPrd.length = 0; return json({ ok: 1 }), true; }
     if (url.pathname === '/__prezzo') { prezzi[url.searchParams.get('p')] = parseFloat(url.searchParams.get('v')); return json({ ok: 1 }), true; }

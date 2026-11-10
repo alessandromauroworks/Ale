@@ -153,9 +153,13 @@
   L.firmaPrezzo = function (doc) {
     doc = doc || document;
     let f = String(doc.title || '').length + '|';
-    for (const el of doc.querySelectorAll('script[type="application/ld+json"]')) f += el.textContent.length + ',';
-    for (const el of doc.querySelectorAll('meta[property^="product:"],meta[property^="og:price"],meta[name="twitter:data1"]')) f += (el.getAttribute('content') || '') + ',';
-    for (const el of doc.querySelectorAll('[itemprop=price]')) f += (el.getAttribute('content') || el.textContent || '').slice(0, 40) + ',';
+    // Oltre alla lunghezza c'è un breve hash (FNV-1a) del testo: 29,90 -> 39,90 ha la stessa lunghezza ma cambia la firma.
+    let h = 0x811c9dc5;
+    const mescola = (t) => { t = String(t); for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } h ^= 0x7c; h = Math.imul(h, 0x01000193) >>> 0; };
+    for (const el of doc.querySelectorAll('script[type="application/ld+json"]')) { f += el.textContent.length + ','; mescola(el.textContent); }
+    for (const el of doc.querySelectorAll('meta[property^="product:"],meta[property^="og:price"],meta[name="twitter:data1"]')) { const c = el.getAttribute('content') || ''; f += c + ','; mescola(c); }
+    for (const el of doc.querySelectorAll('[itemprop=price]')) { const c = (el.getAttribute('content') || el.textContent || '').slice(0, 40); f += c + ','; mescola(c); }
+    f += 'h' + h.toString(36) + ',';
     if (doc.body && doc.body.classList.contains('single-product')) { const p = doc.querySelector('.price'); f += p ? p.textContent.replace(/\s+/g, ' ').slice(0, 80) : ''; }
     return f;
   };
