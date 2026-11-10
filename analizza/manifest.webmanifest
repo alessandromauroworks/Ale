@@ -8,8 +8,10 @@
   "background_color": "#f5f5f7",
   "theme_color": "#f5f5f7",
   "icons": [
-    { "src": "icona.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "icona.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+    { "src": "icona-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icona-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icona-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icona.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
   "share_target": {
     "action": "./",
