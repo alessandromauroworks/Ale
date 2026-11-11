@@ -162,6 +162,21 @@ Deno.serve(async (req: Request) => {
         return risposta({ ok: true, riga: data }, 200, origin);
       }
 
+      case "elimina": {
+        // Toglie una riga dalla coda. Non quella che il PC sta analizzando in questo momento.
+        const id = idValido(corpo.id);
+        if (!id) return risposta({ errore: "Numero analisi non valido." }, 400, origin);
+        const { data, error } = await db.from("coda_analisi")
+          .delete().eq("id", id).neq("stato", "in_lavoro").select("id");
+        if (error) return guasto();
+        if (!data || !data.length) {
+          const { data: esiste } = await db.from("coda_analisi").select("id").eq("id", id).maybeSingle();
+          if (esiste) return risposta({ errore: "Il PC ci sta lavorando adesso: aspetta che finisca, poi eliminalo." }, 409, origin);
+          return risposta({ errore: "Analisi non trovata." }, 404, origin);
+        }
+        return risposta({ ok: true }, 200, origin);
+      }
+
       default:
         return risposta({ errore: "Azione non riconosciuta." }, 400, origin);
     }

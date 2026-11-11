@@ -67,6 +67,9 @@ h2{font-size:20px;margin:22px 4px 10px;letter-spacing:-.01em}
 .voce{display:block;width:100%;text-align:left;background:var(--carta);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:var(--ombra);animation:sali .35s ease both}
 .voce .link{font-size:15px;word-break:break-all;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .voce .meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;font-size:14px;color:var(--tenue)}
+.voce .corpo{display:block;width:100%;text-align:left;background:none;padding:0}
+.voce .azioni{display:flex;gap:8px;margin-top:10px}
+.secondario.elimina{color:var(--rosso)}
 .badge{display:inline-flex;align-items:center;gap:7px;font-weight:600}
 .badge.in_attesa{color:var(--grigio)} .badge.in_lavoro{color:var(--arancio)} .badge.fatto{color:var(--verde)} .badge.errore{color:var(--rosso)}
 .badge .pallino{width:9px;height:9px}
@@ -285,8 +288,9 @@ function disegnaLista(righe){
   if (!righe.length){ box.innerHTML = '<div class="vuoto">Ancora nessuna analisi.</div>'; return; }
   righe.forEach((r) => {
     const stato = ETICHETTE[r.stato] ? r.stato : "in_attesa";
-    const el = document.createElement("button");
-    el.type = "button"; el.className = "voce";
+    const el = document.createElement("div"); el.className = "voce";
+    const corpo = document.createElement("button");
+    corpo.type = "button"; corpo.className = "corpo";
     const l = document.createElement("div"); l.className = "link"; l.textContent = r.link;
     const meta = document.createElement("div"); meta.className = "meta";
     const b = document.createElement("span"); b.className = "badge " + stato;
@@ -294,17 +298,28 @@ function disegnaLista(righe){
     b.appendChild(p); b.appendChild(document.createTextNode(ETICHETTE[stato]));
     const q = document.createElement("span"); q.textContent = quando(r.finito_il || r.creato_il);
     meta.appendChild(b); meta.appendChild(q);
-    el.appendChild(l); el.appendChild(meta);
+    corpo.appendChild(l); corpo.appendChild(meta);
+    el.appendChild(corpo);
+    const azioni = document.createElement("div"); azioni.className = "azioni";
     if (stato === "errore"){
       const d = document.createElement("div"); d.className = "dettaglio-err";
       d.textContent = r.errore || "Analisi non riuscita.";
-      el.appendChild(d);
-      const rb = document.createElement("span"); rb.className = "secondario"; rb.style.cssText = "display:inline-flex;align-items:center;margin-top:10px";
-      rb.textContent = "Riprova"; el.appendChild(rb);
-      el.addEventListener("click", () => riprova(r.id));
+      corpo.appendChild(d);
+      const rb = document.createElement("button"); rb.type = "button"; rb.className = "secondario";
+      rb.textContent = "Riprova"; rb.addEventListener("click", () => riprova(r.id));
+      azioni.appendChild(rb);
+      corpo.addEventListener("click", () => riprova(r.id));
     } else if (stato === "fatto"){
-      el.addEventListener("click", () => apriReport(r.id));
+      corpo.addEventListener("click", () => apriReport(r.id));
     }
+    if (stato !== "in_lavoro"){
+      // mentre il PC ci lavora non si elimina: lo rifiuterebbe anche la funzione
+      const eb = document.createElement("button"); eb.type = "button"; eb.className = "secondario elimina";
+      eb.textContent = "Elimina"; eb.setAttribute("aria-label", "Elimina " + r.link);
+      eb.addEventListener("click", () => elimina(r.id));
+      azioni.appendChild(eb);
+    }
+    if (azioni.childNodes.length) el.appendChild(azioni);
     box.appendChild(el);
   });
 }
@@ -333,6 +348,12 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden && co
 
 async function riprova(id){
   try { await chiama("riprova", { id }); aggiorna(); }
+  catch(e){ $("avvisoInvio").className = "avviso errore"; $("avvisoInvio").textContent = e.message; window.scrollTo({ top: 0, behavior: "smooth" }); }
+}
+
+async function elimina(id){
+  if (!confirm("Eliminare questo link dalla lista? Anche il report, se c'è, viene cancellato.")) return;
+  try { await chiama("elimina", { id }); aggiorna(); }
   catch(e){ $("avvisoInvio").className = "avviso errore"; $("avvisoInvio").textContent = e.message; window.scrollTo({ top: 0, behavior: "smooth" }); }
 }
 
