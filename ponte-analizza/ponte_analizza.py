@@ -17,6 +17,7 @@ import re
 import shlex
 import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -174,6 +175,19 @@ def manda_battito():
         chiama_supabase("POST", "/rest/v1/rpc/ponte_battito", {})
     except Exception as e:
         log("Battito non inviato (riprovo al prossimo giro): %s" % e)
+
+
+def battito_continuo(ogni_secondi):
+    """
+    Manda il battito in un thread a parte, anche mentre un lavoro e' in corso.
+    Senza questo, durante un'analisi lunga (fino a 20 minuti) il telefono
+    vedrebbe «PC spento» anche col PC acceso.
+    """
+    def ciclo():
+        while True:
+            manda_battito()
+            time.sleep(ogni_secondi)
+    threading.Thread(target=ciclo, name="battito", daemon=True).start()
 
 
 def prendi_prossima_analisi():
@@ -408,9 +422,10 @@ def esegui_lavoro(riga):
 STATO = {"in_attesa_scritto": False}
 
 
-def un_giro():
+def un_giro(con_battito=True):
     """Un controllo della coda. Gli errori di rete non fanno crashare."""
-    manda_battito()
+    if con_battito:
+        manda_battito()
     try:
         riga = prendi_prossima_analisi()
     except Exception as e:
@@ -469,10 +484,11 @@ def main():
     if "--una-volta" in args:
         un_giro()
         return
+    battito_continuo(CONFIG["ATTESA_SECONDI"])
     try:
         while True:
             try:
-                un_giro()
+                un_giro(con_battito=False)  # il battito lo manda gia' il thread
             except KeyboardInterrupt:
                 raise
             except Exception as e:  # qualsiasi imprevisto: lo scrivo e vado avanti, il ponte non si ferma
