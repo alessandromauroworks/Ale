@@ -386,7 +386,7 @@ function svuotaVideo(){
   const v = $("anteprima");
   try { v.pause(); } catch(e){}
   v.removeAttribute("src"); v.load();
-  videoCorrente = null; fileVideo = null;
+  videoCorrente = null; fileVideo = null; preparazione++;
   mostra($("zonaVideo"), false); mostra($("notaVideo"), false);
 }
 
@@ -412,9 +412,10 @@ function mostraVideo(video){
   sv.textContent = "Salva sul telefono"; sv.disabled = false;
   mostra(sv, !!(video.iphone || video.originale));
   const so = $("scaricaOriginale");
-  if (video.originale && !video.stesso_file){ so.href = video.originale; mostra(so, true); }
+  if (video.originale && !video.stesso_file){ so.href = video.originale; so.target = "_blank"; mostra(so, true); }
   else mostra(so, false);
   mostra($("zonaVideo"), true);
+  if (video.iphone || video.originale) preparaVideo(video);
 }
 
 async function apriReport(id){
@@ -445,41 +446,58 @@ function apriVista(si){
 }
 
 // iPhone: il foglio Condividi con il file offre «Salva video» (va dritto in Foto).
-// Il file si scarica al primo tocco; se il telefono chiede un secondo tocco per condividere, lo chiede il tasto.
-async function salvaVideo(){
-  const v = videoCorrente; if (!v) return;
-  const url = v.iphone || v.originale;
-  const nome = ((v.info || {}).nome_iphone || (v.info || {}).nome_originale || "video.mp4");
+// L'iPhone apre Condividi solo se parte SUBITO dal tocco: per questo il video si scarica
+// appena si apre il report (preparaVideo), e al tocco si condivide il file già pronto.
+let preparazione = 0;
+function nomeVideo(v){ return ((v.info || {}).nome_iphone || (v.info || {}).nome_originale || "video.mp4"); }
+function avvisoVideo(testo){ const n = $("notaVideo"); n.textContent = testo; mostra(n, !!testo); }
+
+async function preparaVideo(v){
+  const mio = ++preparazione;
   const b = $("salvaVideo");
+  b.disabled = true; b.textContent = "Preparo il video...";
   try {
-    if (!fileVideo){
-      b.disabled = true; b.textContent = "Preparo il video...";
-      const r = await fetch(url);
-      if (!r.ok) throw new Error("scaricamento");
-      const blob = await r.blob();
-      fileVideo = new File([blob], nome, { type: blob.type || "video/mp4" });
-      b.disabled = false;
-    }
-    if (navigator.canShare && navigator.canShare({ files: [fileVideo] })){
-      try {
-        await navigator.share({ files: [fileVideo] });
-        b.textContent = "Salva sul telefono";
-      } catch(e){
-        // tocco "scaduto" mentre si scaricava: basta toccare di nuovo
-        b.textContent = e && e.name === "AbortError" ? "Salva sul telefono" : "Tocca per salvare";
-      }
-      return;
-    }
-    // Senza Condividi (es. PC o Android vecchio): download normale
+    const r = await fetch(v.iphone || v.originale);
+    if (!r.ok) throw new Error("il server ha risposto " + r.status);
+    const blob = await r.blob();
+    if (mio !== preparazione || videoCorrente !== v) return; // report chiuso o cambiato nel frattempo
+    fileVideo = new File([blob], nomeVideo(v), { type: "video/mp4" });
+    b.textContent = "Salva sul telefono";
+  } catch(e){
+    if (mio !== preparazione) return;
+    fileVideo = null;
+    b.textContent = "Salva sul telefono";
+    avvisoVideo("Non riesco a preparare il video (" + (e.message || e) + "): al tocco lo apro in Safari.");
+  } finally {
+    if (mio === preparazione) b.disabled = false;
+  }
+}
+
+// Piano B: apre il video in una pagina nuova (Safari). Da lì: Condividi → «Salva video».
+function apriVideoFuori(v){
+  const w = window.open(v.iphone || v.originale, "_blank");
+  if (!w) location.href = v.iphone || v.originale;
+}
+
+function salvaVideo(){
+  const v = videoCorrente; if (!v) return;
+  if (fileVideo && navigator.canShare && navigator.canShare({ files: [fileVideo] })){
+    navigator.share({ files: [fileVideo] }).catch((e) => {
+      if (e && e.name === "AbortError") return; // hai chiuso il menu tu
+      avvisoVideo("Il menu Condividi non si è aperto (" + (e && e.name || "errore") + "): ti apro il video in Safari.");
+      apriVideoFuori(v);
+    });
+    return;
+  }
+  if (fileVideo && !/iPhone|iPad|iPod/.test(navigator.userAgent)){
+    // PC o Android senza Condividi file: download normale
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(fileVideo); a.download = nome;
+    a.href = URL.createObjectURL(fileVideo); a.download = nomeVideo(v);
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-    b.textContent = "Scaricato";
-  } catch(e){
-    b.disabled = false; fileVideo = null;
-    b.textContent = "Non riuscito: riprova";
+    return;
   }
+  apriVideoFuori(v);
 }
 
 async function copia(){
