@@ -15,11 +15,13 @@ import json
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -28,6 +30,13 @@ CARTELLA_SCRIPT = Path(__file__).resolve().parent
 FILE_ENV = CARTELLA_SCRIPT / ".env"
 FILE_LOG = CARTELLA_SCRIPT / "ponte.log"
 MAX_CARATTERI_REPORT = 200000
+
+# Video sul telefono: cartella privata dello Storage di Supabase (piano gratis: max 50 MB a file, 1 GB in tutto)
+CARTELLA_VIDEO = "analizza-video"
+MAX_BYTE_VIDEO = 50 * 1024 * 1024
+GIORNI_VIDEO = 7            # dopo 7 giorni il video si cancella da Supabase (sul PC resta)
+PULIZIA_OGNI_SECONDI = 3600
+TIPI_VIDEO = {".mp4": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime", ".mkv": "video/x-matroska"}
 
 # Valori letti dal file .env (riempiti da carica_config)
 CONFIG = {}
@@ -385,18 +394,227 @@ def aspetta_report(link, inizio, limite=None):
     raise RuntimeError("Il report non e' comparso entro %d minuti." % CONFIG["TEMPO_MAX_MINUTI"])
 
 
+# --------------------------------------------------------------- video
+def cartella_analizza():
+    """Cartella dell'app Analizza (quella di AVVIA.bat). Ritorna Path o None."""
+    avvio = CONFIG.get("ANALIZZA_AVVIO")
+    return Path(avvio).parent if avvio and Path(avvio).exists() else None
+
+
+def pulisci_nome(testo, n=30):
+    t = re.sub(r"[^\w\-]+", "-", testo or "", flags=re.UNICODE).strip("-").lower()
+    return t[:n].strip("-")
+
+
+def scarica_solo_video(id_riga, link):
+    """
+    Solo il video, senza analisi: usa la stessa funzione di download di Analizza
+    (pipeline.scarica: massima qualita', foto riconosciute, sessione del browser per i reel col login).
+    Ritorna (Path del video, autore, titolo).
+    """
+    cart = cartella_analizza()
+    python = cart / ".venv" / "Scripts" / "python.exe" if cart else None
+    if not python or not python.exists():
+        raise RuntimeError("Non trovo Analizza (serve il suo .venv per scaricare): scrivi ANALIZZA_AVVIO nel file .env")
+    base_report = Path(CONFIG["CARTELLA_REPORT"]) if CONFIG["CARTELLA_REPORT"] else CARTELLA_SCRIPT
+    dest = base_report.parent / "Video" / ("%s_n%s" % (datetime.now().strftime("%Y-%m-%d_%H%M"), id_riga))
+    dest.mkdir(parents=True, exist_ok=True)
+    codice = (
+        "import sys, json\n"
+        "from pathlib import Path\n"
+        "import pipeline\n"
+        "v, i = pipeline.scarica(sys.argv[1], Path(sys.argv[2]), lambda m: print(m, flush=True))\n"
+        "print('RISULTATO=' + json.dumps({'video': str(v), 'autore': i.get('uploader') or i.get('channel') or '',"
+        " 'titolo': (i.get('title') or '').splitlines()[0] if i.get('title') else ''}))\n"
+    )
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+    try:
+        esito = subprocess.run([str(python), "-c", codice, link, str(dest)], cwd=str(cart), env=env,
+                               capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("Il download ha superato i 10 minuti.")
+    risultato = None
+    for riga in (esito.stdout or "").splitlines():
+        if riga.startswith("RISULTATO="):
+            risultato = json.loads(riga[len("RISULTATO="):])
+    if esito.returncode != 0 or not risultato:
+        errori = [x for x in (esito.stderr or "").splitlines() if "RuntimeError:" in x]
+        msg = errori[-1].split("RuntimeError:", 1)[1].strip() if errori else (esito.stderr or "errore sconosciuto").strip()[-300:]
+        shutil.rmtree(dest, ignore_errors=True)
+        raise RuntimeError(msg)
+    scaricato = Path(risultato["video"])
+    video = dest / ("video" + scaricato.suffix.lower())
+    scaricato.replace(video)
+    shutil.rmtree(dest / "_download", ignore_errors=True)
+    return video, risultato.get("autore") or "", risultato.get("titolo") or ""
+
+
+def leggi_video(video):
+    """Codec, risoluzione e durata con ffprobe. Ritorna un dict (vuoto se ffprobe non c'e')."""
+    try:
+        esito = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+                                "stream=codec_type,codec_name,width,height:format=duration", "-of", "json", str(video)],
+                               capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
+        j = json.loads(esito.stdout or "{}")
+    except Exception:
+        return {}
+    v = next((s for s in j.get("streams", []) if s.get("codec_type") == "video"), {})
+    a = next((s for s in j.get("streams", []) if s.get("codec_type") == "audio"), {})
+    return {"vcodec": v.get("codec_name") or "", "acodec": a.get("codec_name") or "",
+            "larghezza": v.get("width") or 0, "altezza": v.get("height") or 0,
+            "durata": round(float(j.get("format", {}).get("duration") or 0), 1)}
+
+
+def copia_per_iphone(video, dati):
+    """
+    L'app Foto dell'iPhone non apre VP9/AV1 (i formati in cui Instagram e YouTube danno la qualita' massima).
+    Se serve, faccio una copia H.264 alla STESSA risoluzione, qualita' visivamente identica (CRF 18),
+    con un tetto di velocita' (bitrate) perche' il file stia sotto i 50 MB dello Storage gratis.
+    Il tetto resta comunque piu' alto del bitrate dell'originale per i video brevi.
+    Se il video e' gia' H.264 non lo tocco: la copia per iPhone e' l'originale stesso.
+    """
+    if dati.get("vcodec") == "h264":
+        return video
+    uscita = video.with_name("video_iphone.mp4")
+    audio = ["-c:a", "copy"] if dati.get("acodec") == "aac" else ["-c:a", "aac", "-b:a", "192k"]
+    tetto = []
+    if dati.get("durata"):
+        kbps = int(45 * 8 * 1024 / float(dati["durata"])) - 256  # 45 MB disponibili, meno l'audio
+        kbps = max(800, min(kbps, 12000))
+        tetto = ["-maxrate", "%dk" % kbps, "-bufsize", "%dk" % (kbps * 2)]
+    esito = subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(video), "-map", "0:v:0", "-map", "0:a:0?",
+                            "-c:v", "libx264", "-preset", "slow", "-crf", "18"] + tetto +
+                           ["-pix_fmt", "yuv420p", "-profile:v", "high"] + audio +
+                           ["-movflags", "+faststart", str(uscita)],
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1200)
+    if esito.returncode != 0 or not uscita.exists():
+        raise RuntimeError("Copia per iPhone non riuscita: %s" % (esito.stderr or "").strip()[-200:])
+    return uscita
+
+
+def carica_su_storage(file, percorso):
+    """Carica un file nella cartella privata dello Storage (sovrascrive se c'e' gia')."""
+    url = "%s/storage/v1/object/%s/%s" % (CONFIG["SUPABASE_URL"], CARTELLA_VIDEO, percorso)
+    tipo = TIPI_VIDEO.get(Path(file).suffix.lower(), "application/octet-stream")
+    req = urllib.request.Request(url, data=Path(file).read_bytes(), method="POST",
+                                 headers=intestazioni({"Content-Type": tipo, "x-upsert": "true",
+                                                       "Cache-Control": "3600"}))
+    try:
+        with urllib.request.urlopen(req, timeout=600) as r:
+            r.read()
+    except urllib.error.HTTPError as e:
+        raise RuntimeError("Lo Storage ha risposto %s: %s" % (e.code, e.read().decode("utf-8", "replace")[:200]))
+
+
+def mb(byte):
+    return round(byte / 1024 / 1024, 1)
+
+
+def prepara_video(id_riga, link, video, autore=""):
+    """
+    Mette sul telefono il video originale e (se serve) la copia per iPhone.
+    Ritorna il dict salvato in video_info. Non alza eccezioni per i file troppo grossi: lo scrive nella nota.
+    """
+    video = Path(video)
+    dati = leggi_video(video)
+    radice = "_".join(x for x in (pulisci_nome(autore, 25), estrai_codice_reel(link) or "video") if x)
+    estensione = video.suffix.lower() or ".mp4"
+    info = {"risoluzione": "%sx%s" % (dati.get("larghezza"), dati.get("altezza")) if dati.get("altezza") else "",
+            "codec": dati.get("vcodec", ""), "durata": dati.get("durata", 0),
+            "cartella_pc": str(video.parent), "caricato_il": adesso_iso()}
+    note = []
+    try:
+        iphone = copia_per_iphone(video, dati)
+    except Exception as e:
+        iphone = None
+        note.append(str(e))
+    stesso = iphone is not None and Path(iphone) == video
+    percorso_orig, percorso_iph = None, None
+    peso = video.stat().st_size
+    info["peso_originale_mb"] = mb(peso)
+    if peso <= MAX_BYTE_VIDEO:
+        percorso_orig = "%s/originale%s" % (id_riga, estensione)
+        carica_su_storage(video, percorso_orig)
+        info["nome_originale"] = radice + ("" if stesso else "_originale") + estensione
+    else:
+        note.append("Originale troppo grande per il telefono (%s MB, massimo 50): lo trovi sul PC." % mb(peso))
+    if stesso:
+        percorso_iph = percorso_orig
+        info["nome_iphone"] = info.get("nome_originale")
+    elif iphone:
+        peso_i = Path(iphone).stat().st_size
+        info["peso_iphone_mb"] = mb(peso_i)
+        if peso_i <= MAX_BYTE_VIDEO:
+            percorso_iph = "%s/iphone.mp4" % id_riga
+            carica_su_storage(iphone, percorso_iph)
+            info["nome_iphone"] = radice + "_iphone.mp4"
+        else:
+            note.append("Copia per iPhone troppo grande (%s MB, massimo 50): la trovi sul PC." % mb(peso_i))
+    if note:
+        info["nota"] = " ".join(note)
+    chiama_supabase("PATCH", "/rest/v1/coda_analisi?id=eq.%s" % id_riga,
+                    {"video_originale": percorso_orig, "video_iphone": percorso_iph, "video_info": info},
+                    {"Prefer": "return=minimal"})
+    log("Video sul telefono: originale %s, iPhone %s%s" % (
+        "si'" if percorso_orig else "no", "si'" if percorso_iph else "no",
+        (" (%s)" % info["nota"]) if note else ""))
+    return info
+
+
+def pulisci_video_vecchi():
+    """Cancella da Supabase i video piu' vecchi di GIORNI_VIDEO giorni (sul PC restano)."""
+    limite = datetime.fromtimestamp(time.time() - GIORNI_VIDEO * 86400, timezone.utc).isoformat()
+    righe = chiama_supabase(
+        "GET", "/rest/v1/coda_analisi?select=id,video_originale,video_iphone,video_info"
+               "&or=(video_originale.not.is.null,video_iphone.not.is.null)&finito_il=lt.%s"
+        % urllib.parse.quote(limite)) or []
+    for r in righe:
+        file = sorted({x for x in (r.get("video_originale"), r.get("video_iphone")) if x})
+        req = urllib.request.Request("%s/storage/v1/object/%s" % (CONFIG["SUPABASE_URL"], CARTELLA_VIDEO),
+                                     data=json.dumps({"prefixes": file}).encode("utf-8"), method="DELETE",
+                                     headers=intestazioni())
+        with urllib.request.urlopen(req, timeout=60) as risp:
+            risp.read()
+        info = dict(r.get("video_info") or {})
+        info["nota"] = "Video tolto dal telefono dopo %d giorni: lo trovi ancora sul PC." % GIORNI_VIDEO
+        chiama_supabase("PATCH", "/rest/v1/coda_analisi?id=eq.%s" % r["id"],
+                        {"video_originale": None, "video_iphone": None, "video_info": info},
+                        {"Prefer": "return=minimal"})
+        log("Pulizia: tolto dal telefono il video del lavoro #%s (piu' vecchio di %d giorni)." % (r["id"], GIORNI_VIDEO))
+
+
+def autore_dal_report(testo):
+    m = re.search(r"^- Autore: (.+)$", testo or "", flags=re.MULTILINE)
+    return m.group(1).strip() if m and m.group(1).strip() != "—" else ""
+
+
 # --------------------------------------------------------------- lavoro
 def esegui_lavoro(riga):
     id_riga = riga.get("id")
     link = (riga.get("link") or "").strip().rstrip("!")
     rifai = bool(riga.get("rifai"))
-    log("Lavoro #%s: %s%s" % (id_riga, link, " (da rifare)" if rifai else ""))
+    solo_video = bool(riga.get("solo_video"))
+    log("Lavoro #%s: %s%s" % (id_riga, link, " (solo video)" if solo_video else (" (da rifare)" if rifai else "")))
     if not link:
         segna_errore(id_riga, "La riga non ha nessun link.")
         return
     inizio = time.time() - 2
     link_da_dare = link + "!" if rifai else link
     try:
+        if solo_video:
+            video, autore, titolo = scarica_solo_video(id_riga, link)
+            info = prepara_video(id_riga, link, video, autore)
+            if not info.get("nome_originale") and not info.get("nome_iphone"):
+                raise RuntimeError(info.get("nota") or "Il video non e' arrivato sul telefono.")
+            testo = "\n".join([
+                "# SOLO VIDEO (nessuna analisi)", "",
+                "- Link: %s" % link, "- Autore: %s" % (autore or "—"), "- Titolo: %s" % (titolo or "—"),
+                "- Risoluzione: %s · %s · %s s" % (info.get("risoluzione") or "?", (info.get("codec") or "?").upper(),
+                                                   info.get("durata") or "?"),
+                "- Sul PC: %s" % video])
+            segna_fatto(id_riga, testo)
+            log("Lavoro #%s finito (solo video)." % id_riga)
+            return
         if CONFIG["COMANDO_ANALISI"]:
             avvia_con_comando(link_da_dare)
             log("Analisi avviata, aspetto il report (max %d minuti)..." % CONFIG["TEMPO_MAX_MINUTI"])
@@ -408,6 +626,23 @@ def esegui_lavoro(riga):
                 % (id_lavoro, CONFIG["TEMPO_MAX_MINUTI"]))
             file_report, testo = aspetta_lavoro(id_lavoro, link, inizio)
         log("Report trovato: %s" % file_report)
+        # Prima il video, poi «fatto»: cosi' quando il telefono apre il report il video c'e' gia'.
+        # Il video e' un di piu': se non riesce, il report resta buono.
+        cartella = Path(str(file_report))
+        if cartella.is_file():
+            cartella = cartella.parent
+        video = cartella / "video.mp4"
+        if video.exists():
+            try:
+                prepara_video(id_riga, link, video, autore_dal_report(testo))
+            except Exception as e:
+                log("Video non messo sul telefono (il report c'e'): %s" % e)
+                try:
+                    chiama_supabase("PATCH", "/rest/v1/coda_analisi?id=eq.%s" % id_riga,
+                                    {"video_info": {"nota": "Video non arrivato sul telefono: %s" % str(e)[:300]}},
+                                    {"Prefer": "return=minimal"})
+                except Exception:
+                    pass
         segna_fatto(id_riga, testo)
         log("Lavoro #%s finito." % id_riga)
     except Exception as e:
@@ -419,13 +654,19 @@ def esegui_lavoro(riga):
             log("Non riesco nemmeno a scrivere l'errore su Supabase: %s" % e2)
 
 
-STATO = {"in_attesa_scritto": False}
+STATO = {"in_attesa_scritto": False, "ultima_pulizia": 0}
 
 
 def un_giro(con_battito=True):
     """Un controllo della coda. Gli errori di rete non fanno crashare."""
     if con_battito:
         manda_battito()
+    if time.time() - STATO["ultima_pulizia"] > PULIZIA_OGNI_SECONDI:
+        STATO["ultima_pulizia"] = time.time()
+        try:
+            pulisci_video_vecchi()
+        except Exception as e:
+            log("Pulizia dei video vecchi non riuscita (riprovo tra un'ora): %s" % e)
     try:
         riga = prendi_prossima_analisi()
     except Exception as e:

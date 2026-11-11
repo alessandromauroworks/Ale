@@ -80,7 +80,15 @@ h2{font-size:20px;margin:22px 4px 10px;letter-spacing:-.01em}
 #vista.aperta{display:flex;animation:sali .25s ease both}
 #vista .barra{display:flex;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--linea);background:var(--sfondo)}
 #vista .barra .spazio{flex:1}
-#vista pre{flex:1;margin:0;overflow:auto;padding:16px;white-space:pre-wrap;word-break:break-word;font:15px/1.55 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;-webkit-overflow-scrolling:touch}
+#vista .scorri{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+#vista pre{margin:0;padding:16px;white-space:pre-wrap;word-break:break-word;font:15px/1.55 -apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+#zonaVideo{padding:16px 16px 0}
+#anteprima{display:block;width:100%;max-height:48vh;object-fit:contain;background:#000;border-radius:16px}
+#zonaVideo .tasti-video{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+#zonaVideo .info{margin:10px 2px 0}
+.tasto.chiaro{background:var(--campo);color:var(--blu);margin-top:10px}
+a.tasto{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.nota-video{margin:8px 2px 0;font-size:14px;color:var(--arancio)}
 #vista .piede{padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;border-top:1px solid var(--linea)}
 #vista .piede .tasto{min-height:50px;font-size:16px}
 #vista .piede .grigio{background:var(--campo);color:var(--blu)}
@@ -119,6 +127,7 @@ h2{font-size:20px;margin:22px 4px 10px;letter-spacing:-.01em}
         <input type="checkbox" id="campoRifai">
       </div>
       <button class="tasto" id="tastoAnalizza" type="button">Analizza</button>
+      <button class="tasto chiaro" id="tastoSoloVideo" type="button">Scarica solo il video</button>
       <div class="avviso" id="avvisoInvio" role="status"></div>
     </section>
 
@@ -141,9 +150,20 @@ h2{font-size:20px;margin:22px 4px 10px;letter-spacing:-.01em}
     <span class="spazio"></span>
     <span class="piccolo" id="titoloVista"></span>
   </div>
-  <pre id="testoReport"></pre>
+  <div class="scorri">
+    <div id="zonaVideo" class="nascosto">
+      <video id="anteprima" controls playsinline preload="metadata"></video>
+      <p class="piccolo info" id="infoVideo"></p>
+      <div class="tasti-video">
+        <button class="tasto" id="salvaVideo" type="button">Salva sul telefono</button>
+        <a class="tasto chiaro" style="margin-top:0" id="scaricaOriginale" href="#" rel="noopener">Scarica l'originale</a>
+      </div>
+      <p class="nota-video nascosto" id="notaVideo"></p>
+    </div>
+    <pre id="testoReport"></pre>
+  </div>
   <div class="piede">
-    <button class="tasto grigio" id="copiaReport" type="button">Copia report</button>
+    <button class="tasto grigio" id="copiaReport" type="button">Copia per Claude</button>
     <button class="tasto" id="condividiReport" type="button">Condividi</button>
   </div>
 </div>
@@ -239,16 +259,16 @@ async function incolla(){
   }
 }
 
-async function analizza(){
+async function analizza(soloVideo){
   const av = $("avvisoInvio"); av.className = "avviso";
   const link = $("campoLink").value.trim();
   if (!link){ av.textContent = "Incolla prima un link."; av.classList.add("errore"); return; }
-  const b = $("tastoAnalizza"); b.disabled = true;
+  const b = $(soloVideo ? "tastoSoloVideo" : "tastoAnalizza"); b.disabled = true;
   av.textContent = "Invio...";
   try {
-    await chiama("aggiungi", { link, rifai: $("campoRifai").checked });
+    await chiama("aggiungi", { link, rifai: $("campoRifai").checked, solo_video: soloVideo === true });
     $("campoLink").value = ""; $("campoRifai").checked = false;
-    av.textContent = "In coda"; av.classList.add("bene");
+    av.textContent = soloVideo ? "In coda: il video arriva tra poco" : "In coda"; av.classList.add("bene");
     aggiornaLista();
     aggiornaPc();
   } catch(e){
@@ -291,7 +311,8 @@ function disegnaLista(righe){
     const el = document.createElement("div"); el.className = "voce";
     const corpo = document.createElement("button");
     corpo.type = "button"; corpo.className = "corpo";
-    const l = document.createElement("div"); l.className = "link"; l.textContent = r.link;
+    const l = document.createElement("div"); l.className = "link";
+    l.textContent = (r.solo_video ? "🎬 Solo video · " : (r.ha_video ? "🎬 " : "")) + r.link;
     const meta = document.createElement("div"); meta.className = "meta";
     const b = document.createElement("span"); b.className = "badge " + stato;
     const p = document.createElement("span"); p.className = "pallino" + (stato === "in_lavoro" || stato === "in_attesa" ? " pulsa" : "");
@@ -358,8 +379,47 @@ async function elimina(id){
 }
 
 let testoCorrente = "";
+let videoCorrente = null;   // link firmati (validi un'ora) e dati del video
+let fileVideo = null;       // il video per iPhone già scaricato, pronto per «Salva»
+
+function svuotaVideo(){
+  const v = $("anteprima");
+  try { v.pause(); } catch(e){}
+  v.removeAttribute("src"); v.load();
+  videoCorrente = null; fileVideo = null;
+  mostra($("zonaVideo"), false); mostra($("notaVideo"), false);
+}
+
+function mostraVideo(video){
+  const nota = $("notaVideo");
+  if (!video){ return; }
+  const info = video.info || {};
+  if (info.nota){ nota.textContent = info.nota; mostra(nota, true); }
+  if (!video.anteprima){
+    // niente video sul telefono (troppo grande o tolto dopo 7 giorni): mostro solo la nota
+    if (info.nota){ mostra($("zonaVideo"), true); mostra($("anteprima"), false); mostra($("salvaVideo"), false); mostra($("scaricaOriginale"), false); }
+    return;
+  }
+  videoCorrente = video;
+  mostra($("anteprima"), true);
+  $("anteprima").src = video.anteprima;
+  const pezzi = [info.risoluzione, info.codec ? String(info.codec).toUpperCase() : "", info.durata ? info.durata + " s" : ""].filter(Boolean);
+  if (info.peso_originale_mb) pezzi.push(info.peso_originale_mb + " MB");
+  $("infoVideo").textContent = "Originale: " + pezzi.join(" · ") +
+    (video.stesso_file ? ". Si apre già su iPhone: nessuna conversione." :
+     (video.iphone ? ". «Salva sul telefono» usa una copia H.264 alla stessa risoluzione, che si apre in Foto." : ""));
+  const sv = $("salvaVideo");
+  sv.textContent = "Salva sul telefono"; sv.disabled = false;
+  mostra(sv, !!(video.iphone || video.originale));
+  const so = $("scaricaOriginale");
+  if (video.originale && !video.stesso_file){ so.href = video.originale; mostra(so, true); }
+  else mostra(so, false);
+  mostra($("zonaVideo"), true);
+}
+
 async function apriReport(id){
-  $("testoReport").textContent = "Carico il report...";
+  svuotaVideo();
+  $("testoReport").textContent = "Carico...";
   $("titoloVista").textContent = "";
   apriVista(true);
   try {
@@ -367,8 +427,11 @@ async function apriReport(id){
     const riga = j.riga || {};
     testoCorrente = riga.report || "";
     $("testoReport").textContent = testoCorrente || "Questo report è vuoto.";
-    $("titoloVista").textContent = "Analisi n. " + id;
-    $("condividiReport").classList.toggle("nascosto", !navigator.share);
+    $("titoloVista").textContent = (riga.solo_video ? "Video n. " : "Analisi n. ") + id;
+    // Solo video: niente report da passare a Claude
+    mostra($("copiaReport"), !riga.solo_video);
+    mostra($("condividiReport"), !riga.solo_video && !!navigator.share);
+    mostraVideo(j.video);
   } catch(e){
     testoCorrente = "";
     $("testoReport").textContent = e.message;
@@ -378,11 +441,50 @@ function apriVista(si){
   $("vista").classList.toggle("aperta", si);
   $("vista").setAttribute("aria-hidden", si ? "false" : "true");
   document.body.style.overflow = si ? "hidden" : "";
+  if (!si) svuotaVideo();
+}
+
+// iPhone: il foglio Condividi con il file offre «Salva video» (va dritto in Foto).
+// Il file si scarica al primo tocco; se il telefono chiede un secondo tocco per condividere, lo chiede il tasto.
+async function salvaVideo(){
+  const v = videoCorrente; if (!v) return;
+  const url = v.iphone || v.originale;
+  const nome = ((v.info || {}).nome_iphone || (v.info || {}).nome_originale || "video.mp4");
+  const b = $("salvaVideo");
+  try {
+    if (!fileVideo){
+      b.disabled = true; b.textContent = "Preparo il video...";
+      const r = await fetch(url);
+      if (!r.ok) throw new Error("scaricamento");
+      const blob = await r.blob();
+      fileVideo = new File([blob], nome, { type: blob.type || "video/mp4" });
+      b.disabled = false;
+    }
+    if (navigator.canShare && navigator.canShare({ files: [fileVideo] })){
+      try {
+        await navigator.share({ files: [fileVideo] });
+        b.textContent = "Salva sul telefono";
+      } catch(e){
+        // tocco "scaduto" mentre si scaricava: basta toccare di nuovo
+        b.textContent = e && e.name === "AbortError" ? "Salva sul telefono" : "Tocca per salvare";
+      }
+      return;
+    }
+    // Senza Condividi (es. PC o Android vecchio): download normale
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(fileVideo); a.download = nome;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    b.textContent = "Scaricato";
+  } catch(e){
+    b.disabled = false; fileVideo = null;
+    b.textContent = "Non riuscito: riprova";
+  }
 }
 
 async function copia(){
   if (!testoCorrente) return;
-  const b = $("copiaReport"); const orig = "Copia report";
+  const b = $("copiaReport"); const orig = "Copia per Claude";
   try { await navigator.clipboard.writeText(testoCorrente); b.textContent = "Copiato"; }
   catch(e){
     try {
@@ -413,8 +515,10 @@ $("tastoCodice").addEventListener("click", entra);
 $("campoCodice").addEventListener("keydown", (e) => { if (e.key === "Enter") entra(); });
 $("esci").addEventListener("click", esci);
 $("tastoIncolla").addEventListener("click", incolla);
-$("tastoAnalizza").addEventListener("click", analizza);
-$("campoLink").addEventListener("keydown", (e) => { if (e.key === "Enter") analizza(); });
+$("tastoAnalizza").addEventListener("click", () => analizza(false));
+$("tastoSoloVideo").addEventListener("click", () => analizza(true));
+$("salvaVideo").addEventListener("click", salvaVideo);
+$("campoLink").addEventListener("keydown", (e) => { if (e.key === "Enter") analizza(false); });
 $("chiudiVista").addEventListener("click", () => apriVista(false));
 $("copiaReport").addEventListener("click", copia);
 $("condividiReport").addEventListener("click", condividi);
