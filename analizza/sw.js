@@ -1,5 +1,5 @@
 // Service worker: rete prima, cache se offline. Solo i file della pagina, mai la funzione.
-const CACHE = "analizza-v4";
+const CACHE = "analizza-v5";
 const FILE = ["./", "./index.html", "./manifest.webmanifest", "./icona.svg", "./icona-180.png", "./icona-192.png", "./icona-512.png"];
 
 self.addEventListener("install", (e) => {

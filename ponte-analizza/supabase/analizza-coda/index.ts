@@ -63,8 +63,15 @@ function idValido(v: unknown): number | null {
   return Number.isInteger(n) && n > 0 ? n : null;
 }
 
-const COLONNE_ELENCO = "id, link, rifai, stato, errore, creato_il, preso_il, finito_il";
-const COLONNE_SENZA_REPORT = "id, link, rifai, stato, errore, richiesto_da, creato_il, preso_il, finito_il";
+const COLONNE_ELENCO = "id, link, rifai, solo_video, stato, errore, creato_il, preso_il, finito_il, video_iphone";
+const COLONNE_SENZA_REPORT = "id, link, rifai, solo_video, stato, errore, richiesto_da, creato_il, preso_il, finito_il";
+const CARTELLA_VIDEO = "analizza-video";
+const DURATA_LINK_SECONDI = 60 * 60; // i link per guardare/scaricare il video valgono un'ora
+
+function nomeFile(v: unknown, riserva: string): string {
+  const t = typeof v === "string" ? v.replace(/[^\w.\-]+/g, "_").slice(0, 80) : "";
+  return t || riserva;
+}
 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin");
@@ -120,7 +127,8 @@ Deno.serve(async (req: Request) => {
           return risposta({ errore: "Link non valido. Serve un link di Instagram, YouTube, TikTok, Facebook, X o Threads." }, 400, origin);
         }
         const { data, error } = await db.from("coda_analisi")
-          .insert({ link, rifai: corpo.rifai === true, stato: "in_attesa", richiesto_da: "telefono" })
+          .insert({ link, rifai: corpo.rifai === true, solo_video: corpo.solo_video === true,
+                    stato: "in_attesa", richiesto_da: "telefono" })
           .select(COLONNE_SENZA_REPORT).single();
         if (error) return guasto();
         return risposta({ ok: true, riga: data }, 200, origin);
@@ -135,9 +143,10 @@ Deno.serve(async (req: Request) => {
           .order("creato_il", { ascending: false }).limit(limite);
         if (error) return guasto();
         // Non mandiamo il testo del report: solo se esiste.
-        const righe = (data ?? []).map((r: Record<string, unknown>) => {
-          const { report_presente, ...resto } = r;
-          return { ...resto, ha_report: typeof report_presente === "string" && report_presente.length > 0 };
+        const righe = ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => {
+          const { report_presente, video_iphone, ...resto } = r;
+          return { ...resto, ha_report: typeof report_presente === "string" && report_presente.length > 0,
+                   ha_video: typeof video_iphone === "string" && video_iphone.length > 0 };
         });
         return risposta({ ok: true, righe }, 200, origin);
       }
@@ -148,7 +157,23 @@ Deno.serve(async (req: Request) => {
         const { data, error } = await db.from("coda_analisi").select("*").eq("id", id).maybeSingle();
         if (error) return guasto();
         if (!data) return risposta({ errore: "Analisi non trovata." }, 404, origin);
-        return risposta({ ok: true, riga: data }, 200, origin);
+        // Link firmati (validi un'ora) per guardare e scaricare il video dalla cartella privata.
+        const { video_originale, video_iphone, video_info, ...riga } = data as Record<string, unknown>;
+        const info = (video_info ?? {}) as Record<string, unknown>;
+        const firma = async (percorso: unknown, scarica?: string) => {
+          if (typeof percorso !== "string" || !percorso) return null;
+          const { data: f, error: e } = await db.storage.from(CARTELLA_VIDEO)
+            .createSignedUrl(percorso, DURATA_LINK_SECONDI, scarica ? { download: scarica } : undefined);
+          return e ? null : f.signedUrl;
+        };
+        const video = (video_originale || video_iphone) ? {
+          anteprima: await firma(video_iphone || video_originale),
+          originale: await firma(video_originale, nomeFile(info.nome_originale, "video_originale.mp4")),
+          iphone: await firma(video_iphone, nomeFile(info.nome_iphone, "video_iphone.mp4")),
+          stesso_file: video_originale === video_iphone,
+          info,
+        } : (info.nota ? { info } : null);
+        return risposta({ ok: true, riga, video }, 200, origin);
       }
 
       case "riprova": {
@@ -167,13 +192,17 @@ Deno.serve(async (req: Request) => {
         const id = idValido(corpo.id);
         if (!id) return risposta({ errore: "Numero analisi non valido." }, 400, origin);
         const { data, error } = await db.from("coda_analisi")
-          .delete().eq("id", id).neq("stato", "in_lavoro").select("id");
+          .delete().eq("id", id).neq("stato", "in_lavoro").select("id, video_originale, video_iphone");
         if (error) return guasto();
         if (!data || !data.length) {
           const { data: esiste } = await db.from("coda_analisi").select("id").eq("id", id).maybeSingle();
           if (esiste) return risposta({ errore: "Il PC ci sta lavorando adesso: aspetta che finisca, poi eliminalo." }, 409, origin);
           return risposta({ errore: "Analisi non trovata." }, 404, origin);
         }
+        // Via anche i video di questa riga (se la cancellazione dei file non riesce, la riga resta tolta lo stesso).
+        const file = [...new Set(data.flatMap((r: Record<string, unknown>) =>
+          [r.video_originale, r.video_iphone].filter((x): x is string => typeof x === "string" && x.length > 0)))];
+        if (file.length) await db.storage.from(CARTELLA_VIDEO).remove(file).catch(() => {});
         return risposta({ ok: true }, 200, origin);
       }
 
