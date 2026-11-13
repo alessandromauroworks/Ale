@@ -209,7 +209,7 @@ input[type=email]:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 4p
 .gp-k{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .gp-c{background:var(--soft);border-radius:12px;padding:10px;min-width:0}.gp-c b{display:block;font-size:22px}.gp-c span{display:block;font-size:13px;color:var(--muted)}
 .gp-t{display:flex;flex-direction:column}
-.gp-r{display:grid;grid-template-columns:1.3fr 1fr .8fr;gap:8px;padding:10px 0;border-top:1px solid var(--line);font-size:14.5px}.gp-r span{min-width:0;overflow-wrap:anywhere}.gp-s{color:var(--muted)}
+.gp-r{display:grid;grid-template-columns:1.3fr 1fr .8fr;gap:8px;padding:10px 0;border-top:1px solid var(--line);font-size:14.5px}.gp-r span{min-width:0;overflow-wrap:anywhere}.gp-s{color:var(--muted)}.gp-hd{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;border-top:0;padding-top:0}.gp-ex{margin:0;font-size:13.5px;color:var(--muted)}
 @media (max-width:640px){.gp{grid-template-columns:1fr}.gp-nav{order:2;flex-direction:row;overflow-x:auto;border-top:1px solid var(--line);gap:4px}.gp-nav button{white-space:nowrap;flex:none}}
 /* ===== finestre, demo, mappa del lavoro, presentazione (quarta tornata) ===== */
 @keyframes rise{from{opacity:0;transform:translateY(12px)}}
@@ -1165,7 +1165,7 @@ function messaggio(d, liv, cod) {
     }
   }
   r.push([d.tempi && "Partenza: " + d.tempi, d.decide && "Decide: " + d.decide].filter(Boolean).join(" · "));
-  if (d.pacchetto.standard) r.push("Pacchetto che mi interessa: " + pkNomeStd(d.pacchetto.standard)); else if (d.pacchetto.tipo === "misura") r.push("Pacchetto su misura: " + (breve ? d.pacchetto.suMisura.length + " voci" : d.pacchetto.suMisura.join(", "))); else if (d.pk && d.pk.scelto) r.push("Pacchetto che mi interessa: " + pkNome(d.pk.scelto));
+  if (d.pacchetto.standard) r.push("Pacchetto che mi interessa: " + pkNomeStd(d.pacchetto.standard) + " (un esempio: quello vero lo costruiamo insieme)"); else if (d.pacchetto.tipo === "misura") r.push("Pacchetto su misura: " + (breve ? d.pacchetto.suMisura.length + " voci" : d.pacchetto.suMisura.join(", ")) + " (un esempio: lo costruiamo insieme)"); else if (d.pk && d.pk.scelto) r.push("Pacchetto che mi interessa: " + pkNome(d.pk.scelto));
   r.push("Ricontattami: " + d.contatto + (d.email ? " (" + d.email + ")" : ""));
   if (d.vocale) r.push("Ti mando anche un vocale.");
   if (breve) r.push("Le risposte complete sono nel codice qui sotto.");
@@ -1186,7 +1186,7 @@ function riepilogo() {
     riga("Dove perdi tempo", d.prob.map(([i, h]) => s.P[i][1] + oreTxt(h)).join("; ")) +
     riga("Altro", d.probAltro) + riga("Da sistemare", d.magia) + riga("Già provato", d.provato) +
     riga("Sul tuo lavoro", d.lavAltro) + riga("Gestionale", d.gest ? gTesto(d.gest) : "") +
-    riga("Partenza", d.tempi) + riga("Chi decide", d.decide) + riga("Pacchetto", d.pacchetto.standard ? pkNomeStd(d.pacchetto.standard) : d.pk && d.pk.scelto ? pkNome(d.pk.scelto) : "") + riga("Tipo di soluzione", (PT.find(x => x[0] === d.pacchetto.tipo) || ["", ""])[1]) + riga("Voci su misura", d.pacchetto.tipo === "misura" ? d.pacchetto.suMisura.join(", ") : "") + riga("Pagamento", d.pag) +
+    riga("Partenza", d.tempi) + riga("Chi decide", d.decide) + riga("Pacchetto", d.pacchetto.standard ? pkNomeStd(d.pacchetto.standard) : d.pk && d.pk.scelto ? pkNome(d.pk.scelto) : "") + riga("Nota sul pacchetto", d.pacchetto.standard || d.pacchetto.tipo === "misura" ? "È un esempio per orientarsi: quello vero lo costruiamo insieme e il prezzo lo vedi nel preventivo." : "") + riga("Tipo di soluzione", (PT.find(x => x[0] === d.pacchetto.tipo) || ["", ""])[1]) + riga("Voci su misura", d.pacchetto.tipo === "misura" ? d.pacchetto.suMisura.join(", ") : "") + riga("Pagamento", d.pag) +
     riga("Ricevuta", d.iva) + riga("Instagram o Facebook", d.ig) + riga("Sito", d.sito) + riga("Telefono", d.tel) + riga("Ricontatto", d.contatto + (d.email ? " · " + d.email : "")) +
     riga("Vocale", d.vocale ? "Te lo mando su WhatsApp" : "");
   const tok = ++rtoken, bs = $("sendBtn");
@@ -1343,14 +1343,29 @@ let gpSel = null;
 const hs = s => Array.from(s).reduce((t, c) => (t * 31 + c.charCodeAt(0)) % 997, 7);
 function gpMods() { return gOpts(sett()).p; }
 function gpMarks() { const mods = gpMods(); $("gpNav").querySelectorAll("button").forEach((b, i) => { const m = mods[i]; b.classList.toggle("in", A.gest.pannello.includes(m)); b.setAttribute("aria-current", m === gpSel ? "true" : "false"); }); }
+/* schermate di esempio per tipo di modulo (dati inventati): [riconoscimento, 3 numeri, 3 colonne, riga(i, h)] */
+const eur = n => "€ " + n;
+const GP_K = [
+  [/agenda|appuntament|visite|poltrona|sopralluogh|prenotazioni|viaggi e consegne|eventi/i, ["Oggi", "Questa settimana", "Liberi"], ["Ora", "Cliente", "Cosa"], (i, h) => [["09:00", "10:30", "12:00", "15:30"][i], "Cliente " + (i + 1), ["Visita", "Controllo", "Colloquio", "Intervento"][(i + h) % 4]]],
+  [/magazzin|prodott|giacenz|materiali|attrezzature|auto in vendita|immobili|mezzi/i, ["Articoli", "Sotto scorta", "In arrivo"], ["Articolo", "Giacenza", "Stato"], (i, h) => ["Articolo " + (i + 1), String(3 + (h * 3 + i * 7) % 40), ["Disponibile", "Sotto scorta", "In ordine", "Disponibile"][(h + i) % 4]]],
+  [/pagament|fattur|incass|quote|parcelle|ricevute|spese|rate/i, ["Incassato", "Da incassare", "In ritardo"], ["Documento", "Importo", "Stato"], (i, h) => ["N. 00" + (i + 1), eur(40 + (h * 7 + i * 35) % 300), ["Pagato", "Da incassare", "Pagato", "In ritardo"][(h + i) % 4]]],
+  [/scadenz|richiami|promemoria|rinnov|contratti|adempimenti/i, ["Questa settimana", "Entro un mese", "Da avvisare"], ["Cosa", "Scade il", "Avviso"], (i, h) => ["Voce " + (i + 1), ["20 nov", "24 nov", "2 dic", "9 dic"][i], ["Da inviare", "Inviato", "Da inviare", "Inviato"][(h + i) % 4]]],
+  [/preventiv|richieste|pratiche|lavori|interventi|trattative|progetti|piani di cura|commesse|viaggi/i, ["Aperte", "In corso", "Chiuse"], ["Pratica", "Aperta il", "Stato"], (i, h) => ["Pratica " + (i + 1), ["3 nov", "5 nov", "8 nov", "11 nov"][i], ["Nuova", "In corso", "Da confermare", "Chiusa"][(h + i) % 4]]],
+  [/personale|turni|volontari|dipendenti|presenze|squadre|autisti/i, ["Presenti", "Assenti", "Turni liberi"], ["Persona", "Turno", "Presenza"], (i, h) => ["Persona " + (i + 1), ["08-14", "14-20", "08-14", "20-02"][(h + i) % 4], ["Presente", "Presente", "In ferie", "Presente"][(h + i) % 4]]],
+  [/document|verbali|buste paga|cartelle/i, ["Documenti", "Da firmare", "Mancanti"], ["Documento", "Aggiornato", "Stato"], (i, h) => ["Documento " + (i + 1), ["2 nov", "4 nov", "9 nov", "12 nov"][i], ["Completo", "Da firmare", "Manca una pagina", "Completo"][(h + i) % 4]]],
+  [/statistich/i, ["Questo mese", "Mese scorso", "Variazione"], ["Voce", "Questo mese", "Prima"], (i, h) => ["Voce " + (i + 1), String(20 + (h + i * 5) % 50), String(18 + (h + i * 3) % 50)]],
+  [/client|schede|soci|pazient|contatti|committenti|aziende|fornitori|chi cerca/i, ["Totale", "Nuovi", "Da richiamare"], ["Nome", "Ultimo contatto", "Stato"], (i, h) => ["Cliente " + (i + 1), ["12 nov", "10 nov", "7 nov", "2 nov"][i], ["Attivo", "Nuovo", "Da richiamare", "Attivo"][(h + i) % 4]]]
+];
+function gpKind(m) { return GP_K.find(x => x[0].test(m)) || [0, ["Oggi", "Questa settimana", "Da fare"], ["Voce", "Data", "Stato"], (i, h) => ["Voce " + (i + 1), ["Lun 12", "Mar 13", "Mer 14", "Gio 15"][i], ["Nuovo", "In corso", "Fatto", "Da fare"][(h + i) % 4]]]; }
 function gpMain() {
   const m = gpSel, box = $("gpMain"), h = hs(m), inn = A.gest.pannello.includes(m); box.replaceChildren(); if (!m) return;
   const head = elx("div", "gp-h"); head.append(elx("h4", "", m));
   const tg = elx("button", "chip", inn ? "È nel tuo gestionale ✓" : "Aggiungi al tuo gestionale"); tg.type = "button"; tg.setAttribute("aria-pressed", inn); tg.addEventListener("click", () => gpToggle(m)); head.append(tg); box.append(head);
-  const k = elx("div", "gp-k"); [["Oggi", 3 + h % 9], ["Questa settimana", 14 + h % 40], ["Da fare", 2 + h % 7]].forEach(([l, n]) => { const c = elx("div", "gp-c"); c.append(elx("b", "", String(n)), elx("span", "", l)); k.append(c); }); box.append(k);
+  const K = gpKind(m), money = K[1][0] === "Incassato"; box.append(elx("p", "gp-ex", "Esempio con dati inventati"));
+  const k = elx("div", "gp-k"); K[1].forEach((l, j) => { const n = money ? eur(200 + (h * (j + 3)) % 900) : String([3 + h % 9, 14 + h % 40, 2 + h % 7][j]); const c = elx("div", "gp-c"); c.append(elx("b", "", n), elx("span", "", l)); k.append(c); }); box.append(k);
   const tb = elx("div", "gp-t"); tb.setAttribute("role", "table"); tb.setAttribute("aria-label", "Righe di esempio");
-  const st = ["Nuovo", "In corso", "Fatto", "Da fare"], gg = ["Lun 12", "Mar 13", "Mer 14", "Gio 15"];
-  for (let i = 0; i < 4; i++) { const r = elx("div", "gp-r"); r.setAttribute("role", "row"); [["Cliente " + (i + 1), "gp-n"], [st[(h + i) % 4], "gp-s"], [gg[i], "gp-d"]].forEach(([x, c]) => { const e = elx("span", c, x); e.setAttribute("role", "cell"); r.append(e); }); tb.append(r); }
+  const hr = elx("div", "gp-r gp-hd"); hr.setAttribute("role", "row"); K[2].forEach(x => { const e = elx("span", "", x); e.setAttribute("role", "columnheader"); hr.append(e); }); tb.append(hr);
+  for (let i = 0; i < 4; i++) { const r = elx("div", "gp-r"); r.setAttribute("role", "row"); K[3](i, h).forEach((x, j) => { const e = elx("span", j === 0 ? "gp-n" : j === 1 ? "gp-s" : "gp-d", x); e.setAttribute("role", "cell"); r.append(e); }); tb.append(r); }
   box.append(tb);
 }
 function gpToggle(m) { const g = A.gest; g.pannello = g.pannello.includes(m) ? g.pannello.filter(x => x !== m) : [...g.pannello, m]; gSync($("cGPannello"), "pannello", true); gpMarks(); gpMain(); bozza(); }
@@ -1394,6 +1409,43 @@ const grupp = (lab, items, cur, on) => { const g = elx("div", "dg"); g.setAttrib
 const settNome = () => priv() ? "te" : sett().n === "Altra attività" ? "la tua attività" : sett().n;
 
 /* ===== demo del sito, per settore ===== */
+/* testi di esempio del sito per ogni settore: titolo|sottotitolo|3 servizi (;)|pulsante. {n} = nome dell'attività */
+const SITO_TXT = {
+ "Concessionaria auto":"Trova l'auto giusta da {n}|Auto nuove e usate selezionate, con permuta e finanziamento spiegati con chiarezza.|Auto usate selezionate;Permuta dell'usato;Prova su strada su appuntamento|Prenota una prova su strada",
+ "Agenzia immobiliare":"La casa giusta, scelta con calma|{n} ti accompagna nella ricerca, nella vendita e nei documenti.|Compravendita;Affitti;Valutazione dell'immobile|Richiedi una valutazione",
+ "Patronato / CAF":"Pratiche e documenti, spiegati bene|{n} segue le tue pratiche e ti avvisa quando serve qualcosa.|Pensioni e bonus;Dichiarazioni e ISEE;Pratiche per la famiglia|Fissa un appuntamento",
+ "Studio dentistico":"Il tuo sorriso, con cura|{n}: visite, igiene e cure in un ambiente tranquillo.|Visita e igiene;Cure conservative;Ortodonzia|Prenota una visita",
+ "Studio medico / poliambulatorio":"Visite e controlli vicino a te|{n} riunisce più specialisti, con prenotazione semplice.|Visite specialistiche;Esami e controlli;Referti online|Prenota una visita",
+ "Dietista / nutrizionista":"Mangiare bene, a modo tuo|Percorsi alimentari pensati sulle tue abitudini, non su una dieta uguale per tutti.|Prima visita;Piano alimentare;Controlli periodici|Prenota la prima visita",
+ "Ristorante / pizzeria":"Buon cibo, buona compagnia|Specialità della casa, menu del giorno e tavoli da prenotare da {n}.|Menu e specialità;Cene di gruppo;Asporto e consegna|Prenota un tavolo",
+ "Bar / caffetteria":"Il tuo bar di fiducia|Colazioni, pranzi veloci e aperitivi da {n}.|Colazioni;Pranzo veloce;Aperitivi e serate|Vieni a trovarci",
+ "Centro estetico":"Un momento solo per te|Trattamenti viso e corpo su appuntamento da {n}.|Trattamenti viso;Trattamenti corpo;Pacchetti benessere|Prenota un trattamento",
+ "Parrucchiere / barbiere":"Taglio e stile su misura|{n}: consigli, colore e cura dei capelli e della barba.|Taglio e piega;Colore;Barba e cura|Prenota il tuo posto",
+ "Palestra / centro sportivo":"Allenati come ti piace|Corsi, sala attrezzi e percorsi per tutti i livelli da {n}.|Corsi di gruppo;Sala attrezzi;Personal training|Prenota una prova",
+ "B&B / hotel / casa vacanze":"Un soggiorno da ricordare|Camere curate, colazione e consigli sul territorio da {n}.|Camere;Colazione;Esperienze sul territorio|Controlla le date",
+ "Studio commercialista":"Conti in ordine, più tranquillità|{n} ti aiuta con contabilità, dichiarazioni e scadenze.|Contabilità e dichiarazioni;Nuove attività;Scadenze fiscali|Richiedi un incontro",
+ "Studio legale":"Ti ascoltiamo, poi ti spieghiamo|{n} ti segue con chiarezza, dal primo colloquio alla pratica.|Consulenza iniziale;Contratti e pratiche;Assistenza in giudizio|Richiedi una consulenza",
+ "Officina / carrozzeria / autolavaggio":"La tua auto in buone mani|Tagliandi, riparazioni e revisioni: ti avvisiamo quando è pronta.|Tagliando e manutenzione;Carrozzeria;Revisione|Prenota un intervento",
+ "Negozio / attività commerciale":"Vieni a scoprire il negozio|Prodotti scelti, consigli e novità da {n}.|I nostri prodotti;Novità;Ordini e ritiro|Vieni in negozio",
+ "Fisioterapista / osteopata":"Tornare a muoversi bene|Valutazione e trattamenti su appuntamento da {n}.|Valutazione iniziale;Terapia manuale;Percorsi di recupero|Prenota una seduta",
+ "Impresa edile / artigiano":"Lavori fatti con cura|Ristrutturazioni e lavori su misura da {n}, con preventivo chiaro.|Ristrutturazioni;Lavori su misura;Piccole riparazioni|Richiedi un preventivo",
+ "Psicologo / psicoterapeuta":"Uno spazio per parlare|Colloqui in un ambiente riservato, di persona o online.|Primo colloquio;Percorsi individuali;Colloqui online|Richiedi un primo colloquio",
+ "Veterinario":"Cura per i tuoi animali|Visite, vaccini e consigli per ogni età da {n}.|Visite e vaccini;Interventi;Consulto veloce|Prenota una visita",
+ "Farmacia / parafarmacia":"La tua farmacia di quartiere|Consigli, prodotti e servizi vicino a casa da {n}.|Prodotti e consigli;Servizi in farmacia;Ordini e ritiro|Vieni a trovarci",
+ "Scuola di danza / musica":"Impara divertendoti|Corsi per bambini e adulti, saggi e prove aperte.|Corsi per bambini;Corsi per adulti;Lezione di prova|Iscriviti a una prova",
+ "Agenzia viaggi":"Il viaggio giusto per te|{n} organizza vacanze, viaggi su misura e gruppi.|Pacchetti e crociere;Viaggi su misura;Gruppi e gite|Chiedi un preventivo",
+ "Agenzia assicurativa":"Protezione su misura|Polizze spiegate in modo semplice da {n}.|Auto e casa;Famiglia e salute;Attività e lavoro|Richiedi un preventivo",
+ "Autoscuola":"Dalla teoria alla patente|Corsi, guide ed esami con un calendario chiaro.|Corsi di teoria;Guide;Esami e rinnovi|Iscriviti",
+ "Cantina / agriturismo":"Il territorio nel bicchiere|Visite, degustazioni e vendita diretta da {n}.|Visite e degustazioni;Vendita diretta;Soggiorno e ristorazione|Prenota una visita",
+ "Impresa di servizi / pulizie / manutenzioni":"Servizi con tempi chiari|Pulizie e manutenzioni programmate da {n}, con preventivo chiaro.|Pulizie;Manutenzioni;Contratti periodici|Richiedi un preventivo",
+ "Studio tecnico (geometra, ingegnere, architetto)":"Dal progetto alla pratica|Rilievi, progetti e pratiche seguiti passo dopo passo.|Rilievi e progetti;Pratiche edilizie;Sopralluoghi e perizie|Richiedi un sopralluogo",
+ "Trasporti / logistica / corrieri":"Spedizioni e consegne sotto controllo|Preventivi chiari e aggiornamenti sullo stato della consegna.|Trasporti nazionali;Consegne locali;Magazzino e logistica|Richiedi un preventivo",
+ "Consulente del lavoro / paghe":"Buste paga e lavoro, senza pensieri|{n} segue paghe, contratti e adempimenti.|Buste paga;Contratti e assunzioni;Adempimenti|Richiedi un incontro",
+ "Associazione / ente / cooperativa":"Insieme si fa di più|Iscriviti, partecipa agli eventi e resta aggiornato.|Iscrizione soci;Eventi e attività;Come dare una mano|Iscriviti",
+ "Privato (per me o la mia famiglia)":"Ciao, sono {n}|Qui racconto cosa faccio e i miei progetti.|I miei lavori;Chi sono;Contatti|Scrivimi",
+ "Altra attività":"Benvenuto da {n}|Un esempio di sito chiaro e facile da contattare.|Il servizio principale;Un secondo servizio;Primo incontro|Contattaci"
+};
+function sitoTxt(nome) { const r = (SITO_TXT[sett().n] || SITO_TXT["Altra attività"]).split("|"); return { h: r[0].replace("{n}", nome), sub: r[1].replace("{n}", nome), sv: r[2].split(";"), cta: r[3] }; }
 function demoSito() {
   const s = sett(), nome = v("fAtt") || (priv() ? v("fNome") || "Il tuo nome" : "La tua attività"), sez = priv() ? "progetto" : s.n === "Altra attività" ? "attività" : s.n.toLowerCase();
   const D = A.det.sito, pag = (D.pagine.length ? D.pagine : ["Home", "Servizi", "Contatti e mappa"]).slice(0, 5);
@@ -1407,9 +1459,9 @@ function demoSito() {
     g1.children[1].setAttribute("data-first", "");
     bar.append(g1, grupp("Stile", [["sem", "Semplice"], ["ele", "Elegante"], ["wow", "Effetto wow"]], stile, k => { stile = k; paint(); }));
     const hd = elx("div", "sd-h"), nv = elx("nav", "sd-n"); nv.setAttribute("aria-label", "Menu di esempio"); pag.forEach(p => nv.append(elx("span", "", p))); hd.append(elx("b", "sd-logo", nome), nv);
-    const hero = elx("section", "sd-hero rv"); hero.append(elx("h3", "", (priv() ? "Benvenuto sul sito di " : "Benvenuto da ") + nome), elx("p", "", "Un esempio di come potrebbe presentarsi il tuo " + sez + ": chiaro, veloce da leggere e facile da contattare."), elx("span", "sd-cta", pag.includes("Prenota") ? "Prenota ora" : "Contattaci"));
-    const sv = elx("section", "sd-sec rv"); sv.append(elx("h4", "", priv() ? "I miei lavori" : "I tuoi servizi")); const gr = elx("div", "sd-g");
-    ["Il servizio principale", "Un secondo servizio", "Primo incontro o consulenza"].forEach((t, i) => { const c = elx("div", "sd-card"); c.append(elx("b", "", t), elx("span", "", "Breve testo di esempio che spiega cosa include e a chi serve.")); c.style.setProperty("--i", i); gr.append(c); }); sv.append(gr);
+    const T = sitoTxt(nome); const hero = elx("section", "sd-hero rv"); hero.append(elx("h3", "", T.h), elx("p", "", T.sub), elx("span", "sd-cta", T.cta));
+    const sv = elx("section", "sd-sec rv"); sv.append(elx("h4", "", priv() ? "I miei lavori" : "Cosa facciamo")); const gr = elx("div", "sd-g");
+    T.sv.forEach((t, i) => { const c = elx("div", "sd-card"); c.append(elx("b", "", t), elx("span", "", "Breve testo di esempio che spiega cosa include e a chi serve.")); c.style.setProperty("--i", i); gr.append(c); }); sv.append(gr);
     const rv = elx("section", "sd-sec rv"); rv.append(elx("h4", "", priv() ? "Cosa dicono di me" : "Cosa dicono i clienti")); const rg = elx("div", "sd-g");
     [["Cliente 1", "Persone gentili e puntuali, tutto chiaro dall'inizio."], ["Cliente 2", "Mi hanno risposto subito e ho risolto in poco tempo."]].forEach(([a, t]) => { const c = elx("figure", "sd-card"); const st = elx("span", "sd-st", "★★★★★"); st.setAttribute("aria-label", "5 stelle su 5"); c.append(st, elx("blockquote", "", t), elx("figcaption", "", a + " · Recensione di esempio")); rg.append(c); }); rv.append(rg);
     const ct = elx("section", "sd-sec rv"); ct.append(elx("h4", "", "Contatti e mappa"), elx("p", "", "Via Esempio 1 · Telefono 000 000 0000 · Orari di esempio"), elx("span", "sd-cta", "Scrivici su WhatsApp"));
@@ -1694,7 +1746,7 @@ function renderPacchetti() {
   try { renderIns(); } catch (e) {}
   const box = $("pkBox"), voci = pkVoci(), rec = pkConsigliato(voci);
   if (!A.pkTipo) A.pkTipo = rec ? (rec.tipo) : "singolo";
-  box.replaceChildren();
+  box.replaceChildren(); box.append(elx("p", "note", "Questi pacchetti sono esempi per orientarti: quello vero lo costruiamo insieme in base a quello che ti serve, e il prezzo lo vedi nel preventivo."));
   const g = elx("div", "dg"); g.setAttribute("role", "group"); g.setAttribute("aria-label", "Che tipo di soluzione cerchi");
   if (priv() && !["singolo", "misura"].includes(A.pkTipo)) A.pkTipo = "singolo";
   ptList().forEach(([k, t]) => { const b = btnx(t, "chip", () => { A.pkTipo = k; bozza(); renderPacchetti(); }); b.setAttribute("aria-pressed", A.pkTipo === k); g.append(b); }); box.append(g);
