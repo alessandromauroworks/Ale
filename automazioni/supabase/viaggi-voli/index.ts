@@ -5,7 +5,7 @@
 // Se Google dice chiaramente "nessun volo", il risultato e' "nessun volo" e Firecrawl NON viene chiamato.
 // Ogni scheda ha il campo "fonte" ("jarvis" o "firecrawl"). Tetto di chiamate Firecrawl per ricerca: MAX_CHIAMATE.
 // verify_jwt = false: protezione con header x-pin uguale alla secret VIAGGI_PIN. Niente dati salvati.
-// Secrets: VIAGGI_PIN, JARVIS_URL, JARVIS_KEY (facoltativa), FIRECRAWL_API_KEY (riserva). Nessuna chiave nel codice.
+// Secrets: VIAGGI_PIN, JARVIS_URL (facoltativa, c'è l'indirizzo predefinito), JARVIS_KEY, FIRECRAWL_API_KEY (riserva). Nessuna chiave nel codice.
 
 const MAX_CHIAMATE = 12;          // tetto assoluto di chiamate Firecrawl per ricerca (12 x 5 = 60 crediti)
 const MAX_RICERCHE = 12;          // tetto di combinazioni (aeroporto x meta x data) per ricerca
@@ -108,8 +108,7 @@ function schede(dati: Any, aeroporto: string, destinazione: string, data: string
 function giornoDopo(d: string): string { const x = new Date(d + "T12:00:00Z"); x.setUTCDate(x.getUTCDate() + 1); return x.toISOString().slice(0, 10); }
 
 async function chiamaJarvis(da: string, a: string, data: string, adulti: number): Promise<Any> {
-  const base = (Deno.env.get("JARVIS_URL") ?? "").replace(/\/+$/, "");
-  if (!base) throw new Error("JARVIS_URL non impostata");
+  const base = (Deno.env.get("JARVIS_URL") || "https://motore-jarvis.alessandromauro.workers.dev").replace(/\/+$/, "");
   const k = Deno.env.get("JARVIS_KEY");
   const url = `${base}/voli?da=${da}&a=${a}&data=${data}&adulti=${adulti}` + (k ? `&k=${encodeURIComponent(k)}` : "");
   const r = await fetch(url, { signal: AbortSignal.timeout(75000) });
@@ -184,9 +183,6 @@ Deno.serve(async (req: Request) => {
   if (!pinGiusto || !uguali(pin, pinGiusto)) return risposta(401, { errore: "PIN mancante o sbagliato." });
 
   contatori.firecrawl = 0; registro.length = 0;
-  if (!Deno.env.get("JARVIS_URL") && !Deno.env.get("FIRECRAWL_API_KEY")) {
-    return risposta(500, { errore: "Mancano i secrets: serve almeno JARVIS_URL (o FIRECRAWL_API_KEY come riserva)." });
-  }
 
   let b: Any;
   try {
@@ -234,7 +230,7 @@ Deno.serve(async (req: Request) => {
   const daFare = combinazioni.slice(0, MAX_RICERCHE);
 
   const esiti = await conConcorrenza(daFare, CONCORRENZA_JARVIS, (c) =>
-    cercaUna(c.da, c.a, c.d, adulti, "andata", c.da === "FOG" ? COSTO_FOGGIA_BARI : 0).then((r) => ({ c, r })));
+    cercaUna(c.da, c.a, c.d, adulti, "andata", c.da === "BRI" ? COSTO_FOGGIA_BARI : 0).then((r) => ({ c, r })));
 
   let voli: Any[] = [];
   const problemi: string[] = [];
