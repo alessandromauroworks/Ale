@@ -19,12 +19,80 @@ const SETTORI = new Set([
   "Studio commercialista", "Studio legale", "Officina / carrozzeria / autolavaggio", "Negozio / attività commerciale",
   "Fisioterapista / osteopata", "Impresa edile / artigiano", "Psicologo / psicoterapeuta", "Veterinario",
   "Farmacia / parafarmacia", "Scuola di danza / musica", "Agenzia viaggi", "Agenzia assicurativa", "Autoscuola",
-  "Cantina / agriturismo", "Altra attività",
+  "Cantina / agriturismo", "Impresa di servizi / pulizie / manutenzioni", "Studio tecnico (geometra, ingegnere, architetto)",
+  "Trasporti / logistica / corrieri", "Consulente del lavoro / paghe", "Associazione / ente / cooperativa",
+  "Privato (per me o la mia famiglia)", "Altra attività",
 ]);
 // campi del questionario (versione v:1). Tutto il resto si scarta.
 const CAMPI = ["v", "data", "s", "tipoAltro", "nome", "attivita", "citta", "tel", "ig", "sito", "ob", "obAltro", "team", "can", "str",
   "lav", "lavAltro", "prob", "probT", "no", "noT", "probAltro", "magia", "provato", "vocale", "tempi", "decide", "budget", "pag", "iva",
-  "gest", "pk", "consenso"];
+  "gest", "pk", "consenso",
+  // aggiunti con le versioni successive del questionario (ruolo, servizi, dettagli, mappa del lavoro, pacchetto, ecc.)
+  "versione", "ruolo", "contatto", "email", "copiaEmail", "perConto", "telefono", "servizi", "tipoProblema", "dimensione", "segreteria",
+  "problemi", "dettagli", "mappa", "flusso", "consigli", "pacchetto"];
+
+// ==== INIZIO EMAIL ====
+// Copia delle risposte a chi la chiede. DORMIENTE: parte solo se esistono i secrets RESEND_API_KEY e MITTENTE_EMAIL
+// (Supabase > Edge Functions > Secrets), se la persona ha spuntato la casella, ha dato l'email e il consenso.
+// Non blocca e non rallenta il salvataggio (si lancia dopo, in background, timeout 5 s). Nel registro vanno solo esiti, mai dati personali.
+const RISPOSTA_EMAIL = "alessandromauro.works@gmail.com";
+const EMAIL_VALIDA = /^[^\s@<>"',;]{1,64}@[^\s@<>"',;]{1,190}\.[^\s@<>"',;]{2,}$/;
+const escHtml = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+const testoBreve = (x: unknown, n = 300) => (typeof x === "string" ? x.replace(/[\r\n\t]+/g, " ").trim().slice(0, n) : "");
+const elenco = (x: unknown, n = 10) => (Array.isArray(x) ? x.filter((v): v is string => typeof v === "string").map((v) => testoBreve(v, 120)).filter(Boolean).slice(0, n) : []);
+export function costruisciEmail(d: Record<string, unknown>): { oggetto: string; testo: string; html: string } {
+  const nome = testoBreve(d.nome, 80) || "";
+  const privato = d.ruolo === "Privato";
+  const pk = (d.pacchetto && typeof d.pacchetto === "object" ? d.pacchetto : {}) as Record<string, unknown>;
+  const voci: [string, string][] = [];
+  if (!privato && testoBreve(d.attivita, 80)) voci.push(["Attività", testoBreve(d.attivita, 80)]);
+  if (testoBreve(d.s, 80)) voci.push(["Settore", testoBreve(d.s, 80)]);
+  if (elenco(d.servizi).length) voci.push(["Ti serve", elenco(d.servizi).join("; ")]);
+  if (testoBreve(d.problemi, 400)) voci.push(["I problemi che hai raccontato", testoBreve(d.problemi, 400)]);
+  if (testoBreve(pk.standard, 60) || elenco(pk.suMisura).length) voci.push(["Pacchetto", testoBreve(pk.standard, 60) || "su misura: " + elenco(pk.suMisura).join(", ")]);
+  voci.push(["Come vuoi essere ricontattato", testoBreve(d.contatto, 40) || "WhatsApp"]);
+  const saluto = nome ? "Ciao " + nome + "," : "Ciao,";
+  const parti = [
+    saluto,
+    "grazie per aver compilato il questionario: le tue risposte mi sono arrivate.",
+    "Ecco un riepilogo breve:\n" + voci.map(([k, v]) => "- " + k + ": " + v).join("\n"),
+    "Cosa succede adesso: leggo le risposte, preparo la call e ti ricontatto con il mezzo che hai scelto. Se vuoi aggiungere o correggere qualcosa, rispondi a questa email.",
+    "I miei contatti: Alessandro Mauro, WhatsApp +39 339 405 2935, " + RISPOSTA_EMAIL + ".",
+    "Se vuoi che cancelli le tue risposte, scrivimi a quell'indirizzo o su WhatsApp e lo faccio. Se non lavoriamo insieme le cancello comunque dopo 12 mesi.",
+    "A presto,\nAlessandro",
+  ];
+  const testo = parti.join("\n\n");
+  const html = parti.map((p) => "<p>" + escHtml(p).replace(/\n/g, "<br>") + "</p>").join("");
+  return { oggetto: "Ho ricevuto le tue risposte", testo, html };
+}
+type Registra = (esito: string, dettaglio?: string) => void;
+// non lancia mai errori: ogni problema finisce solo nel registro, senza dati personali
+export async function inviaCopia(
+  d: Record<string, unknown>, env: { RESEND_API_KEY?: string; MITTENTE_EMAIL?: string }, fetchFn: typeof fetch, registra: Registra,
+): Promise<void> {
+  try {
+    const chiave = (env.RESEND_API_KEY || "").trim(), mittente = (env.MITTENTE_EMAIL || "").trim();
+    if (!chiave || !mittente || !mittente.includes("@")) return registra("email_saltata", "senza_chiavi");
+    const email = testoBreve(d.email, 254);
+    if (d.copiaEmail !== true) return registra("email_saltata", "non_richiesta");
+    if (!EMAIL_VALIDA.test(email)) return registra("email_saltata", "email_non_valida");
+    const cons = d.consenso as Record<string, unknown> | undefined;
+    if (!cons || typeof cons !== "object" || typeof cons.data !== "string") return registra("email_saltata", "senza_consenso");
+    const { oggetto, testo, html } = costruisciEmail(d);
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 5000);
+    try {
+      const r = await fetchFn("https://api.resend.com/emails", {
+        method: "POST", signal: ctl.signal,
+        headers: { Authorization: "Bearer " + chiave, "Content-Type": "application/json" },
+        body: JSON.stringify({ from: mittente.includes("<") ? mittente : "Alessandro Mauro <" + mittente + ">", to: [email], reply_to: RISPOSTA_EMAIL, subject: oggetto, text: testo, html }),
+      });
+      registra(r.ok ? "email_inviata" : "email_errore", r.ok ? "" : "stato " + r.status);
+    } finally { clearTimeout(t); }
+  } catch (e) {
+    try { registra("email_errore", e instanceof Error && e.name === "AbortError" ? "timeout" : "rete"); } catch (_) { /* niente */ }
+  }
+}
+// ==== FINE EMAIL ====
 
 const supa = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
 
@@ -130,11 +198,23 @@ Deno.serve(async (req) => {
   if ((nIp ?? 0) >= LIMITE_IP_ORA || (nTel ?? 0) >= LIMITE_TEL_GIORNO) { log("limite"); return risposta(429, { ok: false, errore: "troppi invii" }, origin); }
   if ((nOra ?? 0) >= LIMITE_GLOBALE_ORA) { log("limite_globale"); return risposta(429, { ok: false, errore: "troppi invii" }, origin); }
   const limite = Promise.resolve(supa.from("questionari_limiti").insert({ chiave: chiaveIp })).catch(() => {});   // conta anche il doppio invio, in parallelo al salvataggio
-  if ((doppi ?? 0) > 0) { await limite; log("doppio_invio"); return risposta(200, { ok: true }, origin); }
+  if ((doppi ?? 0) > 0) {
+    // stesso numero e stessa attività negli ultimi 10 minuti: doppio tocco, oppure chi ha fatto la versione veloce e poi continua il questionario.
+    // Non si crea una seconda riga: si aggiornano le risposte (valgono le ultime). Un errore qui non cambia la risposta.
+    await Promise.resolve(supa.from("questionari").update({ risposte: d, codice_qc1: codice }).eq("telefono", tel).eq("attivita", attivita).gte("creato_il", dieciMin)).catch(() => {});
+    await limite; log("doppio_invio"); return risposta(200, { ok: true }, origin);
+  }
 
   for (let tentativo = 1; tentativo <= 3; tentativo++) {
     const { error } = await supa.from("questionari").insert({ settore, nome, attivita, telefono: tel, risposte: d, codice_qc1: codice });
-    if (!error) { await limite; log("salvato"); return risposta(200, { ok: true }, origin); }
+    if (!error) {
+      // copia per email: in background, dopo il salvataggio; non aspetta e non può farlo fallire
+      const invio = inviaCopia(d, { RESEND_API_KEY: Deno.env.get("RESEND_API_KEY"), MITTENTE_EMAIL: Deno.env.get("MITTENTE_EMAIL") }, fetch, log).catch(() => {});
+      // deno-lint-ignore no-explicit-any
+      const er = (globalThis as any).EdgeRuntime;
+      if (er && typeof er.waitUntil === "function") er.waitUntil(invio);
+      await limite; log("salvato"); return risposta(200, { ok: true }, origin);
+    }
     if (tentativo === 3) { log("errore_db", error.message); break; }
     await new Promise((r) => setTimeout(r, 300 * tentativo));
   }
