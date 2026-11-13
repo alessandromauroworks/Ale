@@ -53,6 +53,16 @@ const TELOK=t=>/^[+0-9 ().\/-]{6,25}$/.test(t)&&t.replace(/\D/g,'').length>=8&&t
    ok('privato: messaggio WhatsApp senza «per noi» e «per l\'attività»',msg&&!/su misura per noi|Video e foto per l'attività/.test(msg));
    ok('privato: informativa senza «la tua attività»',!/proposta per la tua attività/.test(await p.textContent('.privacy')));
    ok('privato: console pulita',p.errs.length===0,JSON.stringify(p.errs)); await p.context().close(); }
+ // chi sceglie email o telefono: niente WhatsApp (come dice l'informativa); se il salvataggio fallisce, email o WhatsApp come riserva
+ for(const [save,esito] of [[200,'ok'],[500,'fallito']]){ const p=await L.mk(b,{width:390,height:844},{save}); const nuove=[]; p.context().on('page',x=>nuove.push(x.url()));
+   await p.click('#fastBtn'); await p.fill('#fNome','Anna'); await p.fill('#fAtt','Studio'); await p.fill('#fTipo','dentist'); await p.waitForTimeout(200); await p.locator('#tipoList .opt').first().click(); await L.chip(p,'cRuolo','Titolare');
+   await L.next(p); await L.next(p); await L.chip(p,'cContatto','Telefono'); await p.fill('#fTel','0881 686119'); await p.check('#fPriv'); await L.next(p); await p.waitForTimeout(800);
+   ok('telefono ('+esito+'): bottone «Invia le risposte», niente WhatsApp',(await p.textContent('#sendBtn'))==='Invia le risposte'&&!/WhatsApp/.test(await p.textContent('#lead10')));
+   await p.click('#sendBtn'); await p.waitForTimeout(1200);
+   ok('telefono ('+esito+'): nessuna finestra WhatsApp aperta, salvataggio partito',nuove.length===0&&p.posts.filter(x=>x.d).length===1,nuove.join());
+   if(save===200) ok('telefono (ok): «Fatto», nessuna istruzione WhatsApp',(await p.textContent('#doneH')).includes('Fatto')&&await p.locator('#noWa').isVisible()&&await p.locator('#waAgain').isHidden()&&await p.locator('#doneTxt').isHidden());
+   else ok('telefono (fallito): email come riserva e WhatsApp facoltativo',(await p.textContent('#doneH')).includes('Manca un passo')&&await p.locator('#mailBox').isVisible()&&await p.locator('#waAgain').isVisible()&&await p.locator('#noWa').isHidden());
+   ok('telefono ('+esito+'): console pulita',p.errs.length===0,JSON.stringify(p.errs)); await p.context().close(); }
  ok('copertina: non promette WhatsApp a chi sceglie email o telefono',await (async()=>{ const p=await L.mk(b,{width:390,height:844}); const t=await p.textContent('.step[data-s="0"]'); await p.context().close(); return /se lo scegli, anche su WhatsApp/.test(t); })());
  await b.close(); L.done();
 })();

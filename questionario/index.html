@@ -492,7 +492,7 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);bo
 
     <section class="step" data-s="10">
       <h2>Controlla e invia</h2>
-      <p class="lead">Se è tutto giusto, tocca «Invia su WhatsApp»: si apre la chat con il messaggio già pronto, devi solo premere invio.</p>
+      <p class="lead" id="lead10">Se è tutto giusto, tocca «Invia su WhatsApp»: si apre la chat con il messaggio già pronto, devi solo premere invio.</p>
       <dl class="sum" id="sum"></dl>
       <p class="note" id="lungo" hidden>Le tue risposte sono troppo lunghe per aprire WhatsApp già pronto. Tocca «Copia e apri WhatsApp»: il messaggio viene copiato e si apre la chat con Alessandro. Tu devi solo incollarlo nella chat e premere invio.</p>
     </section>
@@ -500,12 +500,12 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);bo
     <section class="step" data-s="11">
       <div class="done">
         <div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-        <h2>Ultimo passo: premi invio</h2>
-        <div class="note" id="noWa" hidden><b>Non usi WhatsApp qui?</b> Le risposte mi sono già arrivate, ti ricontatto io.</div>
+        <h2 id="doneH">Ultimo passo: premi invio</h2>
+        <div class="note" id="noWa" hidden><b>Le risposte mi sono arrivate.</b> Ti ricontatto io con il mezzo che hai scelto.</div>
         <div class="actions" id="mailBox" hidden><a class="btn primary" id="mailBtn" href="#">Mandami le risposte per email</a></div>
         <p class="lead" id="doneTxt">Se si è aperta la chat di WhatsApp, premi invio: il messaggio è già scritto. Appena lo ricevo preparo la call sulla tua attività.</p>
         <p class="lead" id="doneTxt2">Se non vedi WhatsApp, tocca «Apri WhatsApp» oppure copia il messaggio e mandalo a questo numero:</p>
-        <p class="num"><b>+39 339 405 2935</b></p>
+        <p class="num" id="waNum"><b>+39 339 405 2935</b></p>
         <div class="actions">
           <a class="btn primary" id="waAgain" href="#" target="_blank" rel="noopener">Apri WhatsApp</a>
           <button class="btn" type="button" id="copyBtn">Copia il messaggio</button>
@@ -1201,8 +1201,12 @@ function riepilogo() {
     if (tok !== rtoken) return;
     invio = r;
     bs.href = r.url; $("waAgain").href = r.url; $("copyArea").value = r.testo; $("copyArea").hidden = !r.copia;
-    bs.textContent = r.copia ? "Copia e apri WhatsApp" : "Invia su WhatsApp";
+    bs.textContent = r.copia ? "Copia e apri WhatsApp" : "Invia su WhatsApp"; bs.target = "_blank";
     $("lungo").hidden = !r.copia; $("copyBtn").textContent = "Copia il messaggio";
+    /* chi ha scelto email o telefono non passa da WhatsApp (come dice l'informativa): le risposte partono solo verso il salvataggio protetto */
+    const nw = r.d.contatto !== "WhatsApp";
+    if (nw) { bs.textContent = "Invia le risposte"; bs.setAttribute("href", "#"); bs.removeAttribute("target"); $("lungo").hidden = true; }
+    $("lead10").textContent = nw ? "Se è tutto giusto, tocca «Invia le risposte»: mi arrivano in modo protetto e ti ricontatto " + (r.d.contatto === "Email" ? "via email." : "per telefono.") : "Se è tutto giusto, tocca «Invia su WhatsApp»: si apre la chat con il messaggio già pronto, devi solo premere invio.";
     $("doneTxt").textContent = r.copia ? "Il messaggio è troppo lungo per aprirsi da solo: l'ho copiato. Nella chat di WhatsApp con Alessandro tieni premuto nella casella di testo, scegli «Incolla» e premi invio." : "Se si è aperta la chat di WhatsApp, premi invio: il messaggio è già scritto. Appena lo ricevo preparo la call sulla tua attività.";
     $("doneTxt2").textContent = r.copia ? "Se non si è copiato, tocca «Copia il messaggio» qui sotto e incollalo nella chat WhatsApp con Alessandro (+39 339 405 2935)." : "Se non vedi WhatsApp, tocca «Apri WhatsApp» oppure copia il messaggio e mandalo a questo numero:";
     bs.classList.remove("wait"); bs.removeAttribute("aria-disabled");
@@ -1255,11 +1259,14 @@ function prenota() {
 }
 
 /* salvataggio protetto: parte insieme a WhatsApp, non lo blocca mai e non si ripete per lo stesso invio */
-let salvato = "", salvatoOk = false;
+let salvato = "", salvatoOk = false, salvaInCorso = false;
 /* schermata finale per chi non usa WhatsApp: «già arrivate» solo se il salvataggio online ha risposto ok; altrimenti email */
 function finale() {
-  const d = (invio && invio.d) || dati(), nw = d.contatto !== "WhatsApp";
-  $("noWa").hidden = !(nw && salvatoOk); $("mailBox").hidden = !(nw && !salvatoOk);
+  const d = (invio && invio.d) || dati(), nw = d.contatto !== "WhatsApp", attesa = nw && !salvatoOk && salvaInCorso;
+  $("noWa").hidden = !(nw && salvatoOk); $("mailBox").hidden = !(nw && !salvatoOk && !attesa);
+  $("doneH").textContent = !nw ? "Ultimo passo: premi invio" : salvatoOk ? "Fatto, grazie!" : attesa ? "Invio in corso…" : "Manca un passo: mandami le risposte";
+  $("doneTxt").hidden = nw; $("doneTxt2").textContent = nw ? "Oppure mandale su WhatsApp, a questo numero:" : $("doneTxt2").textContent;
+  [$("doneTxt2"), $("waNum"), $("waAgain"), $("copyBtn")].forEach(x => { x.hidden = nw && (salvatoOk || attesa); });
   if (nw && !salvatoOk) {
     const corpo = messaggio(d, 1, "").replace(/\n+Codice delle risposte[\s\S]*$/, "").replace(/\nLe risposte complete[^\n]*/, "").slice(0, 1500);
     $("mailBtn").setAttribute("href", "mailto:alessandromauro.works@gmail.com?subject=" + encodeURIComponent("Questionario prima call - " + (d.attivita || "")) + "&body=" + encodeURIComponent(corpo));
@@ -1268,14 +1275,14 @@ function finale() {
 function salvaOnline(r) {
   try {
     if (!r || !r.cod || salvato === r.cod || !SALVA_URL || typeof fetch !== "function") return;
-    salvato = r.cod; salvatoOk = false;
+    salvato = r.cod; salvatoOk = false; salvaInCorso = true;
     const d = r.d || dati(), ctl = typeof AbortController === "function" ? new AbortController() : null;
     const t = ctl ? setTimeout(() => ctl.abort(), 8000) : 0;
     fetch(SALVA_URL, { method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true, credentials: "omit", ...(ctl ? { signal: ctl.signal } : {}),
       body: JSON.stringify({ d, codice: r.cod, hp: $("fSitoWeb2").value }) })
-      .then(x => { if (!x.ok) salvato = ""; else { salvatoOk = true; finale(); } }, () => { salvato = ""; })
-      .finally(() => clearTimeout(t));
-  } catch (e) { salvato = ""; }
+      .then(x => { if (!x.ok) salvato = ""; else salvatoOk = true; }, () => { salvato = ""; })
+      .finally(() => { clearTimeout(t); salvaInCorso = false; if (cur === 11) finale(); });
+  } catch (e) { salvato = ""; salvaInCorso = false; }
 }
 
 /* ===== servizi con pannello di approfondimento (costruiti con il DOM, mai con innerHTML sul testo dell'utente) ===== */
@@ -1820,7 +1827,7 @@ setTimeout(() => { try { const b = JSON.parse(stor.get("qpc:bozza") || "null"), 
     const passi = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(n => n < p && (!A.veloce || FAST.includes(n)) && !(priv() && n === 7));
     const n = passi.find(x => valida(x)) || p; ripP = 0; $("riprendiBox").hidden = true; go(n); $("nextBtn").focus(); });
 } catch (e) {} }, 0);
-$("sendBtn").addEventListener("click", e => { if (!invio) { e.preventDefault(); toast("Un attimo, preparo il messaggio…"); return; } salvaOnline(invio); if (invio.copia) copia(invio.testo); try { localStorage.removeItem("qpc:bozza"); } catch (e) {} clearTimeout(saveT); setTimeout(() => go(11), 250); });
+$("sendBtn").addEventListener("click", e => { if (!invio) { e.preventDefault(); toast("Un attimo, preparo il messaggio…"); return; } const nw = invio.d.contatto !== "WhatsApp"; if (nw) e.preventDefault(); salvaOnline(invio); if (invio.copia && !nw) copia(invio.testo); try { localStorage.removeItem("qpc:bozza"); } catch (e) {} clearTimeout(saveT); setTimeout(() => go(11), 250); });
 $("waAgain").addEventListener("click", () => salvaOnline(invio));   /* se il primo salvataggio non è riuscito, riprova */
 $("editBtn").addEventListener("click", () => go(10, true));
 let toastT; function toast(t) { $("toast").textContent = t; $("toast").classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => $("toast").classList.remove("show"), 2200); }
