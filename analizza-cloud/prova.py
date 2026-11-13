@@ -19,6 +19,9 @@ PROVE = [
     ("youtube (normale)", YT, []),
     ("instagram", "https://www.instagram.com/reel/Dd1gQBsCWE8/", []),
     ("tiktok", "https://www.tiktok.com/@nasa/video/7676868860749827342", []),
+    ("tiktok parlato", "https://www.tiktok.com/@neildegrassetyson/video/7482856405934918955", []),
+    ("instagram (2a volta)", "https://www.instagram.com/reel/Dd1gQBsCWE8/", []),
+    ("instagram (3a volta)", "https://www.instagram.com/reel/Dd1gQBsCWE8/", []),
 ]
 
 
@@ -63,7 +66,7 @@ def main():
             t_scarica = time.time() - inizio
             peso = audio.stat().st_size / 1024 / 1024
             t1 = time.time()
-            segmenti, _ = modello.transcribe(leggi_wav(audio), language="it", vad_filter=True)
+            segmenti, _ = modello.transcribe(leggi_wav(audio), vad_filter=True)
             caratteri = sum(len(s.text) for s in segmenti)  # il testo NON si stampa
             t_trascrivi = time.time() - t1
             riga = "%s: PASSA | durata video %.0f s | audio %.1f MB | download %.0f s | trascrizione %.0f s | %d caratteri" % (
