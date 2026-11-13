@@ -17,11 +17,6 @@ import json
 YT = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
 PROVE = [
     ("youtube (normale)", YT, []),
-    ("youtube client tv_simply", YT, ["--extractor-args", "youtube:player_client=tv_simply"]),
-    ("youtube client web_embedded", YT, ["--extractor-args", "youtube:player_client=web_embedded"]),
-    ("youtube client mweb", YT, ["--extractor-args", "youtube:player_client=mweb"]),
-    ("youtube client android_vr", YT, ["--extractor-args", "youtube:player_client=android_vr"]),
-    ("youtube client tv", YT, ["--extractor-args", "youtube:player_client=tv"]),
     ("instagram", "https://www.instagram.com/reel/Dd1gQBsCWE8/", []),
     ("tiktok", "https://www.tiktok.com/@nasa/video/7676868860749827342", []),
 ]
@@ -45,6 +40,15 @@ def scarica(link, cartella, extra=()):
     return cartella / "media.wav", float(info.get("duration") or 0)
 
 
+def leggi_wav(wav):
+    """wav 16 kHz mono -> array float32, senza PyAV (la versione nuova rompe faster-whisper)."""
+    import wave
+    import numpy as np
+    with wave.open(str(wav), "rb") as w:
+        dati = w.readframes(w.getnframes())
+    return np.frombuffer(dati, dtype=np.int16).astype(np.float32) / 32768.0
+
+
 def main():
     from faster_whisper import WhisperModel
     t0 = time.time()
@@ -59,7 +63,7 @@ def main():
             t_scarica = time.time() - inizio
             peso = audio.stat().st_size / 1024 / 1024
             t1 = time.time()
-            segmenti, _ = modello.transcribe(str(audio), language="it", vad_filter=True)
+            segmenti, _ = modello.transcribe(leggi_wav(audio), language="it", vad_filter=True)
             caratteri = sum(len(s.text) for s in segmenti)  # il testo NON si stampa
             t_trascrivi = time.time() - t1
             riga = "%s: PASSA | durata video %.0f s | audio %.1f MB | download %.0f s | trascrizione %.0f s | %d caratteri" % (
