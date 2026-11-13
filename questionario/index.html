@@ -172,6 +172,8 @@ input[type=email]{width:100%;font:inherit;font-size:16px;color:var(--ink);backgr
 input[type=email]:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 4px rgba(29,29,31,.08)}
 .wrap.mid{max-width:860px}
 .q[hidden],.gbranch[hidden]{display:none}
+.fast .full-only{display:none!important}
+.more{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 16px;display:flex;flex-direction:column;gap:12px;margin-top:6px}.more[hidden]{display:none}.more h2{font-size:clamp(20px,4.5vw,24px)}
 .wrap{overflow-x:clip}
 .top{flex-wrap:wrap}.count{text-align:right}
 .why{margin:-12px 0 0;color:var(--muted);font-size:16px}
@@ -333,7 +335,7 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);bo
         <div><dt>Quanto ci metti</dt><dd>Circa 5 minuti. Puoi scrivere o mandarmi un vocale.</dd></div>
         <div><dt>Cosa succede dopo</dt><dd>Le risposte arrivano a me in modo protetto e su WhatsApp, e preparo la call su misura per te.</dd></div>
       </dl>
-      <div class="actions" style="margin-top:6px"><button class="btn" type="button" id="presBtn">Scopri in 30 secondi come lavoro</button></div>
+      <div class="actions" style="margin-top:6px"><button class="btn" type="button" id="fastBtn">Versione veloce (2 minuti)</button><button class="btn" type="button" id="presBtn">Scopri in 30 secondi come lavoro</button></div>
       <p id="vediSito" style="margin-top:14px;font-size:14px;color:var(--muted,#667)">Vuoi vedere prima chi sono e cosa faccio? <a href="https://alessandromauro.lovable.app/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;font-weight:600">Guarda il mio sito</a></p>
     </section>
 
@@ -351,22 +353,22 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);bo
       </div>
       <div class="q" id="altroBox" hidden><label for="fAltroTipo">Che lavoro fai, in poche parole?</label><input id="fAltroTipo" maxlength="80" type="text" placeholder="Es. noleggio barche, studio di architettura…"></div>
       <div class="q" id="ruoloBox"><span class="lab">Tu che ruolo hai?</span><span class="hint">Così capisco meglio come lavori.</span><div class="chips" data-one="ruolo" id="cRuolo"></div></div>
-      <div class="gbranch" id="cBranch" hidden>
+      <div class="gbranch full-only" id="cBranch" hidden>
         <div class="q"><label for="fTitolare">Nome del titolare o di chi decide (facoltativo)</label><input id="fTitolare" maxlength="80" type="text" placeholder="Es. Massimo Rossi"></div>
         <div class="q"><span class="lab">Il titolare sa di questo questionario?</span><div class="chips" data-one="titolareSa" id="cTitSa"></div></div>
       </div>
-      <div class="q"><label for="fCitta">Città</label><input id="fCitta" maxlength="60" type="text" autocomplete="address-level2" placeholder="Es. Bari"></div>
+      <div class="q full-only"><label for="fCitta">Città</label><input id="fCitta" maxlength="60" type="text" autocomplete="address-level2" placeholder="Es. Bari"></div>
       <p class="err" id="err1"></p>
     </section>
 
     <section class="step" data-s="2">
-      <h2>Cosa vuoi ottenere?</h2>
-      <p class="lead">Tocca quelli che contano per te, in ordine di importanza: il primo che scegli è il più importante.</p>
-      <div class="goals" id="goals"></div>
-      <div class="q"><label for="fObAltro">Altro obiettivo (facoltativo)</label><input id="fObAltro" maxlength="120" type="text" placeholder="Es. aprire una seconda sede"></div>
+      <h2 id="h2s2">Cosa vuoi ottenere?</h2>
+      <p class="lead full-only">Tocca quelli che contano per te, in ordine di importanza: il primo che scegli è il più importante.</p>
+      <div class="goals full-only" id="goals"></div>
+      <div class="q full-only"><label for="fObAltro">Altro obiettivo (facoltativo)</label><input id="fObAltro" maxlength="120" type="text" placeholder="Es. aprire una seconda sede"></div>
       <div class="q"><span class="lab">Su cosa ti posso aiutare?</span><span class="hint">Facoltativo. Puoi sceglierne più di uno: ogni scelta apre qualche domanda in più.</span><div class="svcs" id="svcList"></div></div>
-      <div class="q"><span class="lab">Che tipo di problema è?</span><span class="hint">Facoltativo. Anche più di una risposta.</span><div class="chips" data-many="tipoProblema" id="cTipoProb"></div></div>
-      <div class="q"><span class="lab">Quanto è grande secondo te?</span><span class="hint">Facoltativo. Non c'è una risposta giusta.</span><div class="chips" data-one="dimensione" id="cDim"></div></div>
+      <div class="q full-only"><span class="lab">Che tipo di problema è?</span><span class="hint">Facoltativo. Anche più di una risposta.</span><div class="chips" data-many="tipoProblema" id="cTipoProb"></div></div>
+      <div class="q full-only"><span class="lab">Quanto è grande secondo te?</span><span class="hint">Facoltativo. Non c'è una risposta giusta.</span><div class="chips" data-one="dimensione" id="cDim"></div></div>
       <div class="q"><label for="fProblemi" id="lProblemi">Raccontami i problemi che vuoi risolvere, anche con i tuoi clienti (facoltativo)</label><textarea id="fProblemi" maxlength="2000" rows="6" placeholder="Anche se non è nell'elenco: scrivi come lo racconteresti a un collega. Piccolo o grande, va bene tutto. Es. i clienti mi scrivono su WhatsApp a tutte le ore e perdo prenotazioni…"></textarea></div>
       <p class="note">Per favore non scrivere nomi o dati dei tuoi pazienti o clienti: bastano esempi generici.</p>
       <p class="err" id="err2"></p>
@@ -473,15 +475,16 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);bo
     <section class="step" data-s="9">
       <h2>Ultime cose</h2>
       <p class="why">Gli ultimi dati per fissare la call e ricontattarti nel modo che preferisci.</p>
-      <div class="q"><span class="lab">Quando vorresti partire?</span><div class="chips" data-one="tempi" id="cTempi"></div></div>
-      <div class="q"><span class="lab">Chi decide insieme a te?</span><span class="hint">Se decidete in due, è meglio che alla call ci siate entrambi.</span><div class="chips" data-one="decide" id="cDecide"></div></div>
-      <div class="q"><span class="lab">Come preferiresti pagare?</span><div class="chips" data-one="pag" id="cPag"></div></div>
-      <div class="q"><span class="lab">A chi va intestata la ricevuta?</span><span class="hint">Serve per scriverti cifre giuste fin da subito (per esempio se c'è la ritenuta d'acconto).</span><div class="chips" data-one="iva" id="cIva"></div></div>
+      <div class="q full-only"><span class="lab">Quando vorresti partire?</span><div class="chips" data-one="tempi" id="cTempi"></div></div>
+      <div class="q full-only"><span class="lab">Chi decide insieme a te?</span><span class="hint">Se decidete in due, è meglio che alla call ci siate entrambi.</span><div class="chips" data-one="decide" id="cDecide"></div></div>
+      <div class="q full-only"><span class="lab">Come preferiresti pagare?</span><div class="chips" data-one="pag" id="cPag"></div></div>
+      <div class="q full-only"><span class="lab">A chi va intestata la ricevuta?</span><span class="hint">Serve per scriverti cifre giuste fin da subito (per esempio se c'è la ritenuta d'acconto).</span><div class="chips" data-one="iva" id="cIva"></div></div>
       <div class="q"><span class="lab">Come preferisci essere ricontattato?</span><div class="chips" data-one="contatto" id="cContatto"></div></div>
       <div class="q"><label for="fTel">Un numero di telefono (va bene anche il fisso dell'ufficio)</label><input id="fTel" maxlength="25" type="tel" autocomplete="tel" placeholder="Es. 333 123 4567 oppure 0881 686119"></div>
-      <div class="gbranch" id="eBranch" hidden><div class="q"><label for="fEmail">La tua email</label><input id="fEmail" maxlength="100" type="email" autocomplete="email" placeholder="Es. nome@azienda.it"></div></div>
+      <div class="gbranch" id="eBranch" hidden><div class="q"><label for="fEmail">La tua email</label><input id="fEmail" maxlength="100" type="email" autocomplete="email" placeholder="Es. nome@azienda.it"></div>
+        <label class="check" for="fCopia" id="copiaBox" hidden><input id="fCopia" type="checkbox"><span>Mandami una copia delle risposte via email.</span></label></div>
       <div class="hp" aria-hidden="true"><label for="fSitoWeb2">Lascia vuoto questo campo</label><input id="fSitoWeb2" name="sito_web2" type="text" tabindex="-1" autocomplete="off"></div>
-      <div class="privacy"><b>Come uso le tue risposte</b>Le risposte arrivano solo ad Alessandro Mauro: vengono salvate in modo protetto su Supabase (server nell'Unione Europea), passano nel suo spazio di lavoro privato su Claude (Anthropic), dove prepara la call, e, solo se scegli WhatsApp per essere ricontattato, si apre WhatsApp (servizio di Meta) con il messaggio già pronto. Se scegli email o telefono, le risposte arrivano ad Alessandro già salvate in modo protetto e ti ricontatta con il mezzo che hai scelto; se ti propongo di mandarle per email, il messaggio passa dal tuo programma di posta. Servono solo a preparare la call e la proposta per la tua attività. Non vengono cedute a nessuno e non servono per pubblicità. Se non lavoriamo insieme vengono cancellate dopo 12 mesi, e puoi chiederne la cancellazione quando vuoi scrivendo a +39 339 405 2935 o alessandromauro.works@gmail.com. Se prenoti la call, il tuo nome e un breve riassunto delle risposte passano al servizio di prenotazione e al calendario di Alessandro, solo per fissare l'appuntamento. Finché non invii, la bozza resta solo su questo telefono o computer.</div>
+      <div class="privacy"><b>Come uso le tue risposte</b>Le risposte arrivano solo ad Alessandro Mauro: vengono salvate in modo protetto su Supabase (server nell'Unione Europea), passano nel suo spazio di lavoro privato su Claude (Anthropic), dove prepara la call, e, solo se scegli WhatsApp per essere ricontattato, si apre WhatsApp (servizio di Meta) con il messaggio già pronto. Se scegli email o telefono, le risposte arrivano ad Alessandro già salvate in modo protetto e ti ricontatta con il mezzo che hai scelto; se ti propongo di mandarle per email, il messaggio passa dal tuo programma di posta. Se spunti la casella per ricevere una copia via email, il tuo indirizzo e un breve riepilogo passano a un servizio di invio email (Resend), solo per spedirti quel messaggio. Servono solo a preparare la call e la proposta per la tua attività. Non vengono cedute a nessuno e non servono per pubblicità. Se non lavoriamo insieme vengono cancellate dopo 12 mesi, e puoi chiederne la cancellazione quando vuoi scrivendo a +39 339 405 2935 o alessandromauro.works@gmail.com. Se prenoti la call, il tuo nome e un breve riassunto delle risposte passano al servizio di prenotazione e al calendario di Alessandro, solo per fissare l'appuntamento. Finché non invii, la bozza resta solo su questo telefono o computer.</div>
       <label class="check" for="fPriv"><input id="fPriv" type="checkbox"><span>Ho letto e acconsento a questo uso delle mie risposte.</span></label>
       <p class="err" id="err7"></p>
     </section>
@@ -508,6 +511,7 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);bo
           <button class="btn ghost" type="button" id="editBtn">Modifica le risposte</button>
         </div>
         <textarea id="copyArea" readonly hidden aria-label="Messaggio da copiare"></textarea>
+        <div class="more" id="piuBox" hidden><h2>Vuoi aggiungere più dettagli?</h2><p class="lead">Continua da dove sei: le risposte che hai già dato restano. Se invii di nuovo, aggiorno quello che mi hai mandato.</p><div class="actions"><button class="btn" type="button" id="piuBtn">Continua il questionario completo</button></div></div>
         <div class="book" aria-labelledby="bookT">
           <h2 id="bookT">Prenota la call conoscitiva</h2>
           <p class="lead">Dura circa 30 minuti, online. Guardiamo insieme come lavori oggi, dove si perdono tempo e soldi, i problemi che mi hai segnalato e cosa si può sistemare. Nessun impegno.</p>
@@ -529,12 +533,13 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);bo
 <script>
 const SETTORI=[{"n":"Concessionaria auto","a":"auto salone veicoli usato","L":["Contatti dai portali","Risposte ai clienti","Prove su strada","Trattativa e pratiche","Dopo la vendita"],"P":[[0,"Richieste che arrivano da ovunque",4],[1,"Rispondo sempre alle stesse domande",5],[2,"Appuntamenti che saltano",2],[3,"Documenti da rincorrere",3],[4,"Clienti persi dopo la vendita",2]]},{"n":"Agenzia immobiliare","a":"immobili immobiliari case affitti agente immobiliare","L":["Acquisizione immobili","Annunci","Richieste","Visite","Trattativa e rogito"],"P":[[2,"Troppe chiamate di chi non compra",5],[1,"Gli annunci mi rubano tempo",3],[3,"Visite da incastrare a mano",3],[4,"Documenti sparsi ovunque",2],[0,"Pochi proprietari nuovi",2]]},{"n":"Patronato / CAF","a":"caf patronato pratiche inps isee pensioni sindacato","L":["Accoglienza","Appuntamenti","Raccolta documenti","Pratiche","Scadenze"],"P":[[0,"Il telefono squilla tutto il giorno",6],[2,"Manca sempre qualche documento",4],[1,"Agenda piena e confusa",3],[4,"Le scadenze le ricordo a memoria",3]]},{"n":"Studio dentistico","a":"dentista dentisti odontoiatra ortodonzia","L":["Contatti dei pazienti","Agenda appuntamenti","Promemoria","Visita","Dopo la visita"],"P":[[0,"Il telefono squilla mentre lavoro",4],[0,"La sera rispondo ancora ai messaggi",3],[1,"Scrivo tutto due volte",2],[2,"Un'ora al giorno al telefono",5],[4,"I richiami si dimenticano",2]]},{"n":"Studio medico / poliambulatorio","a":"medico ambulatorio clinica specialista poliambulatorio poliambulatori dermatologo dermatologi ortopedico ortopedici ginecologo ginecologi cardiologo cardiologi chirurgo chirurghi plastico","L":["Prenotazioni","Accettazione","Visita","Documenti dopo la visita","Controlli"],"P":[[0,"La segreteria è sommersa di chiamate",6],[1,"Moduli compilati a mano",2],[3,"Pazienti che chiamano per i documenti",3],[4,"Appuntamenti non disdetti",2]]},{"n":"Dietista / nutrizionista","a":"nutrizionista nutrizionisti biologo dieta","L":["Primo contatto","Prima visita","Piano alimentare","Controlli","Social e contenuti"],"P":[[0,"Sempre le stesse domande sulla prima visita",3],[2,"I piani mi portano via le serate",4],[3,"Pazienti che spariscono tra un controllo e l'altro",2],[4,"Non ho tempo per i social",3]]},{"n":"Ristorante / pizzeria","a":"ristorante ristoranti pizzeria trattoria osteria sushi hamburgeria ristorazione braceria","L":["Prenotazioni","Ordini asporto e domicilio","Servizio in sala","Menu e prezzi","Recensioni e social"],"P":[[0,"Il telefono squilla in pieno servizio",4],[1,"Ordini presi male al telefono",3],[3,"Il menu va aggiornato ovunque",1],[4,"Poche recensioni nuove",1],[4,"Social fermi da settimane",3]]},{"n":"Bar / caffetteria","a":"bar caffè pasticceria gelateria pub","L":["Banco e colazioni","Ordini ai fornitori","Pranzi e ordini di gruppo","Eventi e aperitivi","Social"],"P":[[1,"Ordini ai fornitori fatti a memoria",2],[2,"Ordini di gruppo al telefono",2],[3,"Gli eventi non li conosce nessuno",2],[4,"Social aggiornati quando capita",3]]},{"n":"Centro estetico","a":"estetista estetici estetica spa beauty nail unghie","L":["Prenotazioni","Scheda cliente","Trattamenti","Pacchetti e abbonamenti","Fidelizzazione"],"P":[[0,"Prenotazioni sparse tra telefono, DM e WhatsApp",5],[0,"Clienti che non si presentano",2],[1,"Schede clienti su carta",2],[3,"Pacchetti contati a mano",1],[4,"Clienti che non tornano",2]]},{"n":"Parrucchiere / barbiere","a":"barbiere barbieri barberia barberie parrucchiere parrucchieri salone capelli hair","L":["Prenotazioni","Servizio","Cassa","Prodotti","Social"],"P":[[0,"Rispondo al telefono con le forbici in mano",4],[0,"Buchi in agenda per chi non arriva",2],[3,"Magazzino prodotti a occhio",1],[4,"Nessuno pubblica i lavori",3]]},{"n":"Palestra / centro sportivo","a":"palestra palestre fitness crossfit padel piscina personal trainer","L":["Nuovi iscritti","Abbonamenti e pagamenti","Corsi e prenotazioni","Schede allenamento","Rinnovi"],"P":[[0,"Contatti dai social che non richiamo",3],[1,"Rincorro chi non ha pagato",3],[2,"Corsi pieni o vuoti senza saperlo",2],[4,"Iscritti che non rinnovano",2]]},{"n":"B&B / hotel / casa vacanze","a":"b&b bed and breakfast hotel albergo casa vacanze affittacamere struttura","L":["Prenotazioni","Domande prima dell'arrivo","Check-in","Soggiorno","Recensioni"],"P":[[0,"Le commissioni dei portali pesano",1],[1,"Messaggi degli ospiti a tutte le ore",4],[2,"Check-in e documenti a mano",2],[4,"Recensioni lasciate al caso",1]]},{"n":"Studio commercialista","a":"commercialista commercialisti contabile consulente fiscale","L":["Richieste dei clienti","Raccolta documenti","Contabilità","Scadenze fiscali","Comunicazioni"],"P":[[1,"I documenti arrivano tardi e incompleti",5],[0,"Mail e telefonate per domande semplici",4],[3,"Scadenze da ricordare cliente per cliente",3],[4,"Circolari che nessuno legge",1]]},{"n":"Studio legale","a":"avvocato legale studio legale","L":["Primo contatto","Consulenza","Pratiche e fascicoli","Udienze e scadenze","Aggiornamenti al cliente"],"P":[[0,"Contatti che non sono casi per me",3],[2,"Documenti sparsi tra mail e chat",2],[3,"Scadenze su agenda di carta",2],[4,"Clienti che chiamano per sapere a che punto siamo",3]]},{"n":"Officina / carrozzeria / autolavaggio","a":"officina meccanico carrozzeria carrozzerie autocarrozzeria gommista autolavaggio elettrauto revisioni","L":["Richieste e preventivi","Perizia e assicurazione","Accettazione e auto di cortesia","Riparazione","Consegna e pagamento","Richiami e recensioni"],"P":[[0,"Il telefono squilla mentre lavoro",4],[0,"Preventivi chiesti con foto su WhatsApp, a tutte le ore",3],[0,"Preventivi fatti che poi non diventano lavori",2],[1,"Pratiche, periti e assicurazioni da rincorrere",3],[2,"Auto di cortesia e appuntamenti incastrati a mano",2],[4,"«È pronta la macchina?» al telefono",2],[5,"Revisioni e tagliandi da ricordare",2],[5,"Pochi clienti nuovi da Google e social",2]]},{"n":"Negozio / attività commerciale","a":"negozio abbigliamento ferramenta ottica profumeria commercio boutique imballaggi","L":["Vetrina e social","Richieste dei clienti","Vendita","Magazzino","Clienti abituali"],"P":[[0,"Social senza costanza",3],[1,"Stesse domande su prezzi e disponibilità",3],[3,"Magazzino controllato a mano",2],[4,"Clienti che non tornano",1]]},{"n":"Fisioterapista / osteopata","a":"fisioterapia fisioterapista osteopata riabilitazione massoterapista","L":["Prenotazioni","Prima valutazione","Sedute","Esercizi a casa","Controlli"],"P":[[0,"Rispondo al telefono tra un paziente e l'altro",4],[0,"Sedute disdette all'ultimo",2],[3,"Gli esercizi spiegati a voce si dimenticano",2],[4,"Pazienti che non tornano al controllo",1]]},{"n":"Impresa edile / artigiano","a":"edilizia impresa edile idraulico elettricista artigiano ristrutturazioni infissi serramenti clima termoidraulica impianti","L":["Richieste preventivo","Sopralluogo","Preventivo","Cantiere","Fine lavori"],"P":[[0,"Richieste poco chiare",3],[2,"I preventivi mi tengono sveglio la sera",4],[3,"Aggiornare il cliente sul cantiere",2],[4,"Pochi lavori mostrati online",2]]},{"n":"Psicologo / psicoterapeuta","a":"psicologo psicologi psicoterapeuta psicoterapia counselor","L":["Primo contatto","Primo colloquio","Sedute","Agenda e pagamenti","Farsi conoscere"],"P":[[0,"Rispondo al telefono tra una seduta e l'altra",3],[3,"Spostamenti e disdette via messaggio",2],[3,"Fatture e ricevute a fine mese",2],[4,"Non ho tempo per farmi conoscere",2]]},{"n":"Veterinario","a":"veterinario veterinari clinica veterinaria animali","L":["Prenotazioni","Visita","Vaccini e richiami","Referti e ricette","Negozio e prodotti"],"P":[[0,"Il telefono non smette mai di squillare",5],[2,"Vaccini e richiami ricordati a mano",3],[3,"Proprietari che chiamano per i documenti",2],[4,"Ordini di alimenti fatti al momento",1]]},{"n":"Farmacia / parafarmacia","a":"farmacia farmacie parafarmacia sanitaria","L":["Banco","Prenotazioni servizi","Ordini e prodotti da ritirare","Promozioni","Social e Google"],"P":[[1,"Servizi prenotati a voce",2],[2,"Clienti da avvisare quando arriva il prodotto",3],[3,"Le promozioni le conoscono in pochi",2],[4,"Scheda Google poco curata",1]]},{"n":"Scuola di danza / musica","a":"scuola danza musica ballo canto accademia corsi","L":["Iscrizioni","Corsi e orari","Quote mensili","Comunicazioni alle famiglie","Social"],"P":[[0,"Richieste di informazioni a tutte le ore",3],[2,"Rincorro chi non ha pagato la quota",3],[3,"Avvisi alle famiglie su mille gruppi WhatsApp",2],[4,"Video dei saggi che restano nel telefono",2]]},{"n":"Agenzia viaggi","a":"viaggi viaggio tour operator vacanze crociere","L":["Richieste","Preventivi","Prenotazione","Prima della partenza","Dopo il viaggio"],"P":[[0,"Richieste generiche che non diventano viaggi",4],[1,"Preventivi che mi rubano ore",5],[3,"Documenti e promemoria mandati a mano",2],[4,"Clienti che non tornano",1]]},{"n":"Agenzia assicurativa","a":"assicurazioni assicurazione assicurativa broker polizze","L":["Nuovi contatti","Preventivi","Contratti e documenti","Scadenze e rinnovi","Sinistri"],"P":[[1,"Preventivi che chiedono sempre gli stessi dati",4],[2,"Documenti che arrivano a pezzi",3],[3,"Scadenze da ricordare cliente per cliente",3],[4,"Clienti che chiamano per sapere del sinistro",2]]},{"n":"Autoscuola","a":"autoscuola autoscuole scuola guida patente patenti","L":["Iscrizioni","Teoria","Guide pratiche","Esami","Pagamenti"],"P":[[0,"Sempre le stesse domande su costi e tempi",4],[2,"Agenda delle guide incastrata a mano",4],[3,"Documenti per l'esame da rincorrere",2],[4,"Rate da ricordare",2]]},{"n":"Cantina / agriturismo","a":"cantina cantine vino vinicola agriturismo masseria tenuta podere azienda agricola","L":["Visite e degustazioni","Vendita","Eventi","Clienti abituali","Racconto"],"P":[[0,"Degustazioni prenotate al telefono",3],[1,"Ordini dei clienti presi a voce",2],[3,"Clienti che comprano una volta e spariscono",1],[4,"La storia della cantina non la racconta nessuno",3]]},{"n":"Impresa di servizi / pulizie / manutenzioni","a":"pulizie impresa di pulizie manutenzione manutenzioni servizi condomini facility giardinaggio disinfestazione sanificazione traslochi","L":["Richiesta e preventivo","Pianificazione dei turni","Intervento dal cliente","Fatturazione e pagamenti","Contratti e rinnovi"],"P":[[0,"Preventivi fatti a mano e rimandati",4],[1,"Turni e squadre organizzati a voce",3],[2,"Chiamate dei clienti mentre si lavora",3],[3,"Pagamenti da sollecitare",2],[4,"Contratti in scadenza che nessuno ricorda",2]]},{"n":"Studio tecnico (geometra, ingegnere, architetto)","a":"geometra ingegnere architetto studio tecnico progettista progetti pratiche edilizie catasto topografo","L":["Primo incontro e sopralluogo","Preventivo","Pratiche e progetto","Scadenze e documenti","Cantiere e consegna"],"P":[[0,"Appuntamenti e sopralluoghi gestiti a mano",3],[1,"Preventivi lunghi da preparare",3],[2,"Pratiche con tanti documenti da inseguire",4],[3,"Scadenze di pratiche e bonus da ricordare",3],[4,"Clienti che chiedono a che punto siamo",2]]},{"n":"Trasporti / logistica / corrieri","a":"trasporti logistica corriere corrieri spedizioni autotrasporto camion consegne furgone","L":["Richiesta e preventivo","Pianificazione dei viaggi","Consegna","Documenti e fatture","Clienti abituali"],"P":[[0,"Richieste di preventivo per telefono",3],[1,"Giri e consegne organizzati su fogli",4],[2,"Clienti che chiedono dov'è il pacco",3],[3,"Documenti di trasporto e fatture da compilare",3],[4,"Pagamenti in ritardo",2]]},{"n":"Consulente del lavoro / paghe","a":"consulente del lavoro paghe buste paga cedolini payroll contributi studio paghe","L":["Nuovo cliente","Raccolta dati mensili","Buste paga","Scadenze e adempimenti","Comunicazioni ai clienti"],"P":[[1,"Presenze e dati da inseguire ogni mese",4],[2,"Buste paga da preparare e inviare",3],[3,"Scadenze di adempimenti da non dimenticare",3],[4,"Le stesse domande dei clienti",3],[0,"Documenti dei nuovi clienti",2]]},{"n":"Associazione / ente / cooperativa","a":"associazione ente cooperativa onlus no profit volontariato circolo pro loco parrocchia comitato soci iscritti","L":["Iscrizioni e soci","Comunicazioni ai soci","Eventi e attività","Quote e pagamenti","Volontari e turni"],"P":[[0,"Iscrizioni e rinnovi su carta o fogli",3],[1,"Messaggi ai soci mandati uno per uno",3],[2,"Eventi organizzati a voce e gruppi chat",3],[3,"Quote da sollecitare",2],[4,"Turni dei volontari",2]]},{"n":"Privato (per me o la mia famiglia)","a":"privato personale famiglia me stesso hobby progetto portfolio freelance studente casa","L":["Idee e progetti","Documenti e carte","Scadenze e promemoria","Messaggi e contatti","Casa e famiglia"],"P":[[0,"Idee e progetti sparsi tra note e file",3],[1,"Documenti e carte difficili da ritrovare",3],[2,"Scadenze che dimentico",3],[3,"Messaggi e mail a cui rispondo sempre uguale",2],[4,"Impegni di famiglia sparsi su più agende",2]]},{"n":"Altra attività","a":"","L":["Contatti","Risposte","Appuntamenti","Il lavoro","Dopo"],"P":[[1,"Rispondo sempre alle stesse domande",4],[2,"Agenda gestita a mano",2],[4,"Clienti che non tornano",1]]}];
 const WA = "393394052935";
-/* PRENOTAZIONE CALL. Incolla qui il link della pagina di prenotazione di Alessandro.
-   Come si crea (2 minuti): su cal.com crea l'account, collega Google Calendar (così l'appuntamento
-   arriva da solo su telefono e computer), crea un tipo di evento "Call conoscitiva" da 30 minuti,
-   con Google Meet, e copia il link, es. https://cal.com/NOME/call-conoscitiva.
-   Funziona anche con "Pianificazione appuntamenti" di Google Calendar o con Calendly (il link si apre così com'è).
-   Con cal.com nome e riassunto delle risposte vengono precompilati. Se resta vuoto, il cliente ti scrive su WhatsApp. */
+/* PRENOTAZIONE CALL.
+   Incolla qui il link della pagina di prenotazione di Google Calendar.
+   Come si crea (2 minuti): in Google Calendar, "Crea" > "Pianificazione appuntamenti": imposta "Call conoscitiva" da 30 minuti
+   e scegli di aggiungere Google Meet: il link Meet arriva da solo nell'invito. Poi copia il link della pagina di prenotazione,
+   es. https://calendar.app.google/XXXX oppure https://calendar.google.com/calendar/appointments/schedules/...
+   Google Calendar non permette di precompilare i campi: il link si apre così com'è. Funziona anche cal.com (con nome e riassunto
+   precompilati) e Calendly. Se resta vuoto, la call si fissa scrivendo: su WhatsApp, per email o con una telefonata, come ha scelto chi compila. */
 const PRENOTA_URL = "";
 /* SALVATAGGIO PROTETTO. Le risposte vanno anche alla funzione del progetto Supabase di Alessandro (server UE),
    così arrivano da sole nella Mappa Call Live. Nessuna chiave qui: la funzione è pubblica e accetta solo
@@ -715,8 +720,8 @@ function normGest(g) {
   return b;
 }
 const PK_VALORI = ["essenziale", "professionale", "completo", "non-so"];
-let A = { s:null, flusso:[], consigli:{acc:[],rif:[]}, pkTipo:null, pkStd:null, pkMis:false, pkVoci:null, lavOk:[], mnote:{}, extra:[], det:normDet({}), ruolo:null, titolareSa:null, contatto:null, telQuante:null, telNessuno:[], telMomenti:[], tipoProblema:[], dimensione:null, segPerdite:[], ob:[], servizi:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pk:null, pag:null, iva:null, gest:{ serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null } };
-try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav","servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); ["servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { A[k] = A[k].filter(x => OPZ[k].includes(x)); }); normMappa(); { const cg = A.consigli && typeof A.consigli === "object" && !Array.isArray(A.consigli) ? A.consigli : {}; A.consigli = { acc: Array.isArray(cg.acc) ? cg.acc.filter(x => typeof x === "string").slice(0, 20) : [], rif: Array.isArray(cg.rif) ? cg.rif.filter(x => typeof x === "string").slice(0, 20) : [] }; }
+let A = { s:null, copia:false, veloce:false, flusso:[], consigli:{acc:[],rif:[]}, pkTipo:null, pkStd:null, pkMis:false, pkVoci:null, lavOk:[], mnote:{}, extra:[], det:normDet({}), ruolo:null, titolareSa:null, contatto:null, telQuante:null, telNessuno:[], telMomenti:[], tipoProblema:[], dimensione:null, segPerdite:[], ob:[], servizi:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pk:null, pag:null, iva:null, gest:{ serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null } };
+try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav","servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); ["servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { A[k] = A[k].filter(x => OPZ[k].includes(x)); }); A.veloce = A.veloce === true; A.copia = A.copia === true; normMappa(); { const cg = A.consigli && typeof A.consigli === "object" && !Array.isArray(A.consigli) ? A.consigli : {}; A.consigli = { acc: Array.isArray(cg.acc) ? cg.acc.filter(x => typeof x === "string").slice(0, 20) : [], rif: Array.isArray(cg.rif) ? cg.rif.filter(x => typeof x === "string").slice(0, 20) : [] }; }
   A.pkTipo = PT_ID.includes(A.pkTipo) ? A.pkTipo : null; A.pkStd = PS_ID.includes(A.pkStd) ? A.pkStd : null; A.pkMis = A.pkMis === true; A.pkVoci = Array.isArray(A.pkVoci) ? A.pkVoci.filter(k => PR_ID.includes(k)) : null;
   if (A.pk && !A.pkTipo) { A.pkTipo = { completo: "completo", essenziale: "singolo", professionale: "insieme", "non-so": "misura" }[A.pk] || null; if (A.pk === "completo") A.pkStd = "completo"; }
   A.flusso = Array.isArray(A.flusso) ? A.flusso.filter(x => typeof x === "string" && x.length < 160).slice(0, 12) : []; A.det = normDet(A.det); ["ruolo","dimensione","titolareSa","contatto","telQuante"].forEach(k => { if (!OPZ[k].includes(A[k]) && !(k === "ruolo" && A[k] === "Privato")) A[k] = null; }); if (/^Privato/.test(A.s || "")) A.ruolo = "Privato"; else if (A.ruolo === "Privato") A.ruolo = null; if (!A.prob || typeof A.prob !== "object" || Array.isArray(A.prob)) A.prob = {}; Object.keys(A.prob).forEach(k => { if (!A.prob[k] || typeof A.prob[k] !== "object") delete A.prob[k]; }); ["team","tempi","decide","pag","iva"].forEach(k => { if (A[k] != null && typeof A[k] !== "string") A[k] = null; }); A.budget = "Ne parliamo in call"; if (!PK_VALORI.includes(A.pk)) A.pk = null; A.vocale = A.vocale === true; A.gest = normGest(A.gest); if (A.s && !SETTORI.some(x => x.n === A.s)) A.s = null; setTimeout(() => { Object.entries(d.f || {}).forEach(([k,v]) => { const el = $(k); if (el && typeof v === "string") el.value = v; }); try { migraGest(A); } catch (er) {} if (A.s) pickTipo(A.s, true); $("vocaleBtn").setAttribute("aria-pressed", !!A.vocale); }, 0); } } catch(e) {}
@@ -753,7 +758,7 @@ const perConto = () => !!A.ruolo && !["Titolare o socio","Libero professionista 
 const nonWa = () => A.contatto === "Email" || A.contatto === "Telefono (anche fisso)";
 function segShow() {
   $("sBranch").hidden = !isSeg(); $("cBranch").hidden = !perConto(); $("eBranch").hidden = A.contatto !== "Email";
-  $("why3").textContent = priv() ? "Mi aiuta a capire come ti organizzi oggi." : "Mi aiuta a capire come arrivano i clienti e dove si perdono le chiamate."; $("ruoloBox").hidden = priv(); $("lAtt").textContent = priv() ? "Il tuo progetto (facoltativo)" : "Nome dell'attività"; $("fAtt").placeholder = priv() ? "Es. il mio portfolio, un blog, un'idea" : "Es. Pizzeria Da Marco";
+  $("why3").textContent = priv() ? "Mi aiuta a capire come ti organizzi oggi." : "Mi aiuta a capire come arrivano i clienti e dove si perdono le chiamate."; $("copiaBox").hidden = !v("fEmail"); $("fCopia").checked = A.copia; $("ruoloBox").hidden = priv(); $("lAtt").textContent = priv() ? "Il tuo progetto (facoltativo)" : "Nome dell'attività"; $("fAtt").placeholder = priv() ? "Es. il mio portfolio, un blog, un'idea" : "Es. Pizzeria Da Marco";
   ["cTeam", "cCan", "cTelQ", "cTelN", "cTelM"].forEach(id => { $(id).closest(".q").hidden = priv(); });
   $("lProblemi").textContent = priv() ? "Raccontami cosa vorresti sistemare o realizzare (facoltativo)" : isSeg() ? "Raccontami i problemi che vuoi risolvere, per te, per il titolare o con i clienti (facoltativo)" : "Raccontami i problemi che vuoi risolvere, anche con i tuoi clienti (facoltativo)";
 }
@@ -1096,7 +1101,7 @@ function dati() {
   const prob = Object.entries(A.prob).filter(([, x]) => x.si).map(([i, x]) => [Number(i), x.o != null ? ORE[x.o][1] : null]);
   const no = Object.entries(A.prob).filter(([, x]) => x.si === false).map(([i]) => Number(i));
   return { v:1, data:new Date().toISOString().slice(0, 10), s:s.n, tipoAltro:s.n === "Altra attività" ? taglia(v("fAltroTipo"), 80) : "", nome:taglia(v("fNome"), 80), attivita:taglia(v("fAtt"), 80) || (priv() ? "Privato" : ""), citta:taglia(v("fCitta"), 60), tel:taglia(v("fTel"), 25),
-    ig:taglia(v("fIg"), 80), sito:taglia(v("fSito"), 120), ob:A.ob, dettagli:dettagli(), mappa:mappaDati(), flusso:flussoDati(), consigli:{ accettati:A.consigli.acc, rifiutati:A.consigli.rif }, pacchetto:pacchettoDati(), ruolo:A.ruolo, contatto:A.contatto || "WhatsApp", email:taglia(v("fEmail"), 100), ...(perConto() ? { perConto:{ titolare:taglia(v("fTitolare"), 80), sa:A.titolareSa } } : {}), telefono:{ quante:A.telQuante, nessuno:A.telNessuno, momenti:A.telMomenti }, servizi:A.servizi, tipoProblema:A.tipoProblema, dimensione:A.dimensione, ...(isSeg() ? { segreteria:{ perdite:A.segPerdite, aiuto:taglia(v("fSegAiuto"), 500) } } : {}), problemi:taglia(v("fProblemi"), 2000), obAltro:taglia(v("fObAltro"), 120), team:A.team, can:A.can, str:A.str, lav:A.lav, lavAltro:taglia(v("fLavAltro"), 300),
+    ig:taglia(v("fIg"), 80), sito:taglia(v("fSito"), 120), ob:A.ob, versione:A.veloce ? "veloce" : "completa", dettagli:dettagli(), mappa:mappaDati(), flusso:flussoDati(), consigli:{ accettati:A.consigli.acc, rifiutati:A.consigli.rif }, pacchetto:pacchettoDati(), ruolo:A.ruolo, contatto:A.contatto || "WhatsApp", email:taglia(v("fEmail"), 100), copiaEmail:A.copia === true && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v("fEmail")), ...(perConto() ? { perConto:{ titolare:taglia(v("fTitolare"), 80), sa:A.titolareSa } } : {}), telefono:{ quante:A.telQuante, nessuno:A.telNessuno, momenti:A.telMomenti }, servizi:A.servizi, tipoProblema:A.tipoProblema, dimensione:A.dimensione, ...(isSeg() ? { segreteria:{ perdite:A.segPerdite, aiuto:taglia(v("fSegAiuto"), 500) } } : {}), problemi:taglia(v("fProblemi"), 2000), obAltro:taglia(v("fObAltro"), 120), team:A.team, can:A.can, str:A.str, lav:A.lav, lavAltro:taglia(v("fLavAltro"), 300),
     prob, probT:prob.map(([i]) => s.P[i] ? s.P[i][1] : ""), no, noT:no.map(i => s.P[i] ? s.P[i][1] : ""), probAltro:taglia(v("fProbAltro"), 300), magia:taglia(v("fMagia"), 300), provato:taglia(v("fProvato"), 300),
     vocale:A.vocale, tempi:A.tempi, decide:A.decide, budget:"Ne parliamo in call", pag:A.pag, iva:A.iva,
     ...(A.gest.serve ? { gest:gestDati(s) } : {}),
@@ -1216,11 +1221,19 @@ function prenota() {
   $("bookList").innerHTML = punti.slice(0, 4).map(p => `<li>${esc(p)}</li>`).join("");
   $("bookPunti").hidden = !punti.length;
   const btn = $("bookBtn"); let url = null, host = "";
-  try { if (PRENOTA_URL) { url = new URL(PRENOTA_URL); host = url.hostname; } } catch (e) { url = null; }
+  try { if (PRENOTA_URL) { url = new URL(PRENOTA_URL); host = url.hostname; if (url.protocol !== "https:") url = null; } } catch (e) { url = null; }
+  btn.removeAttribute("target"); btn.target = "_blank";
   if (!url) {
-    btn.textContent = "Scrivimi su WhatsApp quando ti va bene";
-    btn.href = "https://wa.me/" + WA + "?text=" + encodeURIComponent("Ciao Alessandro, ho compilato il questionario. Per la call mi vanno bene: ");
-    $("bookHint").textContent = "Si apre WhatsApp: scrivimi i giorni e gli orari che ti vanno bene e ti confermo.";
+    const scelta = d.contatto || "WhatsApp", orari = "Ciao Alessandro, ho compilato il questionario. Per la call mi vanno bene: ";
+    if (scelta === "WhatsApp") {
+      btn.textContent = "Scrivimi su WhatsApp quando ti va bene";
+      btn.href = "https://wa.me/" + WA + "?text=" + encodeURIComponent(orari);
+      $("bookHint").textContent = "Si apre WhatsApp: scrivimi i giorni e gli orari che ti vanno bene e ti confermo.";
+    } else {
+      btn.textContent = "Mandami i miei orari per email"; btn.removeAttribute("target");
+      btn.href = "mailto:alessandromauro.works@gmail.com?subject=" + encodeURIComponent("Call conoscitiva - orari che mi vanno bene") + "&body=" + encodeURIComponent(orari);
+      $("bookHint").textContent = scelta === "Email" ? "Ti scrivo io per fissare la call, all'email che mi hai lasciato. Se vuoi, intanto mandami tu i giorni e gli orari che ti vanno bene." : "Ti chiamo io per fissare la call, al numero che mi hai lasciato. Se preferisci, mandami per email i giorni e gli orari che ti vanno bene.";
+    }
     return;
   }
   if (/(^|\.)cal\.com$/i.test(host)) {
@@ -1228,9 +1241,11 @@ function prenota() {
       prob.length ? "Problemi: " + prob.join("; ") : "", d.decide ? "Decide: " + d.decide : ""].filter(Boolean).join("\n");
     if (d.nome) url.searchParams.set("name", d.nome);
     url.searchParams.set("notes", taglia(note, 600));
-  }
+    $("bookHint").textContent = "Si apre una pagina dove scegli l'orario libero. L'invito arriva nel tuo calendario.";
+  } else if (/^(calendar\.app\.google|calendar\.google\.com)$/i.test(host)) {
+    $("bookHint").textContent = "Scegli giorno e ora: la call è su Google Meet, il link ti arriva nell'invito via email.";
+  } else $("bookHint").textContent = "Si apre una pagina dove scegli l'orario libero. L'invito arriva nel tuo calendario.";
   btn.textContent = "Scegli giorno e ora"; btn.href = url.href;
-  $("bookHint").textContent = "Si apre una pagina dove scegli l'orario libero. L'invito arriva nel tuo calendario.";
 }
 
 /* salvataggio protetto: parte insieme a WhatsApp, non lo blocca mai e non si ripete per lo stesso invio */
@@ -1453,7 +1468,7 @@ function presentazione() {
   let i = 0, x0 = null; const N = 5;
   dlgOpen("Come lavoro, in 30 secondi", body => {
     const stage = elx("div", "pz-s"), dots = elx("div", "pz-d"), nav = elx("div", "pz-n");
-    const vai = k => { dlgClose(); setTimeout(() => go(k), 220); };
+    const vai = k => { A.veloce = false; applyFast(); dlgClose(); setTimeout(() => go(k), 220); };
     const prev = btnx("Indietro", "btn"), nx = btnx("Avanti", "btn primary"), skip = btnx("Salta e vai alle domande", "btn ghost", () => vai(1)); nx.dataset.first = "1";
     const sl = [
       () => [elx("h3", "", "Chi sono"), elx("p", "pz-big", "Sono Alessandro Mauro."), elx("p", "", "Aiuto aziende, studi, negozi, professionisti e privati a lavorare meglio con il digitale: meno cose a mano, più tempo per il lavoro vero.")],
@@ -1527,6 +1542,9 @@ function mAdd() { const f = $("mNew"), t = f.value.trim(); if (!t) { $("mErr").t
   $("mErr").textContent = ""; A.extra.push({ t: t.slice(0, 60), st: null, n: "" }); f.value = ""; renderLav(); bozza(); f.focus(); }
 $("mAddBtn").addEventListener("click", mAdd); $("mNew").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); mAdd(); } });
 document.querySelectorAll(".err").forEach(e => e.setAttribute("role", "alert"));
+$("fCopia").addEventListener("change", () => { A.copia = $("fCopia").checked; bozza(); });
+$("fEmail").addEventListener("input", () => { $("copiaBox").hidden = !v("fEmail"); });
+$("piuBtn").addEventListener("click", () => { A.veloce = false; applyFast(); invio = null; salvato = ""; bozza(); toast("Ripartiamo da dove eri"); go(2); });
 
 /* ===== «Insieme funzionano meglio»: abbinamenti, flusso delle informazioni, regole di esempio ===== */
 const ART = { appuntamento: "dell'appuntamento", prenotazione: "della prenotazione", intervento: "dell'intervento" };
@@ -1702,7 +1720,7 @@ let cur = 0;
 function valida(n) {
   if (n === 1) { if (!v("fNome") || (!v("fAtt") && !priv())) return ["err1", "Scrivi il tuo nome e quello dell'attività."]; if (!A.s) return ["err1", "Scegli il tipo di attività dall'elenco (se non c'è, scegli «Altra attività»)."]; if (!A.ruolo && !priv()) return ["err1", "Scegli che ruolo hai: titolare, segretaria, assistente…"]; }
   if (n === 5 && Object.values(A.prob).some(x => x && x.si && x.o == null)) return ["err5", "Per ogni «Sì, mi succede» scegli più o meno quanto tempo ti porta via."];
-  if (n === 2 && !A.ob.length && !v("fObAltro")) return ["err2", "Scegli almeno un obiettivo."];
+  if (n === 2 && !A.veloce && !A.ob.length && !v("fObAltro")) return ["err2", "Scegli almeno un obiettivo."];
   if (n === 9) { const tel = v("fTel"), cifre = tel.replace(/\D/g, "").length, mail = v("fEmail");
     if (cifre < 8 || cifre > 15 || !/^[+0-9 ().\/-]{6,25}$/.test(tel)) return ["err7", "Scrivi un numero di telefono valido (anche il fisso dell'ufficio), così ti confermo la call."];
     if ((A.contatto === "Email" || mail) && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) return ["err7", "Scrivi un'email valida, per esempio nome@azienda.it."];
@@ -1710,22 +1728,30 @@ function valida(n) {
   return null;
 }
 const SEZ = ["", "Su di te", "Cosa vuoi ottenere", "Come lavori", "Il tuo lavoro", "Dove perdi tempo", "Come lo vorresti", "Gestionale", "Pacchetti", "Ultime cose"];
+const FAST = [0, 1, 2, 9, 10, 11], SEZ_FAST = { 1: "Su di te", 2: "Su cosa ti aiuto", 9: "Contatto" };
+function applyFast() {
+  document.body.classList.toggle("fast", A.veloce === true);
+  $("h2s2").textContent = A.veloce ? "Su cosa ti posso aiutare?" : "Cosa vuoi ottenere?";
+}
 function go(n, back) {
+  if (A.veloce && !FAST.includes(n) && n >= 0 && n <= 11) n = back ? [...FAST].reverse().find(x => x < n) : FAST.find(x => x > n);
   if (priv() && n === 7) n = back ? 6 : 8;
   if (!back) { const e = valida(cur); document.querySelectorAll(".err").forEach(x => x.textContent = ""); if (e) { $(e[0]).textContent = e[1]; return; } }
   cur = Math.max(0, Math.min(STEPS - 1, n));
-  if (cur === 7) renderGest(); if (cur === 4) renderLav(); if (cur === 5) renderProbs(); if (cur === 2) { renderGoals(); renderSvc(); } if (cur === 3) telNote(); mostraConsiglio(cur); if (cur === 8) renderPacchetti(); if (cur === LAST_Q) riepilogo(); if (cur === 11) { prenota(); finale(); }
+  if (cur === 7) renderGest(); if (cur === 4) renderLav(); if (cur === 5) renderProbs(); if (cur === 2) { renderGoals(); renderSvc(); } if (cur === 3) telNote(); mostraConsiglio(cur); if (cur === 8) renderPacchetti(); if (cur === LAST_Q) riepilogo(); if (cur === 11) { prenota(); finale(); $("piuBox").hidden = !A.veloce; }
   document.querySelector(".wrap").classList.toggle("wide", cur === 8); document.querySelector(".wrap").classList.toggle("mid", cur === 2 || cur === 7); if (cur === 8) requestAnimationFrame(() => requestAnimationFrame(pkCentra));
   document.querySelectorAll(".step").forEach(s => { const on = Number(s.dataset.s) === cur; s.classList.toggle("on", on); s.classList.toggle("back", on && !!back); });
-  $("barI").style.width = (cur / LAST_Q * 100) + "%";
-  $("count").textContent = cur > 0 && cur < LAST_Q ? `${SEZ[cur]} · ${cur} di ${LAST_Q - 1}` : "";
+  $("barI").style.width = (A.veloce && cur <= 10 ? FAST.indexOf(cur) / 4 * 100 : cur / LAST_Q * 100) + "%"; applyFast();
+  $("count").textContent = A.veloce ? (SEZ_FAST[cur] ? `${SEZ_FAST[cur]} · ${FAST.indexOf(cur)} di 3` : "") : cur > 0 && cur < LAST_Q ? `${SEZ[cur]} · ${cur} di ${LAST_Q - 1}` : "";
   $("backBtn").style.visibility = cur > 0 && cur < 11 ? "visible" : "hidden";
   $("nextBtn").hidden = cur >= LAST_Q; $("sendBtn").hidden = cur !== LAST_Q;
   $("nextBtn").textContent = cur === 0 ? "Inizia il questionario" : cur === 9 ? "Controlla" : "Avanti";
   document.querySelector(".nav").hidden = cur === 11;
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
-$("nextBtn").onclick = () => go(cur + 1);
+$("nextBtn").onclick = () => { if (cur === 0) { A.veloce = false; applyFast(); } go(cur + 1); };
+$("fastBtn").addEventListener("click", () => { A.veloce = true; applyFast(); bozza(); go(1); });
+setTimeout(applyFast, 0);
 $("backBtn").onclick = () => go(cur - 1, true);
 $("sendBtn").addEventListener("click", e => { if (!invio) { e.preventDefault(); toast("Un attimo, preparo il messaggio…"); return; } salvaOnline(invio); if (invio.copia) copia(invio.testo); try { localStorage.removeItem("qpc:bozza"); } catch (e) {} clearTimeout(saveT); setTimeout(() => go(11), 250); });
 $("waAgain").addEventListener("click", () => salvaOnline(invio));   /* se il primo salvataggio non è riuscito, riprova */
