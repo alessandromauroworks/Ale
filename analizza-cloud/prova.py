@@ -11,41 +11,38 @@ import tempfile
 import time
 from pathlib import Path
 
-import yt_dlp
+import subprocess
+import json
 
+YT = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
 PROVE = [
-    ("youtube", "https://www.youtube.com/watch?v=jNQXAC9IVRw"),
-    ("instagram", "https://www.instagram.com/reel/Dd1gQBsCWE8/"),
-    ("tiktok", "https://www.tiktok.com/@nasa/video/7676868860749827342"),
+    ("youtube (normale)", YT, []),
+    ("youtube client tv_simply", YT, ["--extractor-args", "youtube:player_client=tv_simply"]),
+    ("youtube client web_embedded", YT, ["--extractor-args", "youtube:player_client=web_embedded"]),
+    ("youtube client mweb", YT, ["--extractor-args", "youtube:player_client=mweb"]),
+    ("youtube client android_vr", YT, ["--extractor-args", "youtube:player_client=android_vr"]),
+    ("youtube client tv", YT, ["--extractor-args", "youtube:player_client=tv"]),
+    ("instagram", "https://www.instagram.com/reel/Dd1gQBsCWE8/", []),
+    ("tiktok", "https://www.tiktok.com/@nasa/video/7676868860749827342", []),
 ]
 
 
-class Zitto:
-    """Logger di yt-dlp che non stampa nulla (i messaggi possono contenere titoli)."""
-    def debug(self, m): pass
-    def info(self, m): pass
-    def warning(self, m): pass
-    def error(self, m): pass
+def pulisci_errore(t):
+    righe = [r for r in (t or "").splitlines() if "ERROR" in r] or (t or "").splitlines()[-1:]
+    return (righe[-1] if righe else "errore sconosciuto")[:300]
 
 
-def pulisci_errore(e):
-    t = str(e).replace("\n", " ")
-    return t[:300]
-
-
-def scarica(link, cartella):
-    opzioni = {
-        "format": "bestaudio/best",
-        "outtmpl": str(cartella / "media.%(ext)s"),
-        "quiet": True, "no_warnings": True, "noprogress": True,
-        "logger": Zitto(), "noplaylist": True,
-        "postprocessors": [{"key": "FFmpegExtractAudio", "preferredcodec": "wav"}],
-        "postprocessor_args": ["-ar", "16000", "-ac", "1"],
-    }
-    with yt_dlp.YoutubeDL(opzioni) as ydl:
-        info = ydl.extract_info(link, download=True)
-    file = next(cartella.glob("media.wav"))
-    return file, float(info.get("duration") or 0)
+def scarica(link, cartella, extra=()):
+    """yt-dlp da riga di comando, processo separato. Niente stampa di titoli."""
+    comando = ["yt-dlp", "-q", "--no-warnings", "--no-progress", "--no-playlist",
+               "-f", "bestaudio/best", "-x", "--audio-format", "wav",
+               "--postprocessor-args", "ExtractAudio:-ar 16000 -ac 1",
+               "--write-info-json", "-o", str(cartella / "media.%(ext)s")] + list(extra) + [link]
+    esito = subprocess.run(comando, capture_output=True, text=True, timeout=600)
+    if esito.returncode != 0:
+        raise RuntimeError(pulisci_errore(esito.stderr))
+    info = json.loads(next(cartella.glob("*.info.json")).read_text(encoding="utf-8"))
+    return cartella / "media.wav", float(info.get("duration") or 0)
 
 
 def main():
@@ -54,11 +51,11 @@ def main():
     modello = WhisperModel("small", device="cpu", compute_type="int8")
     print("Modello small caricato in %.0f s" % (time.time() - t0), flush=True)
     esiti = []
-    for nome, link in PROVE:
+    for nome, link, extra in PROVE:
         cartella = Path(tempfile.mkdtemp())
         inizio = time.time()
         try:
-            audio, durata = scarica(link, cartella)
+            audio, durata = scarica(link, cartella, extra)
             t_scarica = time.time() - inizio
             peso = audio.stat().st_size / 1024 / 1024
             t1 = time.time()
@@ -69,7 +66,7 @@ def main():
                 nome, durata, peso, t_scarica, t_trascrivi, caratteri)
             esiti.append(True)
         except Exception as e:
-            riga = "%s: BLOCCATO dopo %.0f s | %s" % (nome, time.time() - inizio, pulisci_errore(e))
+            riga = "%s: BLOCCATO dopo %.0f s | %s" % (nome, time.time() - inizio, str(e)[:300])
             esiti.append(False)
         finally:
             shutil.rmtree(cartella, ignore_errors=True)
