@@ -299,12 +299,30 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);bo
 .wa{background:#e7f6ea;border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}.wa p{margin:0}.wa-w{font-size:13.5px;color:#31483a}.wa-b{background:#fff;border-radius:12px;padding:9px 12px;font-size:15px;overflow-wrap:anywhere}.wa-i{background:#fff6e5}
 .fs-s{display:block;font-size:14px;color:var(--muted);margin-top:2px}.fs-x b{display:block}
 .fs-x{text-align:left}@media (min-width:768px){.fs-x{text-align:center}}
+/* ===== consigli e pacchetti interattivi (sesta tornata) ===== */
+.cons{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#eef5ff;border:1px solid #bcd6f5;border-radius:16px;padding:12px 44px 12px 14px;margin-bottom:16px;position:relative;animation:rise .45s var(--ease) backwards}
+.cons-t{margin:0;flex:1 1 280px;font-size:15.5px}.cons-t b{color:#004a99}.cons-a{display:flex;flex-wrap:wrap;gap:8px}.cons-a .btn{min-height:44px;padding:8px 14px;font-size:15px}
+.cons-x{position:absolute;top:2px;right:2px;width:44px;height:44px;border:0;background:none;font:inherit;font-size:24px;cursor:pointer;color:var(--ink);border-radius:50%}.cons-x:focus-visible{outline:2px solid var(--ink)}
+.pk-leg{margin:6px 0 0;font-size:14.5px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}.pk-li{display:inline-flex;gap:6px;align-items:center}
+.sy{position:relative;display:inline-flex;width:22px;height:22px;flex:none;vertical-align:middle}.sy svg{width:22px;height:22px}
+.pkt{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-top:10px}
+.pkt th,.pkt td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}.pkt tbody th{text-align:left;font-weight:600;font-size:15px;background:var(--soft)}
+.pkt thead th{vertical-align:top;background:var(--surface)}.pkt tr:last-child th,.pkt tr:last-child td{border-bottom:0}
+.pkt .rec{background:#f3f8ff;box-shadow:inset 2px 0 0 #0058b0,inset -2px 0 0 #0058b0}
+.pkh{display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center}.pkh b{font-size:16px}.pkd{font-size:13.5px;color:var(--muted);font-weight:400}.pkh .btn{min-height:44px;padding:8px 12px;font-size:14.5px}
+.pkr{background:#0058b0;color:#fff;border-radius:999px;font-size:12.5px;font-weight:700;padding:3px 10px}
+.pkc{display:none;flex-direction:column;gap:12px;margin-top:10px}.pkk{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}.pkk.rec{border:2px solid #0058b0}
+.pkk .pkh{align-items:flex-start;text-align:left}.pkk ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}.pkk li{display:flex;gap:10px;align-items:center;font-size:15px}
+@media (max-width:760px){.pkt{display:none}.pkc{display:flex}}
+.canone{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px}.canone[hidden]{display:none}.canone h3{margin:0;font-size:20px}.canone p{margin:0}.canone ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important;transition-delay:0s!important}.step.on,.dlg.on .dlg-box{animation:fadeq .2s both!important}.step.on>*{animation:none!important}}
 </style>
 <div class="wrap">
   <header><h1 class="sr">Questionario prima della call</h1><div class="top"><span class="brand">Alessandro Mauro · Prima della call</span><span class="count" id="count"></span></div>
   <div class="bar" aria-hidden="true"><i id="barI"></i></div></header>
   <main id="main">
+
+    <div id="consBox" aria-live="polite"></div>
 
     <section class="step" data-s="0">
       <h2 class="h1">Prepariamo la call sulla tua attività</h2>
@@ -436,8 +454,9 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);bo
 
     <section class="step" data-s="8">
       <h2>Ecco cosa potremmo fare per te</h2>
-      <p class="lead" id="pkLead">Ho messo insieme quello che mi hai raccontato. Non devi scegliere adesso: tocca il pacchetto che ti sembra più adatto, oppure ne parliamo in call. Niente cifre qui: le vediamo insieme.</p>
+      <p class="lead" id="pkLead">Ho messo insieme quello che mi hai raccontato. Scegli il tipo di soluzione e guarda cosa include ogni pacchetto. Non devi decidere adesso: ne parliamo in call.</p>
       <div id="pkBox"></div>
+      <aside class="canone" id="canoneBox" hidden aria-labelledby="canT"><h3 id="canT">Sito e gestionale: come si paga</h3><p>Si paga una cifra una tantum per costruirlo, più un canone mensile.</p><p><b>Cosa comprende il canone:</b></p><ul><li>Sito o gestionale sempre online e funzionante.</li><li>Aggiornamenti e correzioni.</li><li>Controlli di sicurezza e copie di backup, per ridurre il rischio di attacchi e di perdita di dati.</li><li>Privacy, cookie e informative tenute in regola con le norme, per aiutarti a restare in regola ed evitare problemi e sanzioni che si possono evitare.</li><li>Assistenza se qualcosa non va.</li></ul><p class="hint">Nessuna misura elimina del tutto i rischi: serve a ridurli. Le cifre le vediamo insieme nel preventivo.</p></aside>
       <section class="ins" id="insBox" aria-labelledby="insT">
         <h3 id="insT">Insieme funzionano meglio</h3>
         <p class="lead" id="insLead"></p>
@@ -637,6 +656,19 @@ function normDet(x) {
       else out[k][b.id] = typeof val === "string" ? val.slice(0, b.m || DET_MAX) : ""; }); });
   return out;
 }
+const PR = [["sito", "Sito"], ["landing", "Landing page"], ["gest", "Gestionale"], ["auto", "Automazioni"], ["waAss", "Assistente WhatsApp"], ["telAss", "Assistente telefono"], ["pren", "Prenotazioni online"], ["goo", "Google Maps e recensioni"], ["social", "Contenuti social e video"], ["manut", "Manutenzione e sicurezza"], ["assist", "Assistenza"]];
+const PS = [
+  { id: "solo-sito", n: "Solo sito", d: "Un sito per presentarti e farti trovare.", tipo: "singolo", m: { sito: 1, landing: 2, manut: 1, assist: 1 } },
+  { id: "solo-gest", n: "Solo gestionale", d: "Un pannello per clienti, agenda e pagamenti.", tipo: "singolo", m: { gest: 1, manut: 1, assist: 1 } },
+  { id: "assistente", n: "Assistente", d: "Un agente che risponde ai clienti: su WhatsApp o al telefono (lo scegliamo insieme).", tipo: "singolo", m: { waAss: 2, telAss: 2, manut: 1, assist: 1 } },
+  { id: "automazioni", n: "Automazioni", d: "Promemoria, messaggi e documenti che partono da soli.", tipo: "singolo", m: { auto: 1, manut: 1, assist: 1 } },
+  { id: "social", n: "Pacchetto social", d: "Contenuti e video pubblicati con costanza (Video Factory).", tipo: "singolo", m: { social: 1, assist: 1 } },
+  { id: "sito-gest", n: "Sito + gestionale", d: "Il sito raccoglie le richieste, il gestionale le tiene in ordine.", tipo: "insieme", m: { sito: 1, landing: 2, gest: 1, pren: 1, manut: 1, assist: 1 } },
+  { id: "assistenti", n: "Più assistenti", d: "WhatsApp, telefono e agenda insieme.", tipo: "insieme", m: { waAss: 1, telAss: 1, pren: 1, manut: 1, assist: 1 } },
+  { id: "completo", n: "Completo", d: "Sito, gestionale, automazioni, assistente e social insieme.", tipo: "completo", m: { sito: 1, landing: 2, gest: 1, auto: 1, waAss: 2, telAss: 2, pren: 1, goo: 1, social: 1, manut: 1, assist: 1 } }
+];
+const PT = [["singolo", "Servizio singolo"], ["insieme", "Più servizi insieme"], ["completo", "Pacchetto completo"], ["misura", "Su misura per te"]];
+const PS_ID = PS.map(x => x.id), PT_ID = PT.map(x => x[0]), PR_ID = PR.map(x => x[0]);
 const OPZ = {
   servizi:SERV.map(x => x[0]),
   ruolo:["Titolare o socio","Segretaria / segretario","Assistente o collaboratore di studio","Dipendente o responsabile d'ufficio","Libero professionista che lavora da solo","Altro"],
@@ -672,8 +704,11 @@ function normGest(g) {
   return b;
 }
 const PK_VALORI = ["essenziale", "professionale", "completo", "non-so"];
-let A = { s:null, flusso:[], lavOk:[], mnote:{}, extra:[], det:normDet({}), ruolo:null, titolareSa:null, contatto:null, telQuante:null, telNessuno:[], telMomenti:[], tipoProblema:[], dimensione:null, segPerdite:[], ob:[], servizi:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pk:null, pag:null, iva:null, gest:{ serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null } };
-try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav","servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); ["servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { A[k] = A[k].filter(x => OPZ[k].includes(x)); }); normMappa(); A.flusso = Array.isArray(A.flusso) ? A.flusso.filter(x => typeof x === "string" && x.length < 160).slice(0, 12) : []; A.det = normDet(A.det); ["ruolo","dimensione","titolareSa","contatto","telQuante"].forEach(k => { if (!OPZ[k].includes(A[k])) A[k] = null; }); if (!A.prob || typeof A.prob !== "object" || Array.isArray(A.prob)) A.prob = {}; Object.keys(A.prob).forEach(k => { if (!A.prob[k] || typeof A.prob[k] !== "object") delete A.prob[k]; }); ["team","tempi","decide","pag","iva"].forEach(k => { if (A[k] != null && typeof A[k] !== "string") A[k] = null; }); A.budget = "Ne parliamo in call"; if (!PK_VALORI.includes(A.pk)) A.pk = null; A.vocale = A.vocale === true; A.gest = normGest(A.gest); if (A.s && !SETTORI.some(x => x.n === A.s)) A.s = null; setTimeout(() => { Object.entries(d.f || {}).forEach(([k,v]) => { const el = $(k); if (el && typeof v === "string") el.value = v; }); try { migraGest(A); } catch (er) {} if (A.s) pickTipo(A.s, true); $("vocaleBtn").setAttribute("aria-pressed", !!A.vocale); }, 0); } } catch(e) {}
+let A = { s:null, flusso:[], consigli:{acc:[],rif:[]}, pkTipo:null, pkStd:null, pkMis:false, pkVoci:null, lavOk:[], mnote:{}, extra:[], det:normDet({}), ruolo:null, titolareSa:null, contatto:null, telQuante:null, telNessuno:[], telMomenti:[], tipoProblema:[], dimensione:null, segPerdite:[], ob:[], servizi:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pk:null, pag:null, iva:null, gest:{ serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null } };
+try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav","servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); ["servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { A[k] = A[k].filter(x => OPZ[k].includes(x)); }); normMappa(); { const cg = A.consigli && typeof A.consigli === "object" && !Array.isArray(A.consigli) ? A.consigli : {}; A.consigli = { acc: Array.isArray(cg.acc) ? cg.acc.filter(x => typeof x === "string").slice(0, 20) : [], rif: Array.isArray(cg.rif) ? cg.rif.filter(x => typeof x === "string").slice(0, 20) : [] }; }
+  A.pkTipo = PT_ID.includes(A.pkTipo) ? A.pkTipo : null; A.pkStd = PS_ID.includes(A.pkStd) ? A.pkStd : null; A.pkMis = A.pkMis === true; A.pkVoci = Array.isArray(A.pkVoci) ? A.pkVoci.filter(k => PR_ID.includes(k)) : null;
+  if (A.pk && !A.pkTipo) { A.pkTipo = { completo: "completo", essenziale: "singolo", professionale: "insieme", "non-so": "misura" }[A.pk] || null; if (A.pk === "completo") A.pkStd = "completo"; }
+  A.flusso = Array.isArray(A.flusso) ? A.flusso.filter(x => typeof x === "string" && x.length < 160).slice(0, 12) : []; A.det = normDet(A.det); ["ruolo","dimensione","titolareSa","contatto","telQuante"].forEach(k => { if (!OPZ[k].includes(A[k])) A[k] = null; }); if (!A.prob || typeof A.prob !== "object" || Array.isArray(A.prob)) A.prob = {}; Object.keys(A.prob).forEach(k => { if (!A.prob[k] || typeof A.prob[k] !== "object") delete A.prob[k]; }); ["team","tempi","decide","pag","iva"].forEach(k => { if (A[k] != null && typeof A[k] !== "string") A[k] = null; }); A.budget = "Ne parliamo in call"; if (!PK_VALORI.includes(A.pk)) A.pk = null; A.vocale = A.vocale === true; A.gest = normGest(A.gest); if (A.s && !SETTORI.some(x => x.n === A.s)) A.s = null; setTimeout(() => { Object.entries(d.f || {}).forEach(([k,v]) => { const el = $(k); if (el && typeof v === "string") el.value = v; }); try { migraGest(A); } catch (er) {} if (A.s) pickTipo(A.s, true); $("vocaleBtn").setAttribute("aria-pressed", !!A.vocale); }, 0); } } catch(e) {}
 const ALIAS_EXTRA = { "Negozio / attività commerciale":"panificio forno macelleria fioraio fiori tabaccheria enoteca lavanderia alimentari abbigliamento ottica gioielleria ferramenta libreria", "Parrucchiere / barbiere":"parrucchiera hair salon acconciature", "Psicologo / psicoterapeuta":"psicologa psicoterapeuta", "Studio legale":"avvocata avvocato legale", "Farmacia / parafarmacia":"farmacista", "Centro estetico":"estetista nail unghie spa", "B&B / hotel / casa vacanze":"bnb b&b affittacamere agriturismo", "Ristorante / pizzeria":"trattoria osteria sushi pub braceria", "Bar / caffetteria":"pasticceria gelateria cornetteria", "Dietista / nutrizionista":"dietologa dietologo", "Fisioterapista / osteopata":"fisioterapista massaggi" };
 const stem = w => w.length > 4 ? w.replace(/[aeiou]$/, "") : w;
 /* ?att=Nome precompila il nome dell'attività (solo se il campo è vuoto) */
@@ -927,7 +962,7 @@ function pkVoluti() {
   if (A.servizi.includes(SERV.find(x => x[1] === "fogli")[0]) && A.det.fogli.vorrei.includes("Portarli in un gestionale") && !esp.includes("gest1")) esp.push("gest1");
   const der0 = []; { const ids = flowRules().filter(r => A.flusso.includes(r.label)).map(r => r.id); if (ids.length) { der0.push("aut"); if (ids.includes("ritorno") || ids.includes("pacchetto")) der0.push("gest1"); } }
   const chiamate = ["30-60","Più di 60"].includes(A.telQuante) || A.telNessuno.some(x => ["Squilla a vuoto","Si perde la chiamata","Richiamiamo dopo se ce ne ricordiamo"].includes(x));
-  const der = u([...der0, chiamate && "ass", ...(isSeg() ? A.segPerdite.map(x => PK_SEG[x]) : []), ...A.tipoProblema.map(x => PK_TIPO[x])]).filter(x => !esp.includes(x));
+  const der = u([...der0, ...mNodi().filter(n => n.st === "lento").map(n => ({ "Assistente": "ass", "Gestionale": "gest1" })[mAiuto(n.t)[0]] || "aut"),  chiamate && "ass", ...(isSeg() ? A.segPerdite.map(x => PK_SEG[x]) : []), ...A.tipoProblema.map(x => PK_TIPO[x])]).filter(x => !esp.includes(x));
   return { esp, der };
 }
 /* dai problemi segnati dal cliente ai 1-3 pacchetti a scalare */
@@ -1005,15 +1040,6 @@ function pkHTML(C) {
   <div class="chips pk-non"><button type="button" class="chip" data-pk="non-so" aria-pressed="false">Non so ancora, ne parliamo in call</button></div>`;
 }
 let pkC = null;
-function renderPacchetti() {
-  try { renderIns(); } catch (e) {}
-  pkC = pkCalcola();
-  if (A.pk && A.pk !== "non-so" && !pkC.piani.some(p => p.id === A.pk)) A.pk = null;
-  $("pkBox").innerHTML = pkC.piani.length ? pkHTML(pkC)
-    : `<div class="pk-vuoto"><b>Ne parliamo in call</b><p>Non hai segnato problemi da sistemare, quindi non ti propongo niente a caso. In call mi racconti meglio come lavori e vediamo insieme da dove ha senso partire.</p></div>`;
-  $("pkLead").hidden = !pkC.piani.length;
-  pkSync();
-}
 function pkSync() {
   $("pkBox").querySelectorAll("[data-pk]").forEach(el => { const on = el.dataset.pk === A.pk;
     if (el.matches(".pz-card")) el.classList.toggle("sel", on);
@@ -1044,7 +1070,7 @@ function dati() {
   const prob = Object.entries(A.prob).filter(([, x]) => x.si).map(([i, x]) => [Number(i), x.o != null ? ORE[x.o][1] : null]);
   const no = Object.entries(A.prob).filter(([, x]) => x.si === false).map(([i]) => Number(i));
   return { v:1, data:new Date().toISOString().slice(0, 10), s:s.n, tipoAltro:s.n === "Altra attività" ? taglia(v("fAltroTipo"), 80) : "", nome:taglia(v("fNome"), 80), attivita:taglia(v("fAtt"), 80), citta:taglia(v("fCitta"), 60), tel:taglia(v("fTel"), 25),
-    ig:taglia(v("fIg"), 80), sito:taglia(v("fSito"), 120), ob:A.ob, dettagli:dettagli(), mappa:mappaDati(), flusso:flussoDati(), ruolo:A.ruolo, contatto:A.contatto || "WhatsApp", email:taglia(v("fEmail"), 100), ...(perConto() ? { perConto:{ titolare:taglia(v("fTitolare"), 80), sa:A.titolareSa } } : {}), telefono:{ quante:A.telQuante, nessuno:A.telNessuno, momenti:A.telMomenti }, servizi:A.servizi, tipoProblema:A.tipoProblema, dimensione:A.dimensione, ...(isSeg() ? { segreteria:{ perdite:A.segPerdite, aiuto:taglia(v("fSegAiuto"), 500) } } : {}), problemi:taglia(v("fProblemi"), 2000), obAltro:taglia(v("fObAltro"), 120), team:A.team, can:A.can, str:A.str, lav:A.lav, lavAltro:taglia(v("fLavAltro"), 300),
+    ig:taglia(v("fIg"), 80), sito:taglia(v("fSito"), 120), ob:A.ob, dettagli:dettagli(), mappa:mappaDati(), flusso:flussoDati(), consigli:{ accettati:A.consigli.acc, rifiutati:A.consigli.rif }, pacchetto:pacchettoDati(), ruolo:A.ruolo, contatto:A.contatto || "WhatsApp", email:taglia(v("fEmail"), 100), ...(perConto() ? { perConto:{ titolare:taglia(v("fTitolare"), 80), sa:A.titolareSa } } : {}), telefono:{ quante:A.telQuante, nessuno:A.telNessuno, momenti:A.telMomenti }, servizi:A.servizi, tipoProblema:A.tipoProblema, dimensione:A.dimensione, ...(isSeg() ? { segreteria:{ perdite:A.segPerdite, aiuto:taglia(v("fSegAiuto"), 500) } } : {}), problemi:taglia(v("fProblemi"), 2000), obAltro:taglia(v("fObAltro"), 120), team:A.team, can:A.can, str:A.str, lav:A.lav, lavAltro:taglia(v("fLavAltro"), 300),
     prob, probT:prob.map(([i]) => s.P[i] ? s.P[i][1] : ""), no, noT:no.map(i => s.P[i] ? s.P[i][1] : ""), probAltro:taglia(v("fProbAltro"), 300), magia:taglia(v("fMagia"), 300), provato:taglia(v("fProvato"), 300),
     vocale:A.vocale, tempi:A.tempi, decide:A.decide, budget:"Ne parliamo in call", pag:A.pag, iva:A.iva,
     ...(A.gest.serve ? { gest:gestDati(s) } : {}),
@@ -1108,7 +1134,7 @@ function messaggio(d, liv, cod) {
     }
   }
   r.push([d.tempi && "Partenza: " + d.tempi, d.decide && "Decide: " + d.decide].filter(Boolean).join(" · "));
-  if (d.pk && d.pk.scelto) r.push("Pacchetto che mi interessa: " + pkNome(d.pk.scelto));
+  if (d.pacchetto.standard) r.push("Pacchetto che mi interessa: " + pkNomeStd(d.pacchetto.standard)); else if (d.pacchetto.tipo === "misura") r.push("Pacchetto su misura: " + (breve ? d.pacchetto.suMisura.length + " voci" : d.pacchetto.suMisura.join(", "))); else if (d.pk && d.pk.scelto) r.push("Pacchetto che mi interessa: " + pkNome(d.pk.scelto));
   r.push("Ricontattami: " + d.contatto + (d.email ? " (" + d.email + ")" : ""));
   if (d.vocale) r.push("Ti mando anche un vocale.");
   if (breve) r.push("Le risposte complete sono nel codice qui sotto.");
@@ -1129,7 +1155,7 @@ function riepilogo() {
     riga("Dove perdi tempo", d.prob.map(([i, h]) => s.P[i][1] + oreTxt(h)).join("; ")) +
     riga("Altro", d.probAltro) + riga("Da sistemare", d.magia) + riga("Già provato", d.provato) +
     riga("Sul tuo lavoro", d.lavAltro) + riga("Gestionale", d.gest ? gTesto(d.gest) : "") +
-    riga("Partenza", d.tempi) + riga("Chi decide", d.decide) + riga("Pacchetto", d.pk && d.pk.scelto ? pkNome(d.pk.scelto) : "") + riga("Pagamento", d.pag) +
+    riga("Partenza", d.tempi) + riga("Chi decide", d.decide) + riga("Pacchetto", d.pacchetto.standard ? pkNomeStd(d.pacchetto.standard) : d.pk && d.pk.scelto ? pkNome(d.pk.scelto) : "") + riga("Tipo di soluzione", (PT.find(x => x[0] === d.pacchetto.tipo) || ["", ""])[1]) + riga("Voci su misura", d.pacchetto.tipo === "misura" ? d.pacchetto.suMisura.join(", ") : "") + riga("Pagamento", d.pag) +
     riga("Ricevuta", d.iva) + riga("Instagram o Facebook", d.ig) + riga("Sito", d.sito) + riga("Telefono", d.tel) + riga("Ricontatto", d.contatto + (d.email ? " · " + d.email : "")) +
     riga("Vocale", d.vocale ? "Te lo mando su WhatsApp" : "");
   const tok = ++rtoken, bs = $("sendBtn");
@@ -1500,18 +1526,6 @@ const COMBI = [
 ];
 const servSel = () => { const S = new Set(A.servizi.map(x => SERV_K[x])); if (S.has("misura")) S.add("gest"); return S; };
 const keyLabel = k => SERV.find(x => x[1] === k)[0];
-function renderIns() {
-  const S = servSel(), box = $("insCombos"); box.replaceChildren();
-  $("insLead").textContent = "Quando più cose lavorano insieme, si fa ancora meno a mano. " + (A.s && A.s !== "Altra attività" ? "Per un'attività come la tua (" + A.s.toLowerCase() + ") ha senso pensare a questi abbinamenti." : "Qualche abbinamento che ha senso per la tua attività.") + " Sono consigli: scegli tu.";
-  let c = COMBI.filter(x => x.se.some(k => S.has(k)) && x.add.some(k => !S.has(k))).slice(0, 3);
-  if (!S.size) c = COMBI.slice(0, 2);
-  if (!c.length) { box.append(elx("p", "ins-ok", "Hai già scelto servizi che lavorano bene insieme. Guarda sotto come si collegano.")); }
-  c.forEach(x => { const card = elx("div", "combo"), mis = x.add.filter(k => !S.has(k)); card.append(elx("h4", "", x.t), elx("p", "", x.p));
-    const b = btnx("Aggiungilo", "chip", () => { mis.forEach(k => { const l = keyLabel(k); if (!A.servizi.includes(l)) A.servizi.push(l); if ((k === "gest") && !A.gest.serve) A.gest.serve = "Sì"; }); linkFogli(); telNote(); bozza(); renderPacchetti(); });
-    b.setAttribute("aria-label", "Aggiungilo: " + mis.map(k => SERV_T[k]).join(", ")); card.append(b); box.append(card); });
-  const f = $("cFlusso"); f.replaceChildren(); const rs = flowRules(); A.flusso = A.flusso.filter(x => typeof x === "string");
-  rs.forEach(r => { const x = elx("button", "prop"); x.type = "button"; x.dataset.v = r.label; x.setAttribute("aria-pressed", A.flusso.includes(r.label)); x.append(elx("b", "", r.label)); f.append(x); });
-}
 $("cFlusso").addEventListener("click", e => { const x = e.target.closest(".prop"); if (!x) return; const l = x.dataset.v; A.flusso = A.flusso.includes(l) ? A.flusso.filter(z => z !== l) : [...A.flusso, l]; x.setAttribute("aria-pressed", A.flusso.includes(l)); bozza(); });
 const flussoDati = () => ({ scelte: flowRules().map(r => r.label).filter(l => A.flusso.includes(l)), testo: taglia(v("fFlusso").trim(), 600) });
 $("flussoBtn").addEventListener("click", () => demoFlusso());
@@ -1546,6 +1560,100 @@ function demoFlusso() {
   }, "dlg-big", () => { clearInterval(timer); $("dlgB").replaceChildren(); });
 }
 
+/* ===== suggerimenti: UNA sola funzione per banner, «Insieme funzionano meglio» e pacchetti ===== */
+const visti = new Set();
+const callsSignal = () => ["30-60", "Più di 60"].includes(A.telQuante) || A.telNessuno.some(x => ["Squilla a vuoto", "Si perde la chiamata", "Richiamiamo dopo se ce ne ricordiamo"].includes(x));
+function sugg() {
+  const S = servSel(), out = [], seen = new Set();
+  const push = (id, t, add, p, min) => { const mis = add.filter(k => !S.has(k)), key = mis.join(); if (!mis.length || seen.has(key)) return; seen.add(key); out.push({ id, t, add, mis, p, min }); };
+  const lento = re => mNodi().find(n => n.st === "lento" && re.test(n.t));
+  if (callsSignal()) push("ass-chiamate", "Assistente che risponde al telefono e su WhatsApp", ["ass"], "Mi hai detto che " + (A.telNessuno.includes("Si perde la chiamata") ? "a volte si perde la chiamata" : "ricevete molte telefonate") + ": l'assistente risponde anche quando nessuno può.", 3);
+  const nl = lento(/promemoria|appuntament|agenda|prenot|richiam/i); if (nl) push("auto-nodo", "Automazioni collegate al gestionale", ["auto", "gest"], "Hai segnato che «" + nl.t + "» ti porta via tempo: con le automazioni collegate al gestionale parte da solo.", 5);
+  const nd = lento(/document|pratic|preventiv|fattur|pagament|incass/i); if (nd) push("gest-nodo", "Gestionale", ["gest"], "Hai segnato che «" + nd.t + "» ti porta via tempo: in un gestionale è tutto in un posto.", 5);
+  if (S.has("fogli")) push("fogli-gest", "Gestionale + Automazioni al posto dei fogli", ["gest", "auto"], "Hai fogli Excel o CSV da mettere in ordine: in un gestionale i dati stanno in un posto e le automazioni lavorano su quelli.", 3);
+  if (isSeg() && A.segPerdite.some(x => /appuntamenti|Ricordare|Documenti|Ricevute/.test(x))) push("seg-auto", "Promemoria e documenti automatici", ["auto"], "Ricordare appuntamenti, scadenze e documenti a mano ti porta via tempo: possono partire da soli.", 3);
+  COMBI.forEach((x, i) => { if (x.se.some(k => S.has(k))) push("c" + i, x.t, x.add, x.p, 9); });
+  if (!S.size) COMBI.slice(0, 2).forEach((x, i) => push("c" + i, x.t, x.add, x.p, 9));
+  return out;
+}
+const sceltaOk = c => !A.consigli.acc.includes(c.id) && !A.consigli.rif.includes(c.id);
+function aggiungiKeys(keys) { keys.forEach(k => { const l = keyLabel(k); if (!A.servizi.includes(l)) A.servizi.push(l); if (k === "gest" && !A.gest.serve) A.gest.serve = "Sì"; }); linkFogli(); telNote(); try { renderSvc(); } catch (e) {} bozza(); }
+function accetta(c) { aggiungiKeys(c.mis); if (!A.consigli.acc.includes(c.id)) A.consigli.acc.push(c.id); bozza(); }
+function rifiuta(c) { if (!A.consigli.rif.includes(c.id)) A.consigli.rif.push(c.id); bozza(); }
+function mostraConsiglio(n) {
+  const box = $("consBox"); box.replaceChildren(); if (n < 3 || n > 7) return;
+  const c = sugg().find(x => x.min <= n && x.id[0] !== "c" && sceltaOk(x) && !visti.has(x.id)); if (!c) return; visti.add(c.id);
+  const b = elx("div", "cons"); b.setAttribute("role", "group"); b.setAttribute("aria-label", "Consiglio");
+  const t = elx("p", "cons-t"); t.append(elx("b", "", "Consiglio: "), document.createTextNode(c.t + ". " + c.p));
+  const a = elx("div", "cons-a"), chiudi = () => { box.replaceChildren(); };
+  a.append(btnx("Aggiungilo", "btn primary", () => { accetta(c); box.replaceChildren(); toast("Aggiunto: " + c.t); }), btnx("No grazie, vado avanti", "btn", () => { rifiuta(c); chiudi(); }));
+  const x = btnx("×", "cons-x", chiudi); x.setAttribute("aria-label", "Chiudi il consiglio"); b.append(t, a, x); box.append(b);
+}
+function renderIns() {
+  const box = $("insCombos"); box.replaceChildren();
+  $("insLead").textContent = "Quando più cose lavorano insieme, si fa ancora meno a mano. " + (A.s && A.s !== "Altra attività" ? "Per un'attività come la tua (" + A.s.toLowerCase() + ") ha senso pensare a questi abbinamenti." : "Qualche abbinamento che ha senso per la tua attività.") + " Sono consigli: scegli tu.";
+  const c = sugg().filter(x => sceltaOk(x) && !visti.has(x.id)).slice(0, 3);
+  if (!c.length) box.append(elx("p", "ins-ok", "Hai già scelto servizi che lavorano bene insieme. Guarda sotto come si collegano."));
+  c.forEach(x => { const card = elx("div", "combo"); card.append(elx("h4", "", x.t), elx("p", "", x.p));
+    const b = btnx("Aggiungilo", "chip", () => { accetta(x); renderPacchetti(); }); b.setAttribute("aria-label", "Aggiungilo: " + x.mis.map(k => SERV_T[k]).join(", ")); card.append(b); box.append(card); });
+  const f = $("cFlusso"); f.replaceChildren(); A.flusso = A.flusso.filter(x => typeof x === "string");
+  flowRules().forEach(r => { const x = elx("button", "prop"); x.type = "button"; x.dataset.v = r.label; x.setAttribute("aria-pressed", A.flusso.includes(r.label)); x.append(elx("b", "", r.label)); f.append(x); });
+}
+
+/* ===== pacchetti interattivi: selettore, tabella ✓/✗, su misura, consigliato ===== */
+function pkVociAuto() {
+  const V = pkVoluti(), o = new Set(); [...V.esp, ...V.der].forEach(id => {
+    if (id === "sito2") o.add(A.det.sito.tipo && A.det.sito.tipo.startsWith("Landing") ? "landing" : "sito"); if (/^gest/.test(id)) o.add("gest"); if (id === "aut") o.add("auto");
+    if (id === "ass") { o.add("waAss"); if (callsSignal() || A.det.ass.cosa.some(x => /telefon|chiamate/i.test(x))) o.add("telAss"); } if (id === "pren") o.add("pren"); if (id === "goo") o.add("goo"); if (id === "vf1") o.add("social"); });
+  if (["sito", "landing", "gest", "auto", "waAss", "telAss", "pren"].some(k => o.has(k))) o.add("manut"); if (o.size) o.add("assist");
+  return PR_ID.filter(k => o.has(k));
+}
+const pkVoci = () => A.pkVoci ? PR_ID.filter(k => A.pkVoci.includes(k)) : pkVociAuto();
+function pkConsigliato(voci) {
+  if (!voci.length) return null; let best = null, bs = 0;
+  PS.forEach(p => { let sc = 0; voci.forEach(k => { const m = p.m[k]; sc += m === 1 ? 1 : m === 2 ? .5 : 0; }); Object.keys(p.m).forEach(k => { if (!voci.includes(k)) sc -= .5; }); if (sc > bs) { bs = sc; best = p; } });
+  return best;
+}
+const pkNomeStd = id => (PS.find(x => x.id === id) || {}).n || "";
+function simbolo(st) {
+  const w = elx("span", "sy sy" + st), s = elx("span", "sr", st === 1 ? "incluso" : st === 2 ? "a scelta, lo decidiamo insieme" : "non incluso");
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.setAttribute("viewBox", "0 0 20 20"); svg.setAttribute("aria-hidden", "true"); svg.setAttribute("focusable", "false");
+  const mk = (t, a) => { const e = document.createElementNS("http://www.w3.org/2000/svg", t); Object.entries(a).forEach(([k, v]) => e.setAttribute(k, v)); return e; };
+  if (st === 1) { svg.append(mk("circle", { cx: 10, cy: 10, r: 10, fill: "#1f7a4a" }), mk("path", { d: "M5.6 10.4l3 3 5.8-6.4", fill: "none", stroke: "#fff", "stroke-width": 2.2, "stroke-linecap": "round", "stroke-linejoin": "round" })); }
+  else if (st === 2) { svg.append(mk("circle", { cx: 10, cy: 10, r: 9, fill: "#fff", stroke: "#8a5a00", "stroke-width": 2 }), mk("path", { d: "M10 1v18A9 9 0 0 1 10 1z", fill: "#8a5a00" })); }
+  else { svg.append(mk("rect", { x: 1, y: 1, width: 18, height: 18, rx: 4, fill: "#fff", stroke: "#b3261e", "stroke-width": 2 }), mk("path", { d: "M6.5 6.5l7 7M13.5 6.5l-7 7", stroke: "#b3261e", "stroke-width": 2.2, "stroke-linecap": "round" })); }
+  w.append(svg, s); return w;
+}
+function pkCols(rec) {
+  const t = A.pkTipo || "singolo";
+  if (t === "misura") { const m = { id: "misura", n: "Su misura per te", d: "Costruito dalle tue risposte: aggiungi o togli voci con un tocco.", m: Object.fromEntries(pkVoci().map(k => [k, 1])) }; return rec ? [m, rec] : [m]; }
+  return PS.filter(p => p.tipo === t);
+}
+function canoneVisibile(cols) { const has = m => m.sito || m.gest || m.landing; if (A.pkTipo === "misura") return !!has(cols[0].m); if (A.pkStd) return !!has((PS.find(p => p.id === A.pkStd) || { m: {} }).m); return cols.some(c => has(c.m)); }
+function renderPacchetti() {
+  try { renderIns(); } catch (e) {}
+  const box = $("pkBox"), voci = pkVoci(), rec = pkConsigliato(voci);
+  if (!A.pkTipo) A.pkTipo = rec ? (rec.tipo) : "singolo";
+  box.replaceChildren();
+  const g = elx("div", "dg"); g.setAttribute("role", "group"); g.setAttribute("aria-label", "Che tipo di soluzione cerchi");
+  PT.forEach(([k, t]) => { const b = btnx(t, "chip", () => { A.pkTipo = k; bozza(); renderPacchetti(); }); b.setAttribute("aria-pressed", A.pkTipo === k); g.append(b); }); box.append(g);
+  if (A.pkTipo === "misura") { const q = elx("div", "q"), l = elx("span", "lab", "Le voci del tuo pacchetto su misura"); l.id = "pkVl"; const pg = elx("div", "props"); pg.setAttribute("role", "group"); pg.setAttribute("aria-labelledby", "pkVl"); q.append(l, elx("span", "hint", "Costruito dalle tue risposte. Tocca per aggiungere o togliere una voce."), pg);
+    PR.forEach(([k, n]) => { const b = elx("button", "prop"); b.type = "button"; b.append(elx("b", "", n)); b.setAttribute("aria-pressed", voci.includes(k)); b.addEventListener("click", () => { const cur = pkVoci(); A.pkVoci = cur.includes(k) ? cur.filter(x => x !== k) : [...cur, k]; bozza(); renderPacchetti(); }); pg.append(b); }); box.append(q); }
+  const cols = pkCols(rec), recId = rec && rec.id;
+  { const lg = elx("p", "pk-leg", "Come leggere:"); [[1, "incluso"], [0, "non incluso"], [2, "a scelta, lo decidiamo insieme"]].forEach(([s, t]) => { const i = elx("span", "pk-li"); i.append(simbolo(s), document.createTextNode(" " + t)); lg.append(i); }); box.append(lg); }
+  const scegli = c => { if (c.id === "misura") { A.pkStd = null; A.pkMis = true; } else { A.pkStd = A.pkStd === c.id ? null : c.id; A.pkMis = false; } bozza(); renderPacchetti(); };
+  const sel = c => c.id === "misura" ? A.pkMis === true : A.pkStd === c.id;
+  const head = c => { const h = elx("div", "pkh"); h.append(elx("b", "", c.n), elx("span", "pkd", c.d)); if (recId === c.id || (c.id === "misura" && rec)) { if (recId === c.id) h.prepend(elx("span", "pkr", "Consigliato per te")); } const b = btnx(sel(c) ? "Hai scelto: " + c.n : "Scelgo " + c.n, "btn" + (sel(c) ? " primary" : ""), () => scegli(c)); b.setAttribute("aria-pressed", sel(c)); h.append(b); return h; };
+  const tbl = elx("table", "pkt"); const cap = elx("caption", "sr", "Confronto di cosa include ogni pacchetto"); tbl.append(cap);
+  const th = elx("thead"), tr = elx("tr"); const c0 = elx("th", "", "Cosa include"); c0.scope = "col"; tr.append(c0); cols.forEach(c => { const e = elx("th", recId === c.id ? "rec" : ""); e.scope = "col"; e.append(head(c)); tr.append(e); }); th.append(tr); tbl.append(th);
+  const tb = elx("tbody"); PR.forEach(([k, n]) => { const r = elx("tr"), rh = elx("th", "", n); rh.scope = "row"; r.append(rh); cols.forEach(c => { const d = elx("td", recId === c.id ? "rec" : ""); d.append(simbolo(c.m[k] || 0)); r.append(d); }); tb.append(r); }); tbl.append(tb);
+  const cards = elx("div", "pkc"); cols.forEach(c => { const k = elx("article", "pkk" + (recId === c.id ? " rec" : "")); k.append(head(c)); const ul = elx("ul"); PR.forEach(([id, n]) => { const li = elx("li"); li.append(simbolo(c.m[id] || 0), elx("span", "", n)); ul.append(li); }); k.append(ul); cards.append(k); });
+  box.append(tbl, cards, elx("p", "note", "Il prezzo lo vediamo insieme nel preventivo, in base a quello che ti serve davvero."));
+  if (rec && A.pkTipo !== "misura" && recId && !cols.some(c => c.id === recId)) box.append(elx("p", "hint", "Il più vicino alle tue risposte è «" + rec.n + "» (nella scheda «" + PT.find(x => x[0] === rec.tipo)[1] + "»)."));
+  const cb = $("canoneBox"); cb.hidden = !canoneVisibile(cols);
+}
+const pacchettoDati = () => ({ tipo: A.pkTipo || "", standard: A.pkStd || "", suMisura: pkVoci().map(k => PR.find(x => x[0] === k)[1]) });
+
 /* navigazione */
 let cur = 0;
 function valida(n) {
@@ -1562,7 +1670,7 @@ const SEZ = ["", "Su di te", "Cosa vuoi ottenere", "Come lavori", "Il tuo lavoro
 function go(n, back) {
   if (!back) { const e = valida(cur); document.querySelectorAll(".err").forEach(x => x.textContent = ""); if (e) { $(e[0]).textContent = e[1]; return; } }
   cur = Math.max(0, Math.min(STEPS - 1, n));
-  if (cur === 7) renderGest(); if (cur === 4) renderLav(); if (cur === 5) renderProbs(); if (cur === 2) { renderGoals(); renderSvc(); } if (cur === 3) telNote(); if (cur === 8) renderPacchetti(); if (cur === LAST_Q) riepilogo(); if (cur === 11) { prenota(); finale(); }
+  if (cur === 7) renderGest(); if (cur === 4) renderLav(); if (cur === 5) renderProbs(); if (cur === 2) { renderGoals(); renderSvc(); } if (cur === 3) telNote(); mostraConsiglio(cur); if (cur === 8) renderPacchetti(); if (cur === LAST_Q) riepilogo(); if (cur === 11) { prenota(); finale(); }
   document.querySelector(".wrap").classList.toggle("wide", cur === 8); document.querySelector(".wrap").classList.toggle("mid", cur === 2 || cur === 7); if (cur === 8) requestAnimationFrame(() => requestAnimationFrame(pkCentra));
   document.querySelectorAll(".step").forEach(s => { const on = Number(s.dataset.s) === cur; s.classList.toggle("on", on); s.classList.toggle("back", on && !!back); });
   $("barI").style.width = (cur / LAST_Q * 100) + "%";
