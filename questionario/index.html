@@ -182,6 +182,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
         <div><dt>Quanto ci metti</dt><dd>Circa 5 minuti. Puoi scrivere o mandarmi un vocale.</dd></div>
         <div><dt>Cosa succede dopo</dt><dd>Le risposte arrivano a me in modo protetto e su WhatsApp, e preparo la call su misura per te.</dd></div>
       </div>
+      <p id="vediSito" style="margin-top:14px;font-size:14px;color:var(--muted,#667)">Vuoi vedere prima chi sono e cosa faccio? <a href="https://alessandromauro.lovable.app/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;font-weight:600">Guarda il mio sito</a></p>
     </section>
 
     <section class="step" data-s="1">
@@ -205,6 +206,9 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
       <p class="lead">Tocca quelli che contano per te, in ordine di importanza: il primo che scegli è il più importante.</p>
       <div class="goals" id="goals"></div>
       <div class="q"><label for="fObAltro">Altro obiettivo (facoltativo)</label><input id="fObAltro" maxlength="120" type="text" placeholder="Es. aprire una seconda sede"></div>
+      <div class="q"><span class="lab">Su cosa ti posso aiutare?</span><span class="hint">Facoltativo. Puoi sceglierne più di uno.</span><div class="chips" data-many="servizi" id="cServizi"></div></div>
+      <div class="q"><label for="fProblemi">Raccontami i problemi che vuoi risolvere, anche con i tuoi clienti (facoltativo)</label><textarea id="fProblemi" maxlength="2000" rows="6" placeholder="Es. i clienti mi scrivono su WhatsApp a tutte le ore e perdo prenotazioni; si dimenticano gli appuntamenti; non so chi ha pagato e chi no…"></textarea></div>
+      <p class="note">Per favore non scrivere nomi o dati dei tuoi pazienti o clienti: bastano esempi generici.</p>
       <p class="err" id="err2"></p>
     </section>
 
@@ -344,6 +348,7 @@ const SALVA_URL = "https://udubhzamghhlkxgepmmc.supabase.co/functions/v1/questio
 const SANITA = /dentist|medic|dietist|nutrizion|fisioterap|osteopat|psicolog|veterinar|farmacia|altra attivit/i;
 const GOALS = [["clienti","Più clienti","Nuove persone che ti scelgono"],["visibilita","Più visibilità","Farti trovare online e sui social"],["tempo","Risparmiare tempo","Più ore per te e per il lavoro vero"],["ordine","Più ordine","Meno errori, dimenticanze e carta"],["ritorno","Clienti che tornano","Richiami, fedeltà, passaparola"],["messaggi","Meno messaggi ripetitivi","Telefonate e chat sempre uguali"]];
 const OPZ = {
+  servizi:["Sito internet nuovo o rifatto","Gestionale (clienti, appuntamenti, pagamenti, magazzino)","Automazioni (promemoria, messaggi, documenti che si fanno da soli)","Assistente che risponde ai clienti su WhatsApp o al telefono","Prenotazioni e richieste online","Social e contenuti","Video e foto per l'attività","Recensioni e Google Maps","Non so ancora, consigliami tu"],
   team:["Solo io","2-3 persone","4-10 persone","Più di 10"],
   can:["Telefono","WhatsApp","Instagram / Facebook","Email","Sito","Di persona","Portali e piattaforme"],
   str:["Agenda di carta","Excel o fogli","Un gestionale","WhatsApp e memoria","Niente di preciso"],
@@ -368,11 +373,13 @@ function normGest(g) {
   return b;
 }
 const PK_VALORI = ["essenziale", "professionale", "completo", "non-so"];
-let A = { s:null, ob:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pk:null, pag:null, iva:null, gest:{ serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null } };
-try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); if (!A.prob || typeof A.prob !== "object" || Array.isArray(A.prob)) A.prob = {}; Object.keys(A.prob).forEach(k => { if (!A.prob[k] || typeof A.prob[k] !== "object") delete A.prob[k]; }); ["team","tempi","decide","pag","iva"].forEach(k => { if (A[k] != null && typeof A[k] !== "string") A[k] = null; }); A.budget = "Ne parliamo in call"; if (!PK_VALORI.includes(A.pk)) A.pk = null; A.vocale = A.vocale === true; A.gest = normGest(A.gest); if (A.s && !SETTORI.some(x => x.n === A.s)) A.s = null; setTimeout(() => { Object.entries(d.f || {}).forEach(([k,v]) => { const el = $(k); if (el && typeof v === "string") el.value = v; }); try { migraGest(A); } catch (er) {} if (A.s) pickTipo(A.s, true); $("vocaleBtn").setAttribute("aria-pressed", !!A.vocale); }, 0); } } catch(e) {}
+let A = { s:null, ob:[], servizi:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pk:null, pag:null, iva:null, gest:{ serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null } };
+try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav","servizi"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); A.servizi = A.servizi.filter(x => OPZ.servizi.includes(x)); if (!A.prob || typeof A.prob !== "object" || Array.isArray(A.prob)) A.prob = {}; Object.keys(A.prob).forEach(k => { if (!A.prob[k] || typeof A.prob[k] !== "object") delete A.prob[k]; }); ["team","tempi","decide","pag","iva"].forEach(k => { if (A[k] != null && typeof A[k] !== "string") A[k] = null; }); A.budget = "Ne parliamo in call"; if (!PK_VALORI.includes(A.pk)) A.pk = null; A.vocale = A.vocale === true; A.gest = normGest(A.gest); if (A.s && !SETTORI.some(x => x.n === A.s)) A.s = null; setTimeout(() => { Object.entries(d.f || {}).forEach(([k,v]) => { const el = $(k); if (el && typeof v === "string") el.value = v; }); try { migraGest(A); } catch (er) {} if (A.s) pickTipo(A.s, true); $("vocaleBtn").setAttribute("aria-pressed", !!A.vocale); }, 0); } } catch(e) {}
 const ALIAS_EXTRA = { "Negozio / attività commerciale":"panificio forno macelleria fioraio fiori tabaccheria enoteca lavanderia alimentari abbigliamento ottica gioielleria ferramenta libreria", "Parrucchiere / barbiere":"parrucchiera hair salon acconciature", "Psicologo / psicoterapeuta":"psicologa psicoterapeuta", "Studio legale":"avvocata avvocato legale", "Farmacia / parafarmacia":"farmacista", "Centro estetico":"estetista nail unghie spa", "B&B / hotel / casa vacanze":"bnb b&b affittacamere agriturismo", "Ristorante / pizzeria":"trattoria osteria sushi pub braceria", "Bar / caffetteria":"pasticceria gelateria cornetteria", "Dietista / nutrizionista":"dietologa dietologo", "Fisioterapista / osteopata":"fisioterapista massaggi" };
 const stem = w => w.length > 4 ? w.replace(/[aeiou]$/, "") : w;
-const FIELDS = ["fNome","fAtt","fAltroTipo","fCitta","fObAltro","fIg","fSito","fLavAltro","fProbAltro","fMagia","fProvato","fGestPerdite","fGestNonManchi","fTel"];
+/* ?att=Nome precompila il nome dell'attività (solo se il campo è vuoto) */
+setTimeout(() => { try { const a = (new URLSearchParams(location.search).get("att") || "").trim(); if (a && !$("fAtt").value.trim()) $("fAtt").value = Array.from(a).slice(0, 80).join(""); } catch (e) {} }, 0);
+const FIELDS = ["fNome","fAtt","fAltroTipo","fCitta","fObAltro","fIg","fSito","fLavAltro","fProbAltro","fProblemi","fMagia","fProvato","fGestPerdite","fGestNonManchi","fTel"];
 let saveT; function bozza(){ clearTimeout(saveT); saveT = setTimeout(() => { const f = {}; FIELDS.forEach(k => f[k] = $(k).value); stor.set("qpc:bozza", JSON.stringify({ A, f })); }, 300); }
 document.addEventListener("input", () => { if (cur < 11) bozza(); });
 
@@ -716,7 +723,7 @@ function dati() {
   const prob = Object.entries(A.prob).filter(([, x]) => x.si).map(([i, x]) => [Number(i), x.o != null ? ORE[x.o][1] : null]);
   const no = Object.entries(A.prob).filter(([, x]) => x.si === false).map(([i]) => Number(i));
   return { v:1, data:new Date().toISOString().slice(0, 10), s:s.n, tipoAltro:s.n === "Altra attività" ? taglia(v("fAltroTipo"), 80) : "", nome:taglia(v("fNome"), 80), attivita:taglia(v("fAtt"), 80), citta:taglia(v("fCitta"), 60), tel:taglia(v("fTel"), 25),
-    ig:taglia(v("fIg"), 80), sito:taglia(v("fSito"), 120), ob:A.ob, obAltro:taglia(v("fObAltro"), 120), team:A.team, can:A.can, str:A.str, lav:A.lav, lavAltro:taglia(v("fLavAltro"), 300),
+    ig:taglia(v("fIg"), 80), sito:taglia(v("fSito"), 120), ob:A.ob, servizi:A.servizi, problemi:taglia(v("fProblemi"), 2000), obAltro:taglia(v("fObAltro"), 120), team:A.team, can:A.can, str:A.str, lav:A.lav, lavAltro:taglia(v("fLavAltro"), 300),
     prob, probT:prob.map(([i]) => s.P[i] ? s.P[i][1] : ""), no, noT:no.map(i => s.P[i] ? s.P[i][1] : ""), probAltro:taglia(v("fProbAltro"), 300), magia:taglia(v("fMagia"), 300), provato:taglia(v("fProvato"), 300),
     vocale:A.vocale, tempi:A.tempi, decide:A.decide, budget:"Ne parliamo in call", pag:A.pag, iva:A.iva,
     ...(A.gest.serve ? { gest:gestDati(s) } : {}),
@@ -748,6 +755,8 @@ function messaggio(d, liv, cod) {
   r.push(""); r.push(`*${d.attivita || "La mia attività"}* · ${d.s === "Altra attività" ? (d.tipoAltro || "altra attività") : d.s}${d.citta ? " · " + d.citta : ""}`);
   r.push(`Sono ${d.nome}${d.tel ? " · " + d.tel : ""}`);
   if (d.ob.length || d.obAltro) r.push("Obiettivo: " + [...d.ob.map(goalName), d.obAltro].filter(Boolean).join(", "));
+  if (d.servizi.length) r.push("Mi serve: " + d.servizi.join("; "));
+  if (d.problemi) r.push("I miei problemi: " + (breve ? corto(d.problemi) : d.problemi));
   if (d.prob.length) { r.push("Dove perdo tempo:"); d.prob.forEach(([i, h]) => r.push("• " + s.P[i][1] + oreTxt(h))); }
   if (!breve && d.probAltro) r.push("Altro: " + corto(d.probAltro));
   if (!breve && d.magia) r.push("Vorrei sistemare: " + corto(d.magia));
@@ -771,7 +780,7 @@ function messaggio(d, liv, cod) {
   if (d.vocale) r.push("Ti mando anche un vocale.");
   if (breve) r.push("Le risposte complete sono nel codice qui sotto.");
   r.push(""); r.push("Codice delle risposte (non modificarlo):"); r.push(cod);
-  return r.filter(x => x !== "").join("\n").replace(/\n(Obiettivo|Dove perdo tempo|Gestionale|Partenza|Codice)/g, "\n\n$1");
+  return r.filter(x => x !== "").join("\n").replace(/\n(Obiettivo|Mi serve|Dove perdo tempo|Gestionale|Partenza|Codice)/g, "\n\n$1");
 }
 function riepilogo() {
   const d = dati(), s = sett();
@@ -779,6 +788,7 @@ function riepilogo() {
   $("sum").innerHTML =
     riga("Attività", [d.attivita, d.s === "Altra attività" ? d.tipoAltro : d.s, d.citta].filter(Boolean).join(" · ")) +
     riga("Nome", d.nome) + riga("Obiettivo", [...d.ob.map(goalName), d.obAltro].filter(Boolean).join(", ")) +
+    riga("Mi serve", d.servizi.join("; ")) + riga("I tuoi problemi", d.problemi) +
     riga("Come lavori", [d.team, d.can.join(", "), d.str.join(", ")].filter(Boolean).join(" · ")) +
     riga("Passaggi pesanti", d.lav.map(i => s.L[i]).join(", ")) +
     riga("Dove perdi tempo", d.prob.map(([i, h]) => s.P[i][1] + oreTxt(h)).join("; ")) +
