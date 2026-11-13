@@ -36,5 +36,10 @@ log.length = 0; const fakeLento: any = (_u: string, o: any) => new Promise((_r, 
 const t0 = Date.now(); await inviaCopia(d, env, fakeLento, reg); const ms = Date.now() - t0; ok("timeout 5 s", log[0] === "email_errore:timeout" && ms >= 4900 && ms < 6500, ms + " ms");
 const privato = costruisciEmail({ nome: "Luca", ruolo: "Privato", attivita: "Privato", s: "Privato (per me o la mia famiglia)", contatto: "Telefono (anche fisso)" });
 ok("privato: niente riga Attività", !/Attività:/.test(privato.testo));
+const privServ = costruisciEmail({ nome: "Luca", ruolo: "Privato", s: "Privato (per me o la mia famiglia)", servizi: ["Sito internet nuovo o rifatto", "Gestionale fatto su misura per noi", "Automazioni (promemoria, messaggi, documenti che si fanno da soli)", "Video e foto per l'attività", "Gestionale (clienti, appuntamenti, pagamenti, magazzino)", "Fogli Excel, Google Fogli o file CSV"] });
+ok("privato: nomi dei servizi personali", /Ti serve: Sito personale o portfolio; App o programma su misura; Automazioni personali; Video e foto per il mio progetto; Fogli Excel/.test(privServ.testo), privServ.testo);
+ok("privato: email senza parole aziendali", !/clienti|attività|titolare|pazienti|Gestionale/i.test(privServ.testo.replace("Fogli Excel, Google Fogli o file CSV", "")), privServ.testo);
+const azienda = costruisciEmail({ nome: "Luca", ruolo: "Titolare o socio", servizi: ["Gestionale fatto su misura per noi"] });
+ok("azienda: nomi dei servizi invariati", /Ti serve: Gestionale fatto su misura per noi/.test(azienda.testo));
 console.log("FAILS", fails); if (fails) Deno_exit();
 function Deno_exit() { (globalThis as any).process.exitCode = 1; }

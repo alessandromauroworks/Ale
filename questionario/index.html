@@ -504,6 +504,23 @@ const priv = () => /^Privato/.test((typeof A === "object" && A && A.s) || "");
 const GOALS_PRIV = [["clienti","Farmi conoscere","Che altri vedano il mio lavoro o il mio progetto"],["visibilita","Più visibilità","Farmi trovare online"],["tempo","Risparmiare tempo","Più ore per quello che mi piace"],["ordine","Più ordine","Meno carte, file e promemoria sparsi"],["ritorno","Restare in contatto","Con chi mi interessa"],["messaggi","Meno cose ripetitive","Messaggi e mail sempre uguali"]];
 const PRIV_HIDE = ["gest","ass","pren","goo"];
 const SERV_PRIV = { sito: ["Sito personale o portfolio", "Una pagina tua per mostrare chi sei e cosa fai."], misura: ["App o programma su misura", "Qualcosa pensato solo per te, che oggi non esiste già."], auto: ["Automazioni personali", "Promemoria, messaggi e documenti che partono da soli."], fogli: ["Fogli Excel, Google Fogli o file CSV", "Metto in ordine i fogli che usi già o li collego tra loro."], social: ["Social e contenuti", "Post e pagine curate per farti conoscere."], video: ["Video e foto per il mio progetto", "Foto e video brevi per mostrare quello che fai."], veloce: ["Velocizzare un lavoro lento o ripetitivo", "Una cosa che ti porta via troppo tempo e che si può accorciare."] };
+/* testi aziendali che per il privato si leggono in modo personale (cambia solo ciò che si vede e si manda: i valori salvati restano gli stessi) */
+const PRIV_TXT = {
+  "I clienti scrivono o prenotano dal sito":"Chi lo visita ti scrive o prenota dal sito",
+  "Gestire clienti e pratiche a modo nostro":"Gestire i miei contatti e le mie pratiche a modo mio",
+  "Con i passaggi che usate voi":"Con i passaggi che preferisci tu",
+  "Agenda con più persone o più sedi":"Agenda condivisa con la famiglia",
+  "Collegarsi ai programmi che usiamo già":"Collegarsi ai programmi che uso già",
+  "Accessi diversi per chi lavora con noi":"Accessi diversi per chi lo usa con me",
+  "Clienti":"Contatti",
+  "Post nati dalle domande dei clienti":"Post nati dalle domande di chi ti segue",
+  "Foto professionali dei locali e del lavoro":"Foto professionali di te e del tuo lavoro",
+  "Video con le testimonianze dei clienti":"Video con le testimonianze di chi ti conosce",
+  "Clienti persi o che non tornano":"Persone che perdo di vista",
+  "Per la mia attività":"Per me"
+};
+const tp = x => (priv() && PRIV_TXT[x]) || x;
+const servT = k => (priv() && SERV_PRIV[k]) ? SERV_PRIV[k][0] : SERV_T[k];
 /* ===== SERVIZI: ogni voce ha una riga che spiega e un pannello di approfondimento (si apre solo se scelta) ===== */
 const SERV = [
   ["Sito internet nuovo o rifatto","sito","Un sito che ti fa trovare e racconta chi sei e cosa fai."],
@@ -713,10 +730,14 @@ const RUOLI_SEG = ["Segretaria / segretario","Assistente o collaboratore di stud
 const isSeg = () => RUOLI_SEG.includes(A.ruolo);
 const perConto = () => !!A.ruolo && !["Titolare o socio","Libero professionista che lavora da solo","Privato"].includes(A.ruolo);
 const nonWa = () => A.contatto === "Email" || A.contatto === "Telefono (anche fisso)";
+const INS_NOTE2 = document.getElementById("insNote2").textContent;
 function segShow() {
   $("sBranch").hidden = !isSeg(); $("cBranch").hidden = !perConto(); $("eBranch").hidden = A.contatto !== "Email";
   $("why3").textContent = priv() ? "Mi aiuta a capire come ti organizzi oggi." : "Mi aiuta a capire come arrivano i clienti e dove si perdono le chiamate."; $("copiaBox").hidden = !v("fEmail"); $("fCopia").checked = A.copia; $("ruoloBox").hidden = priv(); $("lAtt").textContent = priv() ? "Il tuo progetto (facoltativo)" : "Nome dell'attività"; $("fAtt").placeholder = priv() ? "Es. il mio portfolio, un blog, un'idea" : "Es. Pizzeria Da Marco";
   ["cTeam", "cCan", "cTelQ", "cTelN", "cTelM"].forEach(id => { $(id).closest(".q").hidden = priv(); });
+  $("fProblemi").placeholder = priv() ? "Anche se non è nell'elenco: scrivi come lo racconteresti a un amico. Piccolo o grande, va bene tutto. Es. ho file e foto sparsi ovunque e non trovo più niente…" : "Anche se non è nell'elenco: scrivi come lo racconteresti a un collega. Piccolo o grande, va bene tutto. Es. i clienti mi scrivono su WhatsApp a tutte le ore e perdo prenotazioni…";
+  $("insNote2").textContent = priv() ? "I promemoria di scadenze e appuntamenti li ricevi tu quando vuoi; i messaggi ad altre persone partono solo se sono d'accordo: lo prepariamo insieme." : INS_NOTE2;
+  $("cTipoProb").querySelectorAll(".chip").forEach(c => { c.textContent = tp(c.dataset.v); });
   $("lProblemi").textContent = priv() ? "Raccontami cosa vorresti sistemare o realizzare (facoltativo)" : isSeg() ? "Raccontami i problemi che vuoi risolvere, per te, per il titolare o con i clienti (facoltativo)" : "Raccontami i problemi che vuoi risolvere, anche con i tuoi clienti (facoltativo)";
 }
 /* ramo facoltativo: gestionale */
@@ -1061,10 +1082,10 @@ function messaggio(d, liv, cod) {
   r.push(`Sono ${d.nome}${d.tel ? " · " + d.tel : ""}${d.ruolo ? " (" + d.ruolo.toLowerCase() + ")" : ""}`);
   if (d.ob.length || d.obAltro) r.push("Obiettivo: " + [...d.ob.map(goalName), d.obAltro].filter(Boolean).join(", "));
   if (d.servizi.length) r.push("Mi serve: " + d.servizi.map(servNome).map(x => breve ? x.split(" (")[0] : x).join("; "));
-  { const ks = Object.keys(d.dettagli); if (ks.length) { if (breve) r.push("Dettagli su: " + ks.map(k => SERV_T[k]).join(", ")); else ks.forEach(k => r.push("• " + SERV_T[k] + ": " + corto(detRiga(k, d.dettagli[k])))); } }
+  { const ks = Object.keys(d.dettagli); if (ks.length) { if (breve) r.push("Dettagli su: " + ks.map(servT).join(", ")); else ks.forEach(k => r.push("• " + servT(k) + ": " + corto(detRiga(k, d.dettagli[k])))); } }
   if (d.perConto && (d.perConto.titolare || d.perConto.sa)) r.push("Per conto di: " + [d.perConto.titolare, d.perConto.sa && "il titolare " + (d.perConto.sa === "Non ancora" ? "non sa ancora del questionario" : "lo sa")].filter(Boolean).join(" · "));
   { const t = d.telefono, x = [t.quante && t.quante + " telefonate al giorno", t.nessuno.length && "se nessuno risponde: " + t.nessuno.join(", "), t.momenti.length && "più difficile: " + t.momenti.join(", ")].filter(Boolean).join("; "); if (x) r.push("Telefono: " + (breve ? corto(x) : x)); }
-  if (d.tipoProblema.length) r.push("Tipo di problema: " + d.tipoProblema.join("; "));
+  if (d.tipoProblema.length) r.push("Tipo di problema: " + d.tipoProblema.map(tp).join("; "));
   if (d.dimensione) r.push("Dimensione: " + d.dimensione);
   if (d.problemi) r.push("I miei problemi: " + (breve ? corto(d.problemi) : d.problemi));
   if (d.segreteria) {
@@ -1103,9 +1124,9 @@ function riepilogo() {
   const d = dati(), s = sett();
   const riga = (k, x) => x ? `<div><dt>${k}</dt><dd>${esc(x)}</dd></div>` : "";
   $("sum").innerHTML =
-    riga("Attività", [d.ruolo === "Privato" ? "" : d.attivita, d.s === "Altra attività" ? d.tipoAltro : d.s, d.citta].filter(Boolean).join(" · ")) +
+    riga(d.ruolo === "Privato" ? "Tipo" : "Attività", [d.ruolo === "Privato" ? "" : d.attivita, d.s === "Altra attività" ? d.tipoAltro : d.s, d.citta].filter(Boolean).join(" · ")) +
     riga("Nome", d.nome) + riga("Ruolo", d.ruolo) + riga("Per conto di", d.perConto ? [d.perConto.titolare, d.perConto.sa].filter(Boolean).join(" · ") : "") + riga("Obiettivo", [...d.ob.map(goalName), d.obAltro].filter(Boolean).join(", ")) +
-    riga("Mi serve", d.servizi.map(servNome).join("; ")) + riga("Collegamenti utili", [...d.flusso.scelte, d.flusso.testo].filter(Boolean).join("; ")) + Object.keys(d.dettagli).map(k => riga(SERV_T[k], detRiga(k, d.dettagli[k]))).join("") + riga("Tipo di problema", d.tipoProblema.join("; ")) + riga("Quanto è grande", d.dimensione) + riga("I tuoi problemi", d.problemi) +
+    riga("Mi serve", d.servizi.map(servNome).join("; ")) + riga("Collegamenti utili", [...d.flusso.scelte, d.flusso.testo].filter(Boolean).join("; ")) + Object.keys(d.dettagli).map(k => riga(servT(k), detRiga(k, d.dettagli[k]))).join("") + riga("Tipo di problema", d.tipoProblema.map(tp).join("; ")) + riga("Quanto è grande", d.dimensione) + riga("I tuoi problemi", d.problemi) +
     riga("Il tuo lavoro di ogni giorno", d.segreteria ? d.segreteria.perdite.join("; ") : "") + riga("Un aiuto in più", d.segreteria ? d.segreteria.aiuto : "") +
     riga("Come lavori", [d.team, d.can.join(", "), d.str.join(", ")].filter(Boolean).join(" · ")) +
     riga("Telefonate", [d.telefono.quante, d.telefono.nessuno.length && "se nessuno risponde: " + d.telefono.nessuno.join(", "), d.telefono.momenti.length && "difficile: " + d.telefono.momenti.join(", ")].filter(Boolean).join(" · ")) +
@@ -1214,7 +1235,7 @@ function drawBlock(key, b) {
     const raw = typeof b.o === "function" ? b.o() : b.o, list = raw.map(x => Array.isArray(x) ? x : split2(x)), g = elx("div", "props");
     g.setAttribute("role", "group"); const lab = elx("span", "lab", priv() && b.id === "spec" ? "Pensate per te" : b.t); lab.id = id; g.setAttribute("aria-labelledby", id); q.append(lab);
     if (typeof b.o === "function") st[b.id] = st[b.id].filter(z => list.some(x => x[0] === z));
-    list.forEach(([l, d]) => { const x = elx("button", "prop"); x.type = "button"; x.dataset.v = l; x.setAttribute("aria-pressed", b.k === "many" ? st[b.id].includes(l) : st[b.id] === l); x.append(elx("b", "", l)); if (d) x.append(elx("span", "", d)); g.append(x); });
+    list.forEach(([l, d]) => { const x = elx("button", "prop"); x.type = "button"; x.dataset.v = l; x.setAttribute("aria-pressed", b.k === "many" ? st[b.id].includes(l) : st[b.id] === l); x.append(elx("b", "", tp(l))); if (d) x.append(elx("span", "", tp(d))); g.append(x); });
     g.addEventListener("click", e => { const x = e.target.closest(".prop"); if (!x) return; const l = x.dataset.v;
       if (b.k === "many") st[b.id] = st[b.id].includes(l) ? st[b.id].filter(z => z !== l) : [...st[b.id], l]; else st[b.id] = st[b.id] === l ? null : l;
       g.querySelectorAll(".prop").forEach(y => y.setAttribute("aria-pressed", b.k === "many" ? st[b.id].includes(y.dataset.v) : st[b.id] === y.dataset.v));
@@ -1243,7 +1264,7 @@ function renderSvc() {
     let acc = null;
     if (PAN[key]) {
       acc = elx("div", "acc" + (on ? " open" : "")); acc.id = pid; b.setAttribute("aria-expanded", on); b.setAttribute("aria-controls", pid);
-      const inner = elx("div"), pn = elx("div", "panel"); pn.setAttribute("role", "group"); pn.setAttribute("aria-label", "Più nel dettaglio: " + SERV_T[key]);
+      const inner = elx("div"), pn = elx("div", "panel"); pn.setAttribute("role", "group"); pn.setAttribute("aria-label", "Più nel dettaglio: " + servT(key));
       pn.append(elx("p", "ph", "Più nel dettaglio (facoltativo)"));
       if (key === "sito") pn.append(btnx("Guarda un esempio per " + settNome(), "chip", demoSito));
       if (key === "auto") pn.append(btnx("Guarda un esempio per " + settNome(), "chip", demoAuto));
@@ -1270,7 +1291,7 @@ function dettagli() {
     if (Object.keys(o).length) out[k] = o; });
   return out;
 }
-const detRiga = (k, o) => PAN[k].map(b => o[b.id] && ((b.s || b.t.replace(/\?$/, "")) + ": " + (Array.isArray(o[b.id]) ? o[b.id].join(", ") : o[b.id]))).filter(Boolean).join(" · ");
+const detRiga = (k, o) => PAN[k].map(b => o[b.id] && (tp(b.s || b.t.replace(/\?$/, "")) + ": " + (Array.isArray(o[b.id]) ? o[b.id].map(tp).join(", ") : tp(o[b.id])))).filter(Boolean).join(" · ");
 
 /* ===== anteprima del gestionale (dati inventati, nessun salvataggio): moduli = quelli del settore, sincronizzata con «Nel pannello» ===== */
 let gpSel = null;
@@ -1639,7 +1660,7 @@ function renderIns() {
   const c = sugg().filter(x => sceltaOk(x) && !visti.has(x.id)).slice(0, 3);
   if (!c.length) box.append(elx("p", "ins-ok", "Hai già scelto servizi che lavorano bene insieme. Guarda sotto come si collegano."));
   c.forEach(x => { const card = elx("div", "combo"); card.append(elx("h4", "", x.t), elx("p", "", x.p));
-    const b = btnx("Aggiungilo", "chip", () => { accetta(x); renderPacchetti(); }); b.setAttribute("aria-label", "Aggiungilo: " + x.mis.map(k => SERV_T[k]).join(", ")); card.append(b); box.append(card); });
+    const b = btnx("Aggiungilo", "chip", () => { accetta(x); renderPacchetti(); }); b.setAttribute("aria-label", "Aggiungilo: " + x.mis.map(servT).join(", ")); card.append(b); box.append(card); });
   const f = $("cFlusso"); f.replaceChildren(); A.flusso = A.flusso.filter(x => typeof x === "string");
   flowRules().forEach(r => { const x = elx("button", "prop"); x.type = "button"; x.dataset.v = r.label; x.setAttribute("aria-pressed", A.flusso.includes(r.label)); x.append(elx("b", "", r.label)); f.append(x); });
 }

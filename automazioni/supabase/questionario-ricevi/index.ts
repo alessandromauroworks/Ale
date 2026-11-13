@@ -78,6 +78,16 @@ const EMAIL_VALIDA = /^[^\s@<>"',;]{1,64}@[^\s@<>"',;]{1,190}\.[^\s@<>"',;]{2,}$
 const escHtml = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 const testoBreve = (x: unknown, n = 300) => (typeof x === "string" ? x.replace(/[\r\n\t]+/g, " ").trim().slice(0, n) : "");
 const elenco = (x: unknown, n = 10) => (Array.isArray(x) ? x.filter((v): v is string => typeof v === "string").map((v) => testoBreve(v, 120)).filter(Boolean).slice(0, n) : []);
+// Per il privato i servizi hanno nomi personali (stessi della pagina); le voci solo da azienda non si mostrano.
+const NOMI_PRIVATO: [RegExp, string | null][] = [
+  [/^Sito internet/, "Sito personale o portfolio"], [/^Gestionale fatto su misura/, "App o programma su misura"],
+  [/^Gestionale \(/, null], [/^Automazioni/, "Automazioni personali"], [/^Assistente/, null], [/^Prenotazioni/, null], [/^Recensioni/, null],
+  [/^Video e foto per l'attività/, "Video e foto per il mio progetto"],
+];
+export function nomiServizi(servizi: string[], privato: boolean): string[] {
+  if (!privato) return servizi;
+  return servizi.flatMap((v) => { const m = NOMI_PRIVATO.find(([re]) => re.test(v)); return m ? (m[1] ? [m[1]] : []) : [v]; });
+}
 export function costruisciEmail(d: Record<string, unknown>): { oggetto: string; testo: string; html: string } {
   const nome = testoBreve(d.nome, 80) || "";
   const privato = d.ruolo === "Privato";
@@ -85,7 +95,8 @@ export function costruisciEmail(d: Record<string, unknown>): { oggetto: string; 
   const voci: [string, string][] = [];
   if (!privato && testoBreve(d.attivita, 80)) voci.push(["Attività", testoBreve(d.attivita, 80)]);
   if (testoBreve(d.s, 80)) voci.push(["Settore", testoBreve(d.s, 80)]);
-  if (elenco(d.servizi).length) voci.push(["Ti serve", elenco(d.servizi).join("; ")]);
+  const serv = nomiServizi(elenco(d.servizi), privato);
+  if (serv.length) voci.push(["Ti serve", serv.join("; ")]);
   if (testoBreve(d.problemi, 400)) voci.push(["I problemi che hai raccontato", testoBreve(d.problemi, 400)]);
   if (testoBreve(pk.standard, 60) || elenco(pk.suMisura).length) voci.push(["Pacchetto", testoBreve(pk.standard, 60) || "su misura: " + elenco(pk.suMisura).join(", ")]);
   voci.push(["Come vuoi essere ricontattato", testoBreve(d.contatto, 40) || "WhatsApp"]);
