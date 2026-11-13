@@ -333,8 +333,9 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);bo
       <dl class="sum" aria-label="Cosa ti chiedo">
         <div><dt>Cosa ti chiedo</dt><dd>Che lavoro fai, come lavori oggi, cosa ti pesa e cosa vorresti ottenere.</dd></div>
         <div><dt>Quanto ci metti</dt><dd>Circa 5 minuti. Puoi scrivere o mandarmi un vocale.</dd></div>
-        <div><dt>Cosa succede dopo</dt><dd>Le risposte arrivano a me in modo protetto e su WhatsApp, e preparo la call su misura per te.</dd></div>
+        <div><dt>Cosa succede dopo</dt><dd>Le risposte arrivano a me in modo protetto (e, se lo scegli, anche su WhatsApp) e preparo la call su misura per te.</dd></div>
       </dl>
+      <div class="note" id="riprendiBox" hidden><span>Avevi già iniziato: le tue risposte sono salvate su questo telefono o computer.</span> <button class="btn primary" type="button" id="riprendiBtn">Riprendi da dove eri</button></div>
       <div class="actions" style="margin-top:6px"><button class="btn" type="button" id="fastBtn">Versione veloce (2 minuti)</button><button class="btn" type="button" id="presBtn">Scopri in 30 secondi come lavoro</button></div>
       <p id="vediSito" style="margin-top:14px;font-size:14px;color:var(--muted,#667)">Vuoi vedere prima chi sono e cosa faccio? <a href="https://alessandromauro.lovable.app/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;font-weight:600">Guarda il mio sito</a></p>
     </section>
@@ -370,7 +371,7 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);bo
       <div class="q full-only"><span class="lab">Che tipo di problema è?</span><span class="hint">Facoltativo. Anche più di una risposta.</span><div class="chips" data-many="tipoProblema" id="cTipoProb"></div></div>
       <div class="q full-only"><span class="lab">Quanto è grande secondo te?</span><span class="hint">Facoltativo. Non c'è una risposta giusta.</span><div class="chips" data-one="dimensione" id="cDim"></div></div>
       <div class="q"><label for="fProblemi" id="lProblemi">Raccontami i problemi che vuoi risolvere, anche con i tuoi clienti (facoltativo)</label><textarea id="fProblemi" maxlength="2000" rows="6" placeholder="Anche se non è nell'elenco: scrivi come lo racconteresti a un collega. Piccolo o grande, va bene tutto. Es. i clienti mi scrivono su WhatsApp a tutte le ore e perdo prenotazioni…"></textarea></div>
-      <p class="note">Per favore non scrivere nomi o dati dei tuoi pazienti o clienti: bastano esempi generici.</p>
+      <p class="note" id="notaDati">Per favore non scrivere nomi o dati dei tuoi clienti: bastano esempi generici.</p>
       <p class="err" id="err2"></p>
     </section>
 
@@ -484,7 +485,7 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);bo
       <div class="gbranch" id="eBranch" hidden><div class="q"><label for="fEmail">La tua email</label><input id="fEmail" maxlength="100" type="email" autocomplete="email" placeholder="Es. nome@azienda.it"></div>
         <label class="check" for="fCopia" id="copiaBox" hidden><input id="fCopia" type="checkbox"><span>Mandami una copia delle risposte via email.</span></label></div>
       <div class="hp" aria-hidden="true"><label for="fSitoWeb2">Lascia vuoto questo campo</label><input id="fSitoWeb2" name="sito_web2" type="text" tabindex="-1" autocomplete="off"></div>
-      <div class="privacy"><b>Come uso le tue risposte</b>Le risposte arrivano solo ad Alessandro Mauro: vengono salvate in modo protetto su Supabase (server nell'Unione Europea), passano nel suo spazio di lavoro privato su Claude (Anthropic), dove prepara la call, e, solo se scegli WhatsApp per essere ricontattato, si apre WhatsApp (servizio di Meta) con il messaggio già pronto. Se scegli email o telefono, le risposte arrivano ad Alessandro già salvate in modo protetto e ti ricontatta con il mezzo che hai scelto; se ti propongo di mandarle per email, il messaggio passa dal tuo programma di posta. Se spunti la casella per ricevere una copia via email, il tuo indirizzo e un breve riepilogo passano a un servizio di invio email (Resend), solo per spedirti quel messaggio. Servono solo a preparare la call e la proposta per la tua attività. Non vengono cedute a nessuno e non servono per pubblicità. Se non lavoriamo insieme vengono cancellate dopo 12 mesi, e puoi chiederne la cancellazione quando vuoi scrivendo a +39 339 405 2935 o alessandromauro.works@gmail.com. Se prenoti la call, il tuo nome e un breve riassunto delle risposte passano al servizio di prenotazione e al calendario di Alessandro, solo per fissare l'appuntamento. Finché non invii, la bozza resta solo su questo telefono o computer.</div>
+      <div class="privacy"><b>Come uso le tue risposte</b>Le risposte arrivano solo ad Alessandro Mauro: vengono salvate in modo protetto su Supabase (server nell'Unione Europea), passano nel suo spazio di lavoro privato su Claude (Anthropic), dove prepara la call, e, solo se scegli WhatsApp per essere ricontattato, si apre WhatsApp (servizio di Meta) con il messaggio già pronto. Se scegli email o telefono, le risposte arrivano ad Alessandro già salvate in modo protetto e ti ricontatta con il mezzo che hai scelto; se ti propongo di mandarle per email, il messaggio passa dal tuo programma di posta. Se spunti la casella per ricevere una copia via email, il tuo indirizzo e un breve riepilogo passano a un servizio di invio email (Resend), solo per spedirti quel messaggio. Servono solo a preparare la call e la proposta. Non vengono cedute a nessuno e non servono per pubblicità. Se non lavoriamo insieme vengono cancellate dopo 12 mesi, e puoi chiederne la cancellazione quando vuoi scrivendo a +39 339 405 2935 o alessandromauro.works@gmail.com. Se prenoti la call, il tuo nome e un breve riassunto delle risposte passano al servizio di prenotazione e al calendario di Alessandro, solo per fissare l'appuntamento. Finché non invii, la bozza resta solo su questo telefono o computer.</div>
       <label class="check" for="fPriv"><input id="fPriv" type="checkbox"><span>Ho letto e acconsento a questo uso delle mie risposte.</span></label>
       <p class="err" id="err7"></p>
     </section>
@@ -569,6 +570,8 @@ const SERV = [
 ];
 const SERV_T = Object.fromEntries(SERV.map(x => [x[1], x[0].split(" (")[0]]));
 const SERV_K = Object.fromEntries(SERV.map(x => [x[0], x[1]]));
+/* nome del servizio come lo vede chi compila (il privato vede «App o programma su misura», non «Gestionale fatto su misura per noi») */
+const servNome = l => (priv() && SERV_PRIV[SERV_K[l]]) ? SERV_PRIV[SERV_K[l]][0] : l;
 const DET_MAX = 700;
 const T_DESC = { id:"testo", k:"text", t:"Descrivi come la vorresti", s:"Come la vorresti", ph:"Con parole tue, come lo racconteresti a un collega." };
 const AUTO_GEN = ["Promemoria appuntamenti su WhatsApp|Un messaggio prima, così nessuno si dimentica","Richiesta di recensione dopo il servizio|La chiede al momento giusto, con garbo","Sollecito gentile dei pagamenti|Ricorda a chi non ha ancora pagato","Risposta automatica fuori orario|Dice quando rispondi e prende il messaggio","Documenti mancanti richiesti da soli|Chiede al cliente ciò che manca","Riepilogo della giornata per il titolare|Ogni sera: cosa è successo e cosa resta"];
@@ -732,7 +735,7 @@ const stem = w => w.length > 4 ? w.replace(/[aeiou]$/, "") : w;
 /* ?att=Nome precompila il nome dell'attività (solo se il campo è vuoto) */
 setTimeout(() => { try { const a = (new URLSearchParams(location.search).get("att") || "").trim(); if (a && !$("fAtt").value.trim()) $("fAtt").value = Array.from(a).slice(0, 80).join(""); } catch (e) {} }, 0);
 const FIELDS = ["fNome","fAtt","fAltroTipo","fCitta","fObAltro","fIg","fSito","fLavAltro","fProbAltro","fProblemi","fSegAiuto","fFlusso","fTitolare","fEmail","fMagia","fProvato","fGestPerdite","fGestNonManchi","fTel"];
-let saveT; function bozza(){ clearTimeout(saveT); saveT = setTimeout(() => { const f = {}; FIELDS.forEach(k => f[k] = $(k).value); stor.set("qpc:bozza", JSON.stringify({ A, f })); }, 300); }
+let saveT, ripP = 0; function bozza(){ clearTimeout(saveT); saveT = setTimeout(() => { const f = {}; FIELDS.forEach(k => f[k] = $(k).value); stor.set("qpc:bozza", JSON.stringify({ A, f, p: cur || ripP })); }, 300); }
 document.addEventListener("input", () => { if (cur < 11) bozza(); });
 
 const sett = () => SETTORI.find(s => s.n === A.s) || SETTORI[SETTORI.length - 1];
@@ -891,6 +894,7 @@ function pickTipo(n, quiet) {
   A.s = n; $("tipoList").hidden = true; $("fTipo").value = n; $("tipoName").textContent = n; $("tipoPicked").hidden = false;
   $("altroBox").hidden = n !== "Altra attività";
   document.querySelectorAll(".san").forEach(x => x.hidden = !SANITA.test(n));
+  $("notaDati").textContent = "Per favore non scrivere nomi o dati " + (/^Privato/.test(n) ? "di altre persone" : SANITA.test(n) ? "dei tuoi pazienti o clienti" : "dei tuoi clienti") + ": bastano esempi generici.";
   if (!quiet) { A.lav = []; A.lavOk = []; A.mnote = {}; A.prob = {}; }
   if (priv()) { A.ruolo = "Privato"; A.servizi = A.servizi.filter(l => !PRIV_HIDE.includes(SERV_K[l])); } else if (A.ruolo === "Privato") A.ruolo = null;
   try { segShow(); } catch (e) {} try { renderSvc(); } catch (e) {}
@@ -1135,7 +1139,7 @@ function messaggio(d, liv, cod) {
   r.push(""); r.push(`*${d.attivita || "La mia attività"}* · ${d.s === "Altra attività" ? (d.tipoAltro || "altra attività") : d.s}${d.citta ? " · " + d.citta : ""}`);
   r.push(`Sono ${d.nome}${d.tel ? " · " + d.tel : ""}${d.ruolo ? " (" + d.ruolo.toLowerCase() + ")" : ""}`);
   if (d.ob.length || d.obAltro) r.push("Obiettivo: " + [...d.ob.map(goalName), d.obAltro].filter(Boolean).join(", "));
-  if (d.servizi.length) r.push("Mi serve: " + d.servizi.map(x => breve ? x.split(" (")[0] : x).join("; "));
+  if (d.servizi.length) r.push("Mi serve: " + d.servizi.map(servNome).map(x => breve ? x.split(" (")[0] : x).join("; "));
   { const ks = Object.keys(d.dettagli); if (ks.length) { if (breve) r.push("Dettagli su: " + ks.map(k => SERV_T[k]).join(", ")); else ks.forEach(k => r.push("• " + SERV_T[k] + ": " + corto(detRiga(k, d.dettagli[k])))); } }
   if (d.perConto && (d.perConto.titolare || d.perConto.sa)) r.push("Per conto di: " + [d.perConto.titolare, d.perConto.sa && "il titolare " + (d.perConto.sa === "Non ancora" ? "non sa ancora del questionario" : "lo sa")].filter(Boolean).join(" · "));
   { const t = d.telefono, x = [t.quante && t.quante + " telefonate al giorno", t.nessuno.length && "se nessuno risponde: " + t.nessuno.join(", "), t.momenti.length && "più difficile: " + t.momenti.join(", ")].filter(Boolean).join("; "); if (x) r.push("Telefono: " + (breve ? corto(x) : x)); }
@@ -1180,7 +1184,7 @@ function riepilogo() {
   $("sum").innerHTML =
     riga("Attività", [d.ruolo === "Privato" ? "" : d.attivita, d.s === "Altra attività" ? d.tipoAltro : d.s, d.citta].filter(Boolean).join(" · ")) +
     riga("Nome", d.nome) + riga("Ruolo", d.ruolo) + riga("Per conto di", d.perConto ? [d.perConto.titolare, d.perConto.sa].filter(Boolean).join(" · ") : "") + riga("Obiettivo", [...d.ob.map(goalName), d.obAltro].filter(Boolean).join(", ")) +
-    riga("Mi serve", d.servizi.join("; ")) + riga("Collegamenti utili", [...d.flusso.scelte, d.flusso.testo].filter(Boolean).join("; ")) + Object.keys(d.dettagli).map(k => riga(SERV_T[k], detRiga(k, d.dettagli[k]))).join("") + riga("Tipo di problema", d.tipoProblema.join("; ")) + riga("Quanto è grande", d.dimensione) + riga("I tuoi problemi", d.problemi) +
+    riga("Mi serve", d.servizi.map(servNome).join("; ")) + riga("Collegamenti utili", [...d.flusso.scelte, d.flusso.testo].filter(Boolean).join("; ")) + Object.keys(d.dettagli).map(k => riga(SERV_T[k], detRiga(k, d.dettagli[k]))).join("") + riga("Tipo di problema", d.tipoProblema.join("; ")) + riga("Quanto è grande", d.dimensione) + riga("I tuoi problemi", d.problemi) +
     riga("Il tuo lavoro di ogni giorno", d.segreteria ? d.segreteria.perdite.join("; ") : "") + riga("Un aiuto in più", d.segreteria ? d.segreteria.aiuto : "") +
     riga("Come lavori", [d.team, d.can.join(", "), d.str.join(", ")].filter(Boolean).join(" · ")) +
     riga("Telefonate", [d.telefono.quante, d.telefono.nessuno.length && "se nessuno risponde: " + d.telefono.nessuno.join(", "), d.telefono.momenti.length && "difficile: " + d.telefono.momenti.join(", ")].filter(Boolean).join(" · ")) +
@@ -1802,11 +1806,20 @@ function go(n, back) {
   $("nextBtn").textContent = cur === 0 ? "Inizia il questionario" : cur === 9 ? "Controlla" : "Avanti";
   document.querySelector(".nav").hidden = cur === 11;
   window.scrollTo({ top: 0, behavior: "smooth" });
+  if (cur > 0 && cur < 11) { $("riprendiBox").hidden = true; ripP = 0; bozza(); }
 }
 $("nextBtn").onclick = () => { if (cur === 0) { A.veloce = false; applyFast(); } go(cur + 1); };
 $("fastBtn").addEventListener("click", () => { A.veloce = true; applyFast(); bozza(); go(1); });
 setTimeout(applyFast, 0);
 $("backBtn").onclick = () => go(cur - 1, true);
+/* dopo un ricaricamento a metà: invece di ripartire dalla copertina, si riprende dal passo salvato (o dal primo passo ancora da completare) */
+setTimeout(() => { try { const b = JSON.parse(stor.get("qpc:bozza") || "null"), p = b && Number(b.p);
+  if (!Number.isInteger(p) || p < 2 || p > LAST_Q || cur !== 0) return;
+  ripP = p; $("riprendiBox").hidden = false;
+  $("riprendiBtn").addEventListener("click", () => { applyFast();
+    const passi = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(n => n < p && (!A.veloce || FAST.includes(n)) && !(priv() && n === 7));
+    const n = passi.find(x => valida(x)) || p; ripP = 0; $("riprendiBox").hidden = true; go(n); $("nextBtn").focus(); });
+} catch (e) {} }, 0);
 $("sendBtn").addEventListener("click", e => { if (!invio) { e.preventDefault(); toast("Un attimo, preparo il messaggio…"); return; } salvaOnline(invio); if (invio.copia) copia(invio.testo); try { localStorage.removeItem("qpc:bozza"); } catch (e) {} clearTimeout(saveT); setTimeout(() => go(11), 250); });
 $("waAgain").addEventListener("click", () => salvaOnline(invio));   /* se il primo salvataggio non è riuscito, riprova */
 $("editBtn").addEventListener("click", () => go(10, true));

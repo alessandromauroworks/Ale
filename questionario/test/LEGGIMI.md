@@ -50,6 +50,7 @@ Il test sull'invio guarda solo cosa *sarebbe* stato inviato.
 | `08-versione-veloce-prenotazione-email` | Versione veloce fino all'invio (telefono valido per la funzione online) e «continua»; prenotazione con Google Calendar, cal.com e link vuoto; casella «copia via email» |
 | `09-demo-specifiche` | Demo del sito con testi diversi per settore, schermate diverse per modulo del gestionale, pacchetti presentati come esempi |
 | `10-dati-funzione` | I dati veri della pagina (5 percorsi pieni fino al limite, con emoji, più versione veloce e «continua») passano dalla pulizia della funzione `questionario-ricevi` senza perdere niente; poi la funzione intera gira con un database finto (`prova-funzione.mts`): doppio invio con la stessa sessione aggiorna, un estraneo con stesso telefono e attività non sovrascrive, limiti, codice QC1/QC2, `d.v`, 48 KB |
+| `11-utente-vero` | Segretaria di fretta e titolare pignolo a 320, 390 e 1280: cambio di settore e ruolo a metà, servizio tolto, ricarica a metà con «Riprendi da dove eri», doppio tocco su invio (un solo salvataggio), fisso con +39, emoji e tag nel testo; Privato senza «pazienti» né etichette aziendali nel riepilogo |
 
 ## Prova della funzione che manda l'email
 
