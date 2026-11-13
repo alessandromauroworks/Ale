@@ -54,11 +54,13 @@ Regole ferme:
 - NON inventare nomi di locali (ristoranti, bar, hotel) e NON dare indirizzi. Per il cibo indica piatti tipici e il TIPO di locale dove mangiarli (es. "trattoria di quartiere", "mercato coperto").
 - Per musei, chiese, monumenti e quartieri cita SOLO luoghi famosi e realmente esistenti.
 - Ricorda di verificare orari e prezzi sul sito ufficiale: nei consigli scrivi "verifica orari sul sito ufficiale".
+- In "luoghi_principali" metti solo i musei e le chiese piu' importanti. "sito_ufficiale" e' SOLO il dominio (es. "sagradafamilia.org"), senza https e senza percorso, e SOLO se sei sicuro al 100% che sia quello ufficiale; altrimenti null.
 - Il primo e l'ultimo giorno vanno adattati agli orari del volo (arrivo e partenza): poco da fare se si arriva tardi o si parte presto, tieni conto del tempo per l'aeroporto.
 - Rispondi SOLO con un oggetto JSON valido, senza testo prima o dopo, con questa forma:
 {"citta": string, "zona_consigliata": {"nome": string, "perche": string},
  "giorni": [{"giorno": number, "data": "AAAA-MM-GG", "titolo": string, "mattina": [string], "pomeriggio": [string], "sera": [string]}],
  "cosa_mangiare": {"piatti_tipici": [string], "tipi_di_locale": [string]},
+ "luoghi_principali": [{"nome": string, "tipo": "museo"|"chiesa"|"monumento", "sito_ufficiale": string|null}],
  "esperienze_locali": [string],
  "consigli_pratici": {"dall_aeroporto": string, "biglietti": string, "orari_chiusura": string, "altro": [string]}}
 Il numero di elementi in "giorni" deve essere esattamente ${giorni}.`;
@@ -84,6 +86,13 @@ Budget giornaliero (escluso alloggio): ${budget ? budget + " euro" : "non indica
     if (i < 0 || f < i) return risposta(502, { errore: "La risposta dell'IA non era nel formato giusto. Riprova." });
     try {
       const itinerario = JSON.parse(t.slice(i, f + 1));
+      // i domini dei siti ufficiali passano solo se hanno la forma di un dominio vero
+      if (Array.isArray(itinerario.luoghi_principali)) {
+        itinerario.luoghi_principali = itinerario.luoghi_principali.slice(0, 12).map((l: { nome?: string; tipo?: string; sito_ufficiale?: string | null }) => ({
+          nome: testo(l?.nome, 80), tipo: testo(l?.tipo, 20),
+          sito_ufficiale: typeof l?.sito_ufficiale === "string" && /^(?:[a-z0-9-]+\.)+[a-z]{2,}$/i.test(l.sito_ufficiale.trim()) ? l.sito_ufficiale.trim().toLowerCase() : null,
+        })).filter((l: { nome: string }) => l.nome);
+      }
       return risposta(200, { itinerario, avviso: "Verifica orari e prezzi sul sito ufficiale di ogni luogo." });
     } catch { return risposta(502, { errore: "L'IA ha risposto con un JSON rotto (forse troppo lungo). Riprova." }); }
   } catch (e) {

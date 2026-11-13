@@ -138,9 +138,41 @@ async function chiama(nome, corpo){
   return j;
 }
 
+
+// ---------- LINK DIRETTI ALLE COMPAGNIE (un solo posto da aggiornare) ----------
+// Ultima verifica: 13/11/2026.
+//  - Ryanair: formato indicato da Alessandro (/trip/flights/select?...). Non verificato in tempo reale: Ryanair puo' bloccare i browser automatici.
+//  - Wizz Air, easyJet, Volotea, Vueling, Aeroitalia: NON ho trovato online un formato di link diretto affidabile,
+//    quindi si manda alla pagina ufficiale della compagnia e il link preciso e' quello di Google Flights.
+//    Quando ne verifichi uno, aggiungilo qui sotto in COSTRUTTORI.
+const COMPAGNIE = [
+  { cod: "FR", nome: "Ryanair", re: /ryanair/i },
+  { cod: "W6", nome: "Wizz Air", re: /wizz/i, home: "https://www.wizzair.com/en-gb" },
+  { cod: "U2", nome: "easyJet", re: /easyjet/i, home: "https://www.easyjet.com/" },
+  { cod: "V7", nome: "Volotea", re: /volotea/i, home: "https://www.volotea.com/it/" },
+  { cod: "VY", nome: "Vueling", re: /vueling/i, home: "https://www.vueling.com/it" },
+  { cod: "XZ", nome: "Aeroitalia", re: /aeroitalia/i, home: "https://www.aeroitalia.com/en/" },
+];
+const COSTRUTTORI = {
+  // v = volo, ctx = { adulti, dataRitorno (o "") }
+  FR: (v, ctx) => `https://www.ryanair.com/it/it/trip/flights/select?adults=${ctx.adulti}&teens=0&children=0&infants=0&dateOut=${v.data}` +
+    (ctx.dataRitorno ? `&dateIn=${ctx.dataRitorno}` : "") + `&isReturn=${ctx.dataRitorno ? "true" : "false"}&originIata=${v.aeroporto_partenza}&destinationIata=${v.destinazione}`,
+};
+function trovaCompagnia(v){
+  const codVolo = (v.numero_volo || "").slice(0, 2).toUpperCase();
+  return COMPAGNIE.find(c => c.cod === codVolo) || COMPAGNIE.find(c => c.re.test(v.compagnia || ""));
+}
+function linkCompagnia(v, ctx){
+  const c = trovaCompagnia(v); if (!c) return null;
+  const f = COSTRUTTORI[c.cod];
+  if (f) return { testo: "Prenota sul sito " + c.nome, url: f(v, ctx) };
+  return c.home ? { testo: "Sito ufficiale " + c.nome, url: c.home } : null;
+}
+
 function scheda(v, tipo){
   const fog = v.aeroporto_partenza === "FOG";
   const totale = v.prezzo + (v.costo_per_arrivare||0);
+  const lc = linkCompagnia(v, { adulti: ultimaRicerca.adulti, dataRitorno: tipo === "andata" ? piu(v.data, ultimaRicerca.giorni - 1) : "" });
   return `<div class="carta volo">
     <div class="alto"><span class="badge ${fog?"fog":""}">Da ${esc(v.aeroporto_partenza)}${fog?" · Foggia":""}</span><span class="prezzo">${Math.round(v.prezzo)} €</span></div>
     <div class="tenue">fonte: ${esc(v.fonte||"")}</div>
@@ -149,7 +181,8 @@ function scheda(v, tipo){
     ${v.nota_costo?`<div class="nota">${esc(v.nota_costo)} (totale circa ${Math.round(totale)} €)</div>`:""}
     <div class="azioni">
       ${tipo?`<button class="tasto" data-sceglie="${tipo}">Scegli questo volo</button>`:""}
-      ${v.search_url?`<a class="sec" href="${esc(v.search_url)}" target="_blank" rel="noopener">Prenota / controlla</a>`:""}
+      ${lc?`<a class="sec" href="${esc(lc.url)}" target="_blank" rel="noopener">${esc(lc.testo)}</a>`:""}
+      ${v.search_url?`<a class="sec" href="${esc(v.search_url)}" target="_blank" rel="noopener">Controlla su Google Flights</a>`:""}
     </div></div>`;
 }
 
@@ -206,13 +239,15 @@ $("listaRitorni").addEventListener("click", async (ev) => {
   fin.innerHTML = `<h2>Il tuo viaggio</h2><div class="carta"><b>Andata</b> ${esc(giornoIt(andataScelta.partenza))} ${esc(ore(andataScelta.partenza))} → ${esc(ore(andataScelta.arrivo))} · ${Math.round(andataScelta.prezzo)} €<br>
     <b>Ritorno</b> ${esc(giornoIt(ritornoScelto.partenza))} ${esc(ore(ritornoScelto.partenza))} → ${esc(ore(ritornoScelto.arrivo))} · ${Math.round(ritornoScelto.prezzo)} €<br>
     <b>Voli in totale</b> circa ${Math.round(andataScelta.prezzo+ritornoScelto.prezzo+(andataScelta.costo_per_arrivare||0))} € a persona (con eventuale tratto Foggia-Bari)</div>
-    <div id="bb"></div><div id="iti"><p class="tenue">Preparo l'itinerario...</p></div>`;
+    <div id="bb"></div><div id="guide"></div><div id="iti"><p class="tenue">Preparo l'itinerario...</p></div>`;
   fin.scrollIntoView({behavior:"smooth"});
   mostraBB(citta, null, checkin, checkout, adulti);
+  mostraGuide(citta, checkin, checkout, []);
   try {
     const j = await chiama("viaggi-itinerario", { citta, data_arrivo: (andataScelta.arrivo||"").slice(0,16), data_partenza: (ritornoScelto.partenza||"").slice(0,16),
       interessi: ultimaRicerca.interessi });
     mostraBB(citta, j.itinerario?.zona_consigliata, checkin, checkout, adulti);
+    mostraGuide(citta, checkin, checkout, j.itinerario?.luoghi_principali || []);
     mostraItinerario(j.itinerario, j.avviso);
   } catch(e){ $("iti").innerHTML = `<div class="errore">${esc(e.message)}</div>`; }
 });
@@ -224,6 +259,17 @@ function mostraBB(citta, zona, ci, co, ad){
   $("bb").innerHTML = `<h2>Dove dormire</h2><div class="carta">` +
     (zona?.nome ? `<h3>Zona consigliata: ${esc(zona.nome)}</h3><p>${esc(zona.perche)}</p>${link(zona.nome, zona.nome+", "+citta)}<h3>Tutta la città</h3>` : "") +
     link(citta, citta) + `<p class="tenue">Date: ${ci} → ${co}. Controlla prezzi e disponibilità sul sito.</p></div>`;
+}
+function slug(t){ return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
+function mostraGuide(citta, ci, co, luoghi){
+  const q = encodeURIComponent(citta);
+  let h = `<h2>Guide ed esperienze</h2><div class="carta"><div class="azioni">
+    <a class="sec" target="_blank" rel="noopener" href="https://www.getyourguide.it/s/?q=${q}&date_from=${ci}&date_to=${co}">GetYourGuide · ${esc(citta)}</a>
+    <a class="sec" target="_blank" rel="noopener" href="https://www.civitatis.com/it/${slug(citta)}/">Civitatis · ${esc(citta)}</a></div>`;
+  const conSito = luoghi.filter(l => l.sito_ufficiale);
+  if (conSito.length) h += "<h3>Siti ufficiali (musei e chiese)</h3><ul>" + conSito.map(l => `<li><a target="_blank" rel="noopener" href="https://${esc(l.sito_ufficiale)}">${esc(l.nome)}</a></li>`).join("") + "</ul>";
+  h += `<p class="tenue">Piccolo avviso: questi link non sono controllati in tempo reale, potrebbero non essere più validi. Nessun pagamento passa da qui.</p></div>`;
+  $("guide").innerHTML = h;
 }
 function lista(a){ return a&&a.length?"<ul>"+a.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":""; }
 function mostraItinerario(t, avviso){

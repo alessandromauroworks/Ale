@@ -10,6 +10,7 @@ Regola per sempre (05/11/2026): tutte le automazioni, di Alessandro e dei client
 | Demo commercialista: documenti che arrivano da soli | Edge Function `demo-commercialista` |
 | Demo dentista: preventivi che si firmano | Edge Function `demo-dentista` |
 | Demo barberia: richiami, recensioni, report | Edge Function `demo-barberia` |
+| Viaggi personali: voli da Foggia e Bari, B&B, itinerario | Edge Function `viaggi-voli` e `viaggi-itinerario` (pagina `viaggi/`, protette da PIN; voli letti dal Motore Jarvis, Firecrawl solo come riserva) |
 | Risposte ai potenziali clienti da Gmail | attività programmata «Risposte clienti e riepilogo serale» (solo bozze, mai invii automatici); da portare su Edge Function quando servirà h24 |
 
 I file dei vecchi flussi sono stati tolti da questo repository il 05/11/2026 (restano solo nella cronologia di git).
