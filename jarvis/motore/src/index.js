@@ -4,6 +4,7 @@
 //   /cerca?q=...&n=10                        ricerca web (DuckDuckGo, poi Bing, poi Mojeek)
 //   /mappa?url=...                           elenco pagine del sito (sitemap + link della home)
 //   /sito?url=...&max=15                     legge più pagine dello stesso sito in un colpo
+//   /voli?da=BRI&a=STN&data=2026-12-04       voli di sola andata letti da Google Flights col browser (JSON già pulito)
 //   /salute                                  controllo che il motore sia acceso
 // Se è impostato il segreto CHIAVE, ogni chiamata deve avere &k=<chiave>.
 import puppeteer from "@cloudflare/puppeteer";
@@ -42,8 +43,13 @@ export default {
           if (!url) return json({ ok: false, errore: "Manca url" }, 400);
           return json(await sito(url, env, Math.min(Number(p.get("max")) || 15, 30), Number(p.get("maxpagina")) || 15000));
         }
+        case "/voli": {
+          const da = (p.get("da") || "").toUpperCase(), a = (p.get("a") || "").toUpperCase(), data = p.get("data") || "";
+          if (!/^[A-Z]{3}$/.test(da) || !/^[A-Z]{3}$/.test(a) || !/^\d{4}-\d{2}-\d{2}$/.test(data)) return json({ ok: false, errore: "Esempio: /voli?da=BRI&a=STN&data=2026-12-04" }, 400);
+          return json(await voli(env, da, a, data, Math.min(Math.max(Number(p.get("adulti")) || 1, 1), 9)));
+        }
         default:
-          return json({ ok: true, comandi: ["/leggi?url=", "/cerca?q=", "/mappa?url=", "/sito?url=&max=15", "/salute"] });
+          return json({ ok: true, comandi: ["/leggi?url=", "/cerca?q=", "/mappa?url=", "/sito?url=&max=15", "/voli?da=&a=&data=", "/salute"] });
       }
     } catch (e) {
       return json({ ok: false, errore: String(e && e.message || e) }, 500);
@@ -299,4 +305,65 @@ async function sito(url, env, max, maxPagina) {
     pagine_js_da_rileggere: vuote,
     pagine: pagine.map(p => ({ url: p.url, titolo: p.titolo, caratteri: p.caratteri, markdown: p.markdown, errore: p.errore })),
   };
+}
+
+// ---------- VOLI (Google Flights col browser) ----------
+// Apre la pagina di Google Flights (solo andata), accetta il banner dei cookie se compare, legge le descrizioni dei voli
+// (aria-label in italiano) e le trasforma in JSON. Non tocca il sito delle compagnie.
+function urlVoli(da, a, data, adulti) {
+  const q = `Flights to ${a} from ${da} on ${data} oneway` + (adulti > 1 ? ` for ${adulti} adults` : "");
+  return "https://www.google.com/travel/flights?q=" + encodeURIComponent(q) + "&curr=EUR&hl=it&gl=IT";
+}
+
+function leggiDescrizione(t) {
+  const prezzo = (t.match(/(\d[\d.,]*)\s*(?:euro|€)/i) || [])[1];
+  const ore = [...t.matchAll(/\b(\d{1,2})[:.](\d{2})\b/g)].map(m => m[1].padStart(2, "0") + ":" + m[2]);
+  if (!prezzo || ore.length < 2) return null;
+  const scali = /diretto|senza scali|nonstop/i.test(t) ? 0 : Number((t.match(/(\d+)\s*scal/i) || [])[1] ?? 1);
+  const dh = t.match(/(\d+)\s*or[ae](?:\s*e?\s*(\d+)\s*min)?/i);
+  const compagnia = ((t.match(/(?:operat[oi] da|con)\s+([^.,]+?)(?:[.,]|\s+Partenza)/i) || [])[1] || "").trim();
+  return {
+    prezzo: Number(prezzo.replace(/\./g, "").replace(",", ".")),
+    partenza_ora: ore[0], arrivo_ora: ore[1],
+    scali, durata_minuti: dh ? Number(dh[1]) * 60 + Number(dh[2] || 0) : null,
+    compagnia, descrizione: t.slice(0, 400),
+  };
+}
+
+async function voli(env, da, a, data, adulti) {
+  const url = urlVoli(da, a, data, adulti);
+  if (!env.BROWSER) return { ok: false, errore: "Browser di Cloudflare non collegato", search_url: url };
+  const browser = await puppeteer.launch(env.BROWSER);
+  try {
+    const page = await browser.newPage();
+    await page.setUserAgent(UA);
+    await page.setExtraHTTPHeaders({ "Accept-Language": "it-IT,it;q=0.9" });
+    await page.goto(url, { waitUntil: "networkidle2", timeout: 35000 }).catch(() => {});
+    // banner cookie di Google (a volte porta su consent.google.com)
+    if (/consent\./.test(page.url())) {
+      await page.evaluate(() => {
+        const b = [...document.querySelectorAll("button")].find(x => /accetta tutto|accept all/i.test(x.textContent));
+        if (b) b.click();
+      }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 20000 }).catch(() => {});
+    }
+    await page.waitForSelector('[aria-label*="euro"], [aria-label*="€"]', { timeout: 15000 }).catch(() => {});
+    const raccolta = await page.evaluate(() => {
+      const etichette = [...document.querySelectorAll("[aria-label]")].map(e => e.getAttribute("aria-label") || "")
+        .filter(t => t.length > 40 && /(euro|€)/i.test(t) && /\d{1,2}[:.]\d{2}/.test(t));
+      return { etichette: [...new Set(etichette)], testo: (document.body.innerText || "").slice(0, 3000), url: location.href };
+    });
+    const trovati = raccolta.etichette.map(leggiDescrizione).filter(Boolean);
+    const nessun = trovati.length === 0 && /nessun volo|non ci sono voli|no flights|nessun risultato/i.test(raccolta.testo);
+    return {
+      ok: true, da, a, data, search_url: url, voli: trovati.slice(0, 40), totale: trovati.length,
+      nessun_volo: nessun,
+      incerto: trovati.length === 0 && !nessun,
+      testo_pagina: trovati.length === 0 ? raccolta.testo.slice(0, 1200) : undefined,
+    };
+  } catch (e) {
+    return { ok: false, errore: "Lettura Google Flights non riuscita: " + (e && e.message || e), search_url: url };
+  } finally {
+    await browser.close().catch(() => {});
+  }
 }

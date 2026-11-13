@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<title>Voli e viaggi</title>
+<style>
+:root{--sfondo:#f5f5f7;--carta:#fff;--testo:#1d1d1f;--tenue:#6e6e73;--linea:#e5e5ea;--blu:#0a84ff;--verde:#30a14e;--arancio:#e08600;--rosso:#d92d20;--campo:#f2f2f7;--ombra:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.06)}
+@media (prefers-color-scheme: dark){:root{--sfondo:#000;--carta:#1c1c1e;--testo:#f5f5f7;--tenue:#98989d;--linea:#38383a;--verde:#32d74b;--arancio:#ff9f0a;--rosso:#ff453a;--campo:#2c2c2e;--ombra:none}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;overflow-x:hidden}
+body{background:var(--sfondo);color:var(--testo);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+main{max-width:640px;margin:0 auto;padding:16px 16px 48px}
+h1{font-size:30px;letter-spacing:-.02em;margin:8px 0 4px}
+h2{font-size:20px;margin:22px 0 10px}
+h3{font-size:16px;margin:12px 0 4px}
+.tenue{color:var(--tenue);font-size:14px}
+.carta{background:var(--carta);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:var(--ombra)}
+button,a.tasto{font:inherit;border:0;cursor:pointer;color:inherit;text-decoration:none}
+.tasto{display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;border-radius:14px;background:var(--blu);color:#fff;font-weight:600;font-size:17px}
+.tasto:disabled{opacity:.5}
+.sec{min-height:44px;padding:0 14px;border-radius:12px;background:var(--campo);color:var(--blu);font-weight:600;display:inline-flex;align-items:center;justify-content:center}
+label.lbl{display:block;font-weight:600;margin:12px 0 6px}
+input,select{width:100%;height:48px;border-radius:12px;border:1px solid var(--linea);background:var(--campo);color:var(--testo);padding:0 12px;font:inherit}
+input:focus,select:focus{outline:2px solid var(--blu)}
+.riga{display:flex;gap:8px}.riga>*{flex:1;min-width:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:40px;padding:0 12px;border-radius:20px;background:var(--campo);font-size:14px}
+.chip.on{background:var(--blu);color:#fff}
+.avviso{background:color-mix(in srgb,var(--arancio) 16%,transparent);color:var(--arancio);padding:12px 14px;border-radius:14px;font-size:14px;font-weight:500;margin:12px 0}
+.errore{background:color-mix(in srgb,var(--rosso) 14%,transparent);color:var(--rosso);padding:12px 14px;border-radius:14px;margin:12px 0;font-size:15px}
+.volo .alto{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.prezzo{font-size:26px;font-weight:700}
+.badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:13px;font-weight:700;background:var(--blu);color:#fff}
+.badge.fog{background:var(--verde)}
+.orari{font-size:18px;font-weight:600;margin:6px 0 2px}
+.nota{font-size:13px;color:var(--arancio);margin:4px 0}
+.azioni{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.azioni>*{flex:1;min-width:130px}
+ul{padding-left:20px;margin:4px 0}
+.nascosto{display:none!important}
+.giorno{border-top:1px solid var(--linea);padding-top:10px;margin-top:10px}
+.giorno:first-of-type{border:0;margin:0;padding:0}
+</style>
+</head>
+<body>
+<main>
+  <h1>Voli e viaggi</h1>
+  <p class="tenue">Voli economici da Foggia e Bari, B&amp;B e itinerario.</p>
+  <div class="avviso">I prezzi cambiano: conferma sempre sul sito della compagnia prima di pagare.</div>
+
+  <div class="carta">
+    <label class="lbl" for="pin">PIN</label>
+    <input id="pin" type="password" autocomplete="off" inputmode="numeric" placeholder="Il tuo PIN">
+  </div>
+
+  <form id="modulo" class="carta" novalidate>
+    <label class="lbl">Dove vuoi andare? (puoi sceglierne più di una)</label>
+    <div class="chips" id="mete"></div>
+    <div class="riga" style="margin-top:10px">
+      <input id="iata" type="text" maxlength="3" placeholder="Altro codice (es. DUB)" autocapitalize="characters">
+      <input id="cittaLibera" type="text" placeholder="Nome città (per B&amp;B)">
+    </div>
+
+    <label class="lbl">Partenza da</label>
+    <div class="chips" id="aeroporti">
+      <button type="button" class="chip on" data-v="FOG">Foggia (FOG)</button>
+      <button type="button" class="chip on" data-v="BRI">Bari (BRI)</button>
+    </div>
+
+    <label class="lbl">Date di andata (fino a 3)</label>
+    <div class="riga"><input type="date" id="d1"><input type="date" id="d2"><input type="date" id="d3"></div>
+
+    <div class="riga">
+      <div><label class="lbl" for="giorni">Quanti giorni</label><input id="giorni" type="number" min="1" max="10" value="3"></div>
+      <div><label class="lbl" for="persone">Persone</label><input id="persone" type="number" min="1" max="9" value="1"></div>
+    </div>
+    <div class="riga">
+      <div><label class="lbl" for="budget">Budget volo (€, opz.)</label><input id="budget" type="number" min="0" placeholder="es. 150"></div>
+      <div><label class="lbl" for="fascia">Orario di partenza</label>
+        <select id="fascia"><option value="qualsiasi">Qualsiasi</option><option value="mattina">Mattina</option><option value="pomeriggio">Pomeriggio</option><option value="sera">Sera</option></select></div>
+    </div>
+    <label class="lbl" for="interessi">Cosa ti piace? (opzionale)</label>
+    <input id="interessi" type="text" placeholder="es. musei, mare, cibo, vita notturna">
+    <p class="tenue">Cerco prima con Jarvis (gratis). Solo se non riesce uso Firecrawl (5 crediti a ricerca, massimo 12 per volta). Ogni combinazione aeroporto × meta × data è una ricerca.</p>
+    <button class="tasto" id="cerca" type="submit">Cerca voli</button>
+  </form>
+
+  <div id="errore" class="errore nascosto"></div>
+  <div id="stato" class="tenue"></div>
+
+  <section id="andate" class="nascosto"><h2>Voli di andata</h2><div id="listaAndate"></div></section>
+  <section id="ritorni" class="nascosto"><h2>Voli di ritorno</h2><div id="listaRitorni"></div></section>
+  <section id="finale" class="nascosto"></section>
+</main>
+
+<script>
+const URL_BASE = "https://udubhzamghhlkxgepmmc.supabase.co/functions/v1/";
+const $ = (id) => document.getElementById(id);
+const METE = [["STN","Londra (STN)","Londra"],["BCN","Barcellona (BCN)","Barcellona"],["VLC","Valencia (VLC)","Valencia"],["BVA","Parigi Beauvais (BVA)","Parigi"],["CDG","Parigi CDG","Parigi"],["BER","Berlino (BER)","Berlino"],["BUD","Budapest (BUD)","Budapest"],["KRK","Cracovia (KRK)","Cracovia"],["PRG","Praga (PRG)","Praga"],["MLA","Malta (MLA)","Malta"],["ATH","Atene (ATH)","Atene"],["SVQ","Siviglia (SVQ)","Siviglia"],["OPO","Porto (OPO)","Porto"],["LIS","Lisbona (LIS)","Lisbona"],["CRL","Bruxelles (CRL)","Bruxelles"],["LIN","Milano Linate (LIN)","Milano"],["BGY","Milano Bergamo (BGY)","Milano"],["TRN","Torino (TRN)","Torino"]];
+const scelte = new Set();
+let ultimaRicerca = null, andataScelta = null, ritornoScelto = null;
+
+function leggi(k){ try { return localStorage.getItem(k) || ""; } catch(e){ return ""; } }
+function scrivi(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+$("pin").value = leggi("viaggi_pin");
+$("pin").addEventListener("change", () => scrivi("viaggi_pin", $("pin").value.trim()));
+
+METE.forEach(([c,et]) => {
+  const b = document.createElement("button"); b.type="button"; b.className="chip"; b.textContent=et; b.dataset.v=c;
+  b.onclick = () => { scelte.has(c) ? scelte.delete(c) : scelte.add(c); b.classList.toggle("on"); };
+  $("mete").appendChild(b);
+});
+document.querySelectorAll("#aeroporti .chip").forEach(b => b.onclick = () => b.classList.toggle("on"));
+const d0 = new Date(); d0.setDate(d0.getDate()+30); $("d1").value = d0.toISOString().slice(0,10);
+
+function errore(m){ const e=$("errore"); e.textContent=m||""; e.classList.toggle("nascosto",!m); }
+function esc(s){ return String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function ore(dt){ const m=/T(\d{2}:\d{2})/.exec(dt||"")||/(\d{1,2}:\d{2})/.exec(dt||""); return m?m[1]:"?"; }
+function giornoIt(dt){ const d=new Date((dt||"").slice(0,10)+"T12:00:00"); return isNaN(d)?"":d.toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"short"}); }
+function durata(m){ return m? Math.floor(m/60)+" h "+String(m%60).padStart(2,"0")+" min":""; }
+function piu(data,n){ const d=new Date(data+"T12:00:00"); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function nomeCitta(iata){ const m=METE.find(x=>x[0]===iata); return m?m[2]:($("cittaLibera").value.trim()||iata); }
+
+async function chiama(nome, corpo){
+  const pin = $("pin").value.trim();
+  if (!pin) throw new Error("Scrivi il PIN.");
+  scrivi("viaggi_pin", pin);
+  let r;
+  try {
+    r = await fetch(URL_BASE+nome, {method:"POST", headers:{"Content-Type":"application/json","x-pin":pin}, body:JSON.stringify(corpo)});
+  } catch(e){ throw new Error("Non riesco a collegarmi. Controlla la connessione."); }
+  const j = await r.json().catch(()=>({}));
+  if (r.status === 401) throw new Error("PIN sbagliato.");
+  if (!r.ok) throw new Error(j.errore || ("Errore "+r.status));
+  return j;
+}
+
+function scheda(v, tipo){
+  const fog = v.aeroporto_partenza === "FOG";
+  const totale = v.prezzo + (v.costo_per_arrivare||0);
+  return `<div class="carta volo">
+    <div class="alto"><span class="badge ${fog?"fog":""}">Da ${esc(v.aeroporto_partenza)}${fog?" · Foggia":""}</span><span class="prezzo">${Math.round(v.prezzo)} €</span></div>
+    <div class="tenue">fonte: ${esc(v.fonte||"")}</div>
+    <div class="orari">${esc(ore(v.partenza))} → ${esc(ore(v.arrivo))} <span class="tenue">${esc(giornoIt(v.partenza||v.data))}</span></div>
+    <div class="tenue">${esc(v.compagnia||"")} ${esc(v.numero_volo||"")} · ${esc(v.aeroporto_partenza)} → ${esc(v.destinazione)} · ${v.scali?v.scali+" scalo/i":"diretto"} · ${esc(durata(v.durata_minuti))}</div>
+    ${v.nota_costo?`<div class="nota">${esc(v.nota_costo)} (totale circa ${Math.round(totale)} €)</div>`:""}
+    <div class="azioni">
+      ${tipo?`<button class="tasto" data-sceglie="${tipo}">Scegli questo volo</button>`:""}
+      ${v.search_url?`<a class="sec" href="${esc(v.search_url)}" target="_blank" rel="noopener">Prenota / controlla</a>`:""}
+    </div></div>`;
+}
+
+$("modulo").addEventListener("submit", async (ev) => {
+  ev.preventDefault(); errore(""); ["andate","ritorni","finale"].forEach(i=>$(i).classList.add("nascosto"));
+  const mete = new Set(scelte); const lib = $("iata").value.trim().toUpperCase(); if (lib) mete.add(lib);
+  const aeroporti = [...document.querySelectorAll("#aeroporti .chip.on")].map(b=>b.dataset.v);
+  const date = ["d1","d2","d3"].map(i=>$(i).value).filter(Boolean);
+  if (!mete.size) return errore("Scegli almeno una meta.");
+  if (!aeroporti.length) return errore("Scegli almeno un aeroporto di partenza.");
+  if (!date.length) return errore("Scegli almeno una data.");
+  const giorni = Math.max(1, Math.min(10, parseInt($("giorni").value)||3));
+  const n = aeroporti.length * mete.size * date.length;
+  if (n > 12 && !confirm("Le combinazioni sono "+n+": ne cerco solo 12 (60 crediti). Continuo?")) return;
+  ultimaRicerca = { destinazioni:[...mete], date_andata:date, aeroporti, giorni, adulti:parseInt($("persone").value)||1,
+    budget_max: parseFloat($("budget").value)||null, fascia_oraria:$("fascia").value, interessi:$("interessi").value.trim() };
+  $("cerca").disabled = true; $("stato").textContent = "Cerco i voli... può servire fino a un minuto.";
+  try {
+    const j = await chiama("viaggi-voli", ultimaRicerca);
+    const pf = j.ricerche_per_fonte || {};
+    $("stato").textContent = `${j.voli.length} voli trovati · ${j.ricerche_fatte} ricerche (Jarvis ${pf.jarvis||0}, Firecrawl ${pf.firecrawl||0}, ${j.crediti_stimati} crediti)` + (j.ricerche_saltate_per_limite?` · ${j.ricerche_saltate_per_limite} combinazioni saltate per il limite`:"");
+    if (j.problemi?.length) errore("Alcune ricerche non sono riuscite: "+j.problemi.slice(0,3).join(" | "));
+    $("andate").classList.remove("nascosto");
+    $("listaAndate").innerHTML = j.voli.length ? j.voli.map((v,i)=>scheda(v,"andata").replace('data-sceglie="andata"',`data-sceglie="andata" data-i="${i}"`)).join("") : '<p class="tenue">Nessun volo con questi filtri. Prova ad alzare il budget o cambiare orario.</p>';
+    window._andate = j.voli;
+  } catch(e){ errore(e.message); $("stato").textContent=""; }
+  $("cerca").disabled = false;
+});
+
+$("listaAndate").addEventListener("click", async (ev) => {
+  const b = ev.target.closest("button[data-sceglie]"); if (!b) return;
+  andataScelta = window._andate[+b.dataset.i]; ritornoScelto = null; errore(""); $("finale").classList.add("nascosto");
+  const dataRit = piu(andataScelta.data, ultimaRicerca.giorni - 1);
+  b.disabled = true; $("stato").textContent = "Cerco il ritorno...";
+  try {
+    const j = await chiama("viaggi-voli", { fase: "ritorno", destinazione: andataScelta.destinazione,
+      aeroporto: andataScelta.aeroporto_ricerca, data_andata: andataScelta.data, data_ritorno: dataRit, adulti: ultimaRicerca.adulti,
+      budget_max: ultimaRicerca.budget_max, fascia_oraria: "qualsiasi" });
+    $("stato").textContent = `${j.ritorni.length} voli di ritorno · fonte ${j.fonte} (${j.crediti_stimati} crediti)`;
+    window._ritorni = j.ritorni; $("ritorni").classList.remove("nascosto");
+    $("listaRitorni").innerHTML = j.ritorni.length ? j.ritorni.map((v,i)=>scheda(v,"ritorno").replace('data-sceglie="ritorno"',`data-sceglie="ritorno" data-i="${i}"`)).join("") : '<p class="tenue">Nessun ritorno trovato per il '+esc(dataRit)+'.</p>';
+    $("ritorni").scrollIntoView({behavior:"smooth"});
+  } catch(e){ errore(e.message); $("stato").textContent=""; }
+  b.disabled = false;
+});
+
+$("listaRitorni").addEventListener("click", async (ev) => {
+  const b = ev.target.closest("button[data-sceglie]"); if (!b) return;
+  ritornoScelto = window._ritorni[+b.dataset.i]; errore("");
+  const citta = nomeCitta(andataScelta.destinazione);
+  const checkin = andataScelta.data, checkout = ritornoScelto.data;
+  const adulti = ultimaRicerca.adulti;
+  const fin = $("finale"); fin.classList.remove("nascosto");
+  fin.innerHTML = `<h2>Il tuo viaggio</h2><div class="carta"><b>Andata</b> ${esc(giornoIt(andataScelta.partenza))} ${esc(ore(andataScelta.partenza))} → ${esc(ore(andataScelta.arrivo))} · ${Math.round(andataScelta.prezzo)} €<br>
+    <b>Ritorno</b> ${esc(giornoIt(ritornoScelto.partenza))} ${esc(ore(ritornoScelto.partenza))} → ${esc(ore(ritornoScelto.arrivo))} · ${Math.round(ritornoScelto.prezzo)} €<br>
+    <b>Voli in totale</b> circa ${Math.round(andataScelta.prezzo+ritornoScelto.prezzo+(andataScelta.costo_per_arrivare||0))} € a persona (con eventuale tratto Foggia-Bari)</div>
+    <div id="bb"></div><div id="iti"><p class="tenue">Preparo l'itinerario...</p></div>`;
+  fin.scrollIntoView({behavior:"smooth"});
+  mostraBB(citta, null, checkin, checkout, adulti);
+  try {
+    const j = await chiama("viaggi-itinerario", { citta, data_arrivo: (andataScelta.arrivo||"").slice(0,16), data_partenza: (ritornoScelto.partenza||"").slice(0,16),
+      interessi: ultimaRicerca.interessi });
+    mostraBB(citta, j.itinerario?.zona_consigliata, checkin, checkout, adulti);
+    mostraItinerario(j.itinerario, j.avviso);
+  } catch(e){ $("iti").innerHTML = `<div class="errore">${esc(e.message)}</div>`; }
+});
+
+function mostraBB(citta, zona, ci, co, ad){
+  const q = (z) => encodeURIComponent(z);
+  const link = (nome, z) => `<div class="azioni"><a class="sec" target="_blank" rel="noopener" href="https://www.booking.com/searchresults.it.html?ss=${q(z)}&checkin=${ci}&checkout=${co}&group_adults=${ad}">Booking.com · ${esc(nome)}</a>
+    <a class="sec" target="_blank" rel="noopener" href="https://www.airbnb.it/s/${q(z)}/homes?checkin=${ci}&checkout=${co}&adults=${ad}">Airbnb · ${esc(nome)}</a></div>`;
+  $("bb").innerHTML = `<h2>Dove dormire</h2><div class="carta">` +
+    (zona?.nome ? `<h3>Zona consigliata: ${esc(zona.nome)}</h3><p>${esc(zona.perche)}</p>${link(zona.nome, zona.nome+", "+citta)}<h3>Tutta la città</h3>` : "") +
+    link(citta, citta) + `<p class="tenue">Date: ${ci} → ${co}. Controlla prezzi e disponibilità sul sito.</p></div>`;
+}
+function lista(a){ return a&&a.length?"<ul>"+a.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":""; }
+function mostraItinerario(t, avviso){
+  let h = "<h2>Itinerario</h2>";
+  (t.giorni||[]).forEach(g => { h += `<div class="carta giorno"><h3>Giorno ${esc(g.giorno)} · ${esc(g.titolo)}</h3><span class="tenue">${esc(g.data||"")}</span>
+    <h3>Mattina</h3>${lista(g.mattina)}<h3>Pomeriggio</h3>${lista(g.pomeriggio)}<h3>Sera</h3>${lista(g.sera)}</div>`; });
+  const m = t.cosa_mangiare||{}, p = t.consigli_pratici||{};
+  h += `<div class="carta"><h3>Cosa mangiare</h3>${lista(m.piatti_tipici)}<div class="tenue">Dove: </div>${lista(m.tipi_di_locale)}
+    <h3>Esperienze locali</h3>${lista(t.esperienze_locali)}
+    <h3>Consigli pratici</h3><p><b>Dall'aeroporto:</b> ${esc(p.dall_aeroporto)}</p><p><b>Biglietti:</b> ${esc(p.biglietti)}</p><p><b>Orari di chiusura:</b> ${esc(p.orari_chiusura)}</p>${lista(p.altro)}
+    <p class="tenue">${esc(avviso||"Verifica orari sul sito ufficiale.")}</p></div>`;
+  $("iti").innerHTML = h;
+}
+</script>
+</body>
+</html>
