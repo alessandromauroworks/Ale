@@ -89,7 +89,7 @@ async function fin(p,{contatto,tel='339 111 2222',email}){
   ok(nome+' privacy aggiornata',(await p.evaluate(()=>document.querySelector('.privacy').textContent)).includes('solo se scegli WhatsApp'));
   await p.context().close();
  }
- // ---- bozza vecchia + dimensione 48KB
+ // ---- bozza vecchia + dimensione 96KB
  const p=await mk(b,{width:390,height:844});
  await p.evaluate(()=>localStorage.setItem('qpc:bozza',JSON.stringify({A:{ob:['tempo'],servizi:['x'],ruolo:'boh',telQuante:5,segPerdite:'no'},f:{fNome:'X'}})));
  await p.reload(); await p.waitForTimeout(500);
@@ -97,6 +97,6 @@ async function fin(p,{contatto,tel='339 111 2222',email}){
  await p.evaluate(()=>{ A.s=SETTORI[0].n; A.ruolo="Segretaria / segretario"; A.contatto="Email"; A.titolareSa="Non ancora"; A.servizi=[...OPZ.servizi]; A.tipoProblema=[...OPZ.tipoProblema]; A.segPerdite=[...OPZ.segPerdite]; A.telNessuno=[...OPZ.telNessuno]; A.telMomenti=[...OPZ.telMomenti]; A.telQuante="Non so"; A.dimensione=OPZ.dimensione[2]; A.ob=GOALS.map(g=>g[0]);
   FIELDS.forEach(k=>{ const e=$(k); if(e) e.value=("àèé€ù".repeat(2000)).slice(0,+e.maxLength>0?e.maxLength:300); }); });
  const kb=await p.evaluate(()=>new TextEncoder().encode(JSON.stringify({d:dati(),codice:'x'.repeat(0),hp:''})).length);
- ok('payload tutto pieno < 48KB',kb<48*1024,kb+' byte');
+ ok('payload tutto pieno < 96KB',kb<96_000,kb+' byte');
  await b.close(); console.log('FAILS',fails);
 })();

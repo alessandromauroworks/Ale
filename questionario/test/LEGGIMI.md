@@ -41,7 +41,7 @@ Il test sull'invio guarda solo cosa *sarebbe* stato inviato.
 | File | Cosa verifica |
 |---|---|
 | `01-base` | Percorso di base: ruolo obbligatorio, ramo segreteria, contatto (email/telefono), telefono valido, bozza dopo il ricaricamento, bozze vecchie, riepilogo e messaggio WhatsApp |
-| `02-pannelli-servizi` | Ogni servizio apre e chiude il suo pannello, i dati entrano ed escono da `d.dettagli`, le automazioni cambiano col settore, anteprima del gestionale sincronizzata, nessuno scroll orizzontale da 320 a 1440 px, peso dei dati sotto 48 KB |
+| `02-pannelli-servizi` | Ogni servizio apre e chiude il suo pannello, i dati entrano ed escono da `d.dettagli`, le automazioni cambiano col settore, anteprima del gestionale sincronizzata, nessuno scroll orizzontale da 320 a 1440 px, peso dei dati sotto 96 KB |
 | `03-mappa-demo-presentazione` | Presentazione a passi, demo del sito e delle automazioni, mappa del lavoro, finestre (Esc, X, tocco fuori, focus) |
 | `04-accessibilita-tastiera-velocita` | axe-core su ogni passo, percorso con sola tastiera, riduzione del movimento, zoom 200%, velocità di caricamento con CPU rallentata |
 | `05-insieme-flusso` | «Insieme funzionano meglio», demo del flusso e pannello automazioni di esempio (le modifiche non si salvano) |
@@ -49,8 +49,9 @@ Il test sull'invio guarda solo cosa *sarebbe* stato inviato.
 | `07-settori-e-privato` | I settori nuovi hanno contenuti propri; il percorso «Privato» senza voci aziendali fuori luogo |
 | `08-versione-veloce-prenotazione-email` | Versione veloce fino all'invio (telefono valido per la funzione online) e «continua»; prenotazione con Google Calendar, cal.com e link vuoto; casella «copia via email» |
 | `09-demo-specifiche` | Demo del sito con testi diversi per settore, schermate diverse per modulo del gestionale, pacchetti presentati come esempi |
-| `10-dati-funzione` | I dati veri della pagina (5 percorsi pieni fino al limite, con emoji, più versione veloce e «continua») passano dalla pulizia della funzione `questionario-ricevi` senza perdere niente; poi la funzione intera gira con un database finto (`prova-funzione.mts`): doppio invio con la stessa sessione aggiorna, un estraneo con stesso telefono e attività non sovrascrive, limiti, codice QC1/QC2, `d.v`, 48 KB |
+| `10-dati-funzione` | I dati veri della pagina (5 percorsi pieni fino al limite, con emoji, più versione veloce e «continua») passano dalla pulizia della funzione `questionario-ricevi` senza perdere niente; poi la funzione intera gira con un database finto (`prova-funzione.mts`): doppio invio con la stessa sessione aggiorna, un estraneo con stesso telefono e attività non sovrascrive, limiti, codice QC1/QC2, `d.v`, 96 KB; anche il browser senza `CompressionStream` (codice QC1, il più grande) con tutti i campi lunghi pieni resta sotto il limite e viene accettato |
 | `11-utente-vero` | Chi sceglie email o telefono non passa da WhatsApp (salvataggio protetto, riserva email se fallisce). Segretaria di fretta e titolare pignolo a 320, 390 e 1280: cambio di settore e ruolo a metà, servizio tolto, ricarica a metà con «Riprendi da dove eri», doppio tocco su invio (un solo salvataggio), fisso con +39, emoji e tag nel testo; Privato senza «pazienti» né etichette aziendali nel riepilogo |
+| `12-privato-tutti-i-servizi` | Il Privato con TUTTI i servizi aperti e tutte le voci scelte: nel testo visibile (pannelli, consigli, pacchetti, riepilogo) e nel messaggio WhatsApp non compaiono parole da azienda (clienti, attività, titolare, pazienti, «Gestionale fatto su misura per noi», ecc.) |
 
 ## Prova della funzione che manda l'email
 

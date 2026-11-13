@@ -1,7 +1,7 @@
 // Edge Function «questionario-ricevi» (progetto Supabase «Alessandro»).
 // Riceve il Questionario Prima Call dalla pagina pubblica e lo salva nella tabella public.questionari.
 // verify_jwt = false: la chiama una pagina pubblica. Protezioni: solo POST JSON, CORS solo dalle origini
-// del questionario, corpo max 48 KB, campo trappola anti-bot, limite per IP, per numero e globale (30 l'ora), validazione.
+// del questionario, corpo max 96 KB (serve al codice di riserva QC1 dei Safari vecchi, più grande di QC2), campo trappola anti-bot, limite per IP, per numero e globale (30 l'ora), validazione.
 // Il doppio invio (entro 10 minuti) aggiorna la riga solo se arriva con la stessa «sessione» casuale creata dalla pagina.
 // Prova locale senza Supabase: questionario/test/10-dati-funzione.cjs (usa prova-funzione.mts).
 // Chiavi: solo variabili d'ambiente della funzione (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY), mai nel codice.
@@ -10,7 +10,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 const ORIGINI = new Set([
   "https://alessandromauroworks.github.io",
 ]);
-const MAX_BYTE = 48_000;
+const MAX_BYTE = 96_000;
 const LIMITE_IP_ORA = 5;        // invii per ora dallo stesso IP
 const LIMITE_TEL_GIORNO = 3;    // invii in 24 ore dallo stesso numero
 const LIMITE_GLOBALE_ORA = 30;  // questionari salvati in un'ora in tutto: ferma un attacco che cambia IP e numero a ogni invio
@@ -66,7 +66,7 @@ export function risposteDa(d0: Record<string, unknown>): Record<string, unknown>
   return d;
 }
 export const SESSIONE_VALIDA = /^[a-f0-9]{32}$/;
-export const CODICE_VALIDO = /^QC[12]\.[A-Za-z0-9_-]{20,39000}$/;
+export const CODICE_VALIDO = /^QC[12]\.[A-Za-z0-9_-]{20,96000}$/;
 // ==== FINE PULIZIA ====
 
 // ==== INIZIO EMAIL ====

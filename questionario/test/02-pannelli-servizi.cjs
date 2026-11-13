@@ -62,6 +62,6 @@ const L=require('./lib.cjs'); const {ok}=L; const S=process.env.SHOT_DIR||requir
   FIELDS.forEach(k=>{const e=$(k); if(e) e.value=rnd(+e.maxLength>0?e.maxLength:300)});
   Object.keys(PAN).forEach(k=>PAN[k].forEach(bl=>{ if(bl.k==="text"||bl.k==="url") A.det[k][bl.id]=rnd(bl.m||DET_MAX); else if(bl.k==="many"){ const o=optsOf(bl); A.det[k][bl.id]=o?[...o]:[]; } else { const o=optsOf(bl); A.det[k][bl.id]=o?o[0]:null; } }));
   const d=dati(); return { d:new TextEncoder().encode(JSON.stringify({d})).length, n:Object.keys(d.dettagli).length }; });
- ok('payload tutto pieno (random incomprimibile) < 48KB',r.d<48*1024,r.d+' byte, servizi con dettagli '+r.n);
+ ok('payload tutto pieno (random incomprimibile) < 96KB',r.d<96_000,r.d+' byte, servizi con dettagli '+r.n);
  await b.close(); L.done();
 })();

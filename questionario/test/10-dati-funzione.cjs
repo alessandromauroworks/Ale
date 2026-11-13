@@ -24,6 +24,30 @@ const PERCORSI=[["titolare dentista, tutti i servizi","Studio dentistico","Titol
   },[sett,ruolo]);
   out[nome]=r; ok(nome+': sessione casuale nei dati',/^[a-f0-9]{32}$/.test(r.d.sessione||'')); await p.context().close();
  }
+ // Safari vecchio: senza CompressionStream il codice di riserva è QC1 (JSON in base64url, più grande). Tutti i campi lunghi pieni
+ // (testo italiano con accenti, il caso peggiore realistico): il corpo deve stare sotto 96_000 byte e la funzione deve accettarlo.
+ for(const [nome,sett,ruolo] of [["titolare dentista","Studio dentistico","Titolare o socio"],["dipendente impresa di pulizie","Impresa di servizi / pulizie / manutenzioni","Dipendente o responsabile d'ufficio"]]){
+  const ctx=await b.newContext({viewport:{width:390,height:844}}); await ctx.addInitScript(()=>{ delete window.CompressionStream; });
+  const p=await ctx.newPage(); p.errs=[]; p.on('pageerror',e=>p.errs.push(String(e)));
+  await p.route(u=>/^https?:/.test(u.href)&&!u.href.startsWith(L.BASE),r=>r.fulfill({status:200,contentType:'application/json',body:'{"ok":true}',headers:{'access-control-allow-origin':'*'}}));
+  await p.goto(L.BASE+'/questionario/?att=GB%20Service'); await p.waitForTimeout(200);
+  const r=await p.evaluate(async([sett,ruolo])=>{
+   const P=(n,s="àèìòù «€» ")=>{let t="";while(Array.from(t).length<n)t+=s;return Array.from(t).slice(0,n).join("")};
+   pickTipo(sett); A.ruolo=ruolo; A.servizi=OPZ.servizi.slice();
+   Object.keys(PAN).forEach(k=>PAN[k].forEach(bk=>{const o=optsOf(bk); if(bk.k==="many")A.det[k][bk.id]=o?o.slice():[]; else if(bk.k==="one")A.det[k][bk.id]=o?o[0]:null; else A.det[k][bk.id]=P(bk.m||DET_MAX);}));
+   FIELDS.forEach(f=>{const el=document.getElementById(f); el.value=P(el.maxLength>0?el.maxLength:300);});
+   document.getElementById("fTel").value="+39 06 1234 5678"; document.getElementById("fEmail").value="anna@esempio.it";
+   const s=SETTORI.find(x=>x.n===A.s); A.lav=s.L.map((_,i)=>i); s.L.forEach((_,i)=>A.mnote[i]=P(200)); A.extra=[0,1,2,3,4,5].map(()=>({t:P(60),st:"lento",n:P(200)}));
+   s.P.forEach((_,i)=>A.prob[i]={si:true,o:3}); A.ob=(priv()?GOALS_PRIV:GOALS).map(g=>g[0]);
+   ["can","str","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k=>A[k]=OPZ[k].slice());
+   A.gest.serve="Sì"; const go=gOpts(s); A.gest.pannello=go.p.slice(); A.gest.perdite=go.l.slice(); A.gest.dove=G_DOVE.slice();
+   A.flusso=flowRules().map(r=>r.label); A.pkTipo="misura"; A.pkVoci=PR_ID.slice(); A.copia=true; A.contatto="Email";
+   const d=dati(), cod=await codice(d); return {d,codice:cod,cs:typeof CompressionStream,byte:new TextEncoder().encode(JSON.stringify({d,codice:cod,hp:""})).length};
+  },[sett,ruolo]);
+  ok('senza CompressionStream ('+nome+'): codice QC1',r.cs==='undefined'&&r.codice.startsWith('QC1.'),r.cs+' '+r.codice.slice(0,4));
+  ok('senza CompressionStream ('+nome+'): corpo sotto 96000 byte',r.byte<=96000,r.byte+' byte, codice '+r.codice.length+' caratteri');
+  out['senza CompressionStream: '+nome]={d:r.d,codice:r.codice,byte:r.byte}; await ctx.close();
+ }
  // versione veloce e poi «continua»: i due invii hanno la STESSA sessione (così la funzione aggiorna invece di duplicare)
  { const p=await L.mk(b,{width:390,height:844}); await p.click('#fastBtn'); await p.fill('#fNome','Anna Prova'); await p.fill('#fAtt','Studio Prova'); await p.fill('#fTipo','dentist'); await p.waitForTimeout(250); await p.locator('#tipoList .opt').first().click(); await L.chip(p,'cRuolo','Titolare');
    await L.next(p); await p.locator('.svcb',{hasText:'Sito internet'}).click(); await L.next(p); await p.fill('#fTel','0881 686119'); await p.check('#fPriv'); await L.chip(p,'cContatto','Telefono');

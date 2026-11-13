@@ -61,7 +61,7 @@ for (const [nome, p] of Object.entries(percorsi)) {
   const pul = F.risposteDa(p.d), diff = differenze(p.d, pul);
   ok(`pulizia senza perdite: ${nome}`, diff.length === 0, diff.slice(0, 6).join(", "));
   ok(`codice accettato dalla funzione: ${nome}`, F.CODICE_VALIDO.test(p.codice), p.codice.slice(0, 4) + " " + p.codice.length);
-  ok(`corpo sotto i 48 KB della funzione: ${nome}`, p.byte <= 48_000, p.byte + " byte");
+  ok(`corpo sotto i 96 KB della funzione: ${nome}`, p.byte <= 96_000, p.byte + " byte");
 }
 
 // ---- 2. pulizia: limiti e protezioni restano
@@ -99,12 +99,20 @@ r = await manda({ ...pacco(base({ tel: "339 222 3335" })), hp: "bot" });
 ok("trappola anti-bot piena: rifiutato", r.stato === 400);
 r = await manda(pacco(base({ tel: "339 222 3336" })), { origin: "https://cattivo.example" });
 ok("origine non permessa: 403", r.stato === 403);
-r = await manda(JSON.stringify({ ...pacco(base({ tel: "339 222 3337" })), riempi: "x".repeat(49_000) }));
-ok("corpo oltre 48 KB: 413", r.stato === 413);
+r = await manda(JSON.stringify({ ...pacco(base({ tel: "339 222 3337" })), riempi: "x".repeat(97_000) }));
+ok("corpo oltre 96 KB: 413", r.stato === 413);
 const lunghi = base({ tel: "339 222 3338", problemi: "è".repeat(1990) + "😀".repeat(10) });
 r = await manda(pacco(lunghi));
 const salvata = db.questionari[db.questionari.length - 1].risposte.problemi as string;
 ok("problemi di 2000 caratteri con emoji salvati interi", r.stato === 200 && salvata === lunghi.problemi, String(Array.from(salvata || "").length));
 
+// ---- 4. Safari vecchio: codice QC1 grande, corpo fino a 96 KB, accettato e salvato intero
+ok("codice QC1 lungo fino a 96000 caratteri valido, oltre no", F.CODICE_VALIDO.test("QC1." + "A".repeat(96_000 - 4)) && F.CODICE_VALIDO.test("QC1." + "A".repeat(96_000)) && !F.CODICE_VALIDO.test("QC1." + "A".repeat(96_001)));
+for (const [nome, p] of Object.entries(percorsi).filter(([n]) => n.startsWith("senza CompressionStream"))) {
+  const prima = db.questionari.length;
+  r = await manda({ d: { ...p.d, tel: "+39 06 " + (1000000 + Math.floor(Math.random() * 8999999)) }, codice: p.codice, hp: "" });
+  const salvato = db.questionari[db.questionari.length - 1];
+  ok(`funzione accetta il corpo QC1 (${nome}, ${p.byte} byte)`, r.stato === 200 && db.questionari.length === prima + 1 && salvato.codice_qc1 === p.codice, JSON.stringify(r.corpo) + " " + r.stato);
+}
 console.log("FAILS", fails);
 (globalThis as any).process.exitCode = fails ? 1 : 0;
