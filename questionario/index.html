@@ -283,6 +283,22 @@ input[type=email]:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 4p
 .cs{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}.cs li{display:flex;gap:12px;align-items:center;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;animation:rise .5s backwards;animation-delay:calc(var(--i)*.25s)}
 .pc{display:grid;grid-template-columns:1fr;gap:10px}@media (min-width:560px){.pc{grid-template-columns:1fr 1fr}}
 .pc-c{padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;gap:4px;animation:rise .45s backwards;animation-delay:calc(var(--i)*.1s)}.pc-c span{color:var(--muted);font-size:15px}
+/* ===== insieme funzionano meglio, regole di esempio (quinta tornata) ===== */
+.ins{display:flex;flex-direction:column;gap:14px;margin-top:10px;padding-top:22px;border-top:1px solid var(--line)}.ins h3{margin:0;font-size:24px;letter-spacing:-.02em}
+.combos{display:grid;grid-template-columns:1fr;gap:10px}@media (min-width:768px){.combos{grid-template-columns:repeat(3,1fr)}}
+.combo{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;animation:rise .45s backwards}.combo h4{margin:0;font-size:16px}.combo p{margin:0;font-size:15px;color:var(--muted)}.combo .chip{margin-top:auto}
+.ins-ok{margin:0;background:var(--soft);padding:12px 14px;border-radius:12px}
+.rls{display:flex;flex-direction:column;gap:12px}
+.rl{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;transition:opacity .25s}.rl.off{opacity:.7}.rl.off .rl-b{display:none}
+.rl-h{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}.rl-t{font-size:16px;flex:1;min-width:0}
+.sw{flex:none;display:flex;align-items:center;gap:8px;font:inherit;font-size:14px;min-height:44px;padding:4px 10px;border:1px solid var(--line);border-radius:22px;background:var(--surface);cursor:pointer;color:var(--ink)}
+.sw i{width:34px;height:20px;border-radius:10px;background:var(--muted);position:relative;transition:background .2s}.sw i::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .25s var(--ease)}
+.sw[aria-checked=true] i{background:#1f7a4a}.sw[aria-checked=true] i::after{transform:translateX(14px)}
+.rl-b{display:flex;flex-direction:column;gap:8px}.rl-b label{font-size:14px;font-weight:600}
+select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;min-height:44px;max-width:100%}
+.wa{background:#e7f6ea;border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}.wa p{margin:0}.wa-w{font-size:13.5px;color:#31483a}.wa-b{background:#fff;border-radius:12px;padding:9px 12px;font-size:15px;overflow-wrap:anywhere}.wa-i{background:#fff6e5}
+.fs-s{display:block;font-size:14px;color:var(--muted);margin-top:2px}.fs-x b{display:block}
+.fs-x{text-align:left}@media (min-width:768px){.fs-x{text-align:center}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important;transition-delay:0s!important}.step.on,.dlg.on .dlg-box{animation:fadeq .2s both!important}.step.on>*{animation:none!important}}
 </style>
 <div class="wrap">
@@ -422,6 +438,16 @@ input[type=email]:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 4p
       <h2>Ecco cosa potremmo fare per te</h2>
       <p class="lead" id="pkLead">Ho messo insieme quello che mi hai raccontato. Non devi scegliere adesso: tocca il pacchetto che ti sembra più adatto, oppure ne parliamo in call. Niente cifre qui: le vediamo insieme.</p>
       <div id="pkBox"></div>
+      <section class="ins" id="insBox" aria-labelledby="insT">
+        <h3 id="insT">Insieme funzionano meglio</h3>
+        <p class="lead" id="insLead"></p>
+        <div class="combos" id="insCombos"></div>
+        <div class="actions"><button class="btn" type="button" id="flussoBtn">Guarda come si collega tutto</button></div>
+        <p class="note">I messaggi li puoi cambiare tu dal gestionale. Su WhatsApp i messaggi che partono per primi usano testi approvati da Meta: se cambi un testo, va riapprovato (di solito da pochi minuti a un giorno). Email e avvisi interni si cambiano subito.</p>
+        <p class="note">I promemoria di appuntamenti e scadenze si possono mandare a tutti; i messaggi per far tornare i clienti (offerte, sedute da usare, richiami dopo mesi) solo a chi ha dato il consenso: lo prepariamo insieme.</p>
+        <div class="q"><span class="lab" id="flLab">Quali di questi collegamenti ti sarebbero utili?</span><span class="hint">Facoltativo. Anche più di uno.</span><div class="props" id="cFlusso" role="group" aria-labelledby="flLab"></div></div>
+        <div class="q"><label for="fFlusso">Un messaggio automatico che vorresti, e quando dovrebbe partire (facoltativo)</label><textarea id="fFlusso" class="mini" maxlength="600" rows="3" placeholder="Es. un messaggio il giorno prima della visita, e uno a chi non torna da sei mesi."></textarea></div>
+      </section>
     </section>
 
     <section class="step" data-s="9">
@@ -646,13 +672,13 @@ function normGest(g) {
   return b;
 }
 const PK_VALORI = ["essenziale", "professionale", "completo", "non-so"];
-let A = { s:null, lavOk:[], mnote:{}, extra:[], det:normDet({}), ruolo:null, titolareSa:null, contatto:null, telQuante:null, telNessuno:[], telMomenti:[], tipoProblema:[], dimensione:null, segPerdite:[], ob:[], servizi:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pk:null, pag:null, iva:null, gest:{ serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null } };
-try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav","servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); ["servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { A[k] = A[k].filter(x => OPZ[k].includes(x)); }); normMappa(); A.det = normDet(A.det); ["ruolo","dimensione","titolareSa","contatto","telQuante"].forEach(k => { if (!OPZ[k].includes(A[k])) A[k] = null; }); if (!A.prob || typeof A.prob !== "object" || Array.isArray(A.prob)) A.prob = {}; Object.keys(A.prob).forEach(k => { if (!A.prob[k] || typeof A.prob[k] !== "object") delete A.prob[k]; }); ["team","tempi","decide","pag","iva"].forEach(k => { if (A[k] != null && typeof A[k] !== "string") A[k] = null; }); A.budget = "Ne parliamo in call"; if (!PK_VALORI.includes(A.pk)) A.pk = null; A.vocale = A.vocale === true; A.gest = normGest(A.gest); if (A.s && !SETTORI.some(x => x.n === A.s)) A.s = null; setTimeout(() => { Object.entries(d.f || {}).forEach(([k,v]) => { const el = $(k); if (el && typeof v === "string") el.value = v; }); try { migraGest(A); } catch (er) {} if (A.s) pickTipo(A.s, true); $("vocaleBtn").setAttribute("aria-pressed", !!A.vocale); }, 0); } } catch(e) {}
+let A = { s:null, flusso:[], lavOk:[], mnote:{}, extra:[], det:normDet({}), ruolo:null, titolareSa:null, contatto:null, telQuante:null, telNessuno:[], telMomenti:[], tipoProblema:[], dimensione:null, segPerdite:[], ob:[], servizi:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pk:null, pag:null, iva:null, gest:{ serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null } };
+try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav","servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); ["servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { A[k] = A[k].filter(x => OPZ[k].includes(x)); }); normMappa(); A.flusso = Array.isArray(A.flusso) ? A.flusso.filter(x => typeof x === "string" && x.length < 160).slice(0, 12) : []; A.det = normDet(A.det); ["ruolo","dimensione","titolareSa","contatto","telQuante"].forEach(k => { if (!OPZ[k].includes(A[k])) A[k] = null; }); if (!A.prob || typeof A.prob !== "object" || Array.isArray(A.prob)) A.prob = {}; Object.keys(A.prob).forEach(k => { if (!A.prob[k] || typeof A.prob[k] !== "object") delete A.prob[k]; }); ["team","tempi","decide","pag","iva"].forEach(k => { if (A[k] != null && typeof A[k] !== "string") A[k] = null; }); A.budget = "Ne parliamo in call"; if (!PK_VALORI.includes(A.pk)) A.pk = null; A.vocale = A.vocale === true; A.gest = normGest(A.gest); if (A.s && !SETTORI.some(x => x.n === A.s)) A.s = null; setTimeout(() => { Object.entries(d.f || {}).forEach(([k,v]) => { const el = $(k); if (el && typeof v === "string") el.value = v; }); try { migraGest(A); } catch (er) {} if (A.s) pickTipo(A.s, true); $("vocaleBtn").setAttribute("aria-pressed", !!A.vocale); }, 0); } } catch(e) {}
 const ALIAS_EXTRA = { "Negozio / attività commerciale":"panificio forno macelleria fioraio fiori tabaccheria enoteca lavanderia alimentari abbigliamento ottica gioielleria ferramenta libreria", "Parrucchiere / barbiere":"parrucchiera hair salon acconciature", "Psicologo / psicoterapeuta":"psicologa psicoterapeuta", "Studio legale":"avvocata avvocato legale", "Farmacia / parafarmacia":"farmacista", "Centro estetico":"estetista nail unghie spa", "B&B / hotel / casa vacanze":"bnb b&b affittacamere agriturismo", "Ristorante / pizzeria":"trattoria osteria sushi pub braceria", "Bar / caffetteria":"pasticceria gelateria cornetteria", "Dietista / nutrizionista":"dietologa dietologo", "Fisioterapista / osteopata":"fisioterapista massaggi" };
 const stem = w => w.length > 4 ? w.replace(/[aeiou]$/, "") : w;
 /* ?att=Nome precompila il nome dell'attività (solo se il campo è vuoto) */
 setTimeout(() => { try { const a = (new URLSearchParams(location.search).get("att") || "").trim(); if (a && !$("fAtt").value.trim()) $("fAtt").value = Array.from(a).slice(0, 80).join(""); } catch (e) {} }, 0);
-const FIELDS = ["fNome","fAtt","fAltroTipo","fCitta","fObAltro","fIg","fSito","fLavAltro","fProbAltro","fProblemi","fSegAiuto","fTitolare","fEmail","fMagia","fProvato","fGestPerdite","fGestNonManchi","fTel"];
+const FIELDS = ["fNome","fAtt","fAltroTipo","fCitta","fObAltro","fIg","fSito","fLavAltro","fProbAltro","fProblemi","fSegAiuto","fFlusso","fTitolare","fEmail","fMagia","fProvato","fGestPerdite","fGestNonManchi","fTel"];
 let saveT; function bozza(){ clearTimeout(saveT); saveT = setTimeout(() => { const f = {}; FIELDS.forEach(k => f[k] = $(k).value); stor.set("qpc:bozza", JSON.stringify({ A, f })); }, 300); }
 document.addEventListener("input", () => { if (cur < 11) bozza(); });
 
@@ -899,8 +925,9 @@ const PK_HOOK = { sito2:"Il sito internet", gest1:"Il gestionale", gest2:"Il ges
 function pkVoluti() {
   const u = a => [...new Set(a.filter(Boolean))], esp = u(A.servizi.map(x => PK_SERV[x]));
   if (A.servizi.includes(SERV.find(x => x[1] === "fogli")[0]) && A.det.fogli.vorrei.includes("Portarli in un gestionale") && !esp.includes("gest1")) esp.push("gest1");
+  const der0 = []; { const ids = flowRules().filter(r => A.flusso.includes(r.label)).map(r => r.id); if (ids.length) { der0.push("aut"); if (ids.includes("ritorno") || ids.includes("pacchetto")) der0.push("gest1"); } }
   const chiamate = ["30-60","Più di 60"].includes(A.telQuante) || A.telNessuno.some(x => ["Squilla a vuoto","Si perde la chiamata","Richiamiamo dopo se ce ne ricordiamo"].includes(x));
-  const der = u([chiamate && "ass", ...(isSeg() ? A.segPerdite.map(x => PK_SEG[x]) : []), ...A.tipoProblema.map(x => PK_TIPO[x])]).filter(x => !esp.includes(x));
+  const der = u([...der0, chiamate && "ass", ...(isSeg() ? A.segPerdite.map(x => PK_SEG[x]) : []), ...A.tipoProblema.map(x => PK_TIPO[x])]).filter(x => !esp.includes(x));
   return { esp, der };
 }
 /* dai problemi segnati dal cliente ai 1-3 pacchetti a scalare */
@@ -979,6 +1006,7 @@ function pkHTML(C) {
 }
 let pkC = null;
 function renderPacchetti() {
+  try { renderIns(); } catch (e) {}
   pkC = pkCalcola();
   if (A.pk && A.pk !== "non-so" && !pkC.piani.some(p => p.id === A.pk)) A.pk = null;
   $("pkBox").innerHTML = pkC.piani.length ? pkHTML(pkC)
@@ -1016,7 +1044,7 @@ function dati() {
   const prob = Object.entries(A.prob).filter(([, x]) => x.si).map(([i, x]) => [Number(i), x.o != null ? ORE[x.o][1] : null]);
   const no = Object.entries(A.prob).filter(([, x]) => x.si === false).map(([i]) => Number(i));
   return { v:1, data:new Date().toISOString().slice(0, 10), s:s.n, tipoAltro:s.n === "Altra attività" ? taglia(v("fAltroTipo"), 80) : "", nome:taglia(v("fNome"), 80), attivita:taglia(v("fAtt"), 80), citta:taglia(v("fCitta"), 60), tel:taglia(v("fTel"), 25),
-    ig:taglia(v("fIg"), 80), sito:taglia(v("fSito"), 120), ob:A.ob, dettagli:dettagli(), mappa:mappaDati(), ruolo:A.ruolo, contatto:A.contatto || "WhatsApp", email:taglia(v("fEmail"), 100), ...(perConto() ? { perConto:{ titolare:taglia(v("fTitolare"), 80), sa:A.titolareSa } } : {}), telefono:{ quante:A.telQuante, nessuno:A.telNessuno, momenti:A.telMomenti }, servizi:A.servizi, tipoProblema:A.tipoProblema, dimensione:A.dimensione, ...(isSeg() ? { segreteria:{ perdite:A.segPerdite, aiuto:taglia(v("fSegAiuto"), 500) } } : {}), problemi:taglia(v("fProblemi"), 2000), obAltro:taglia(v("fObAltro"), 120), team:A.team, can:A.can, str:A.str, lav:A.lav, lavAltro:taglia(v("fLavAltro"), 300),
+    ig:taglia(v("fIg"), 80), sito:taglia(v("fSito"), 120), ob:A.ob, dettagli:dettagli(), mappa:mappaDati(), flusso:flussoDati(), ruolo:A.ruolo, contatto:A.contatto || "WhatsApp", email:taglia(v("fEmail"), 100), ...(perConto() ? { perConto:{ titolare:taglia(v("fTitolare"), 80), sa:A.titolareSa } } : {}), telefono:{ quante:A.telQuante, nessuno:A.telNessuno, momenti:A.telMomenti }, servizi:A.servizi, tipoProblema:A.tipoProblema, dimensione:A.dimensione, ...(isSeg() ? { segreteria:{ perdite:A.segPerdite, aiuto:taglia(v("fSegAiuto"), 500) } } : {}), problemi:taglia(v("fProblemi"), 2000), obAltro:taglia(v("fObAltro"), 120), team:A.team, can:A.can, str:A.str, lav:A.lav, lavAltro:taglia(v("fLavAltro"), 300),
     prob, probT:prob.map(([i]) => s.P[i] ? s.P[i][1] : ""), no, noT:no.map(i => s.P[i] ? s.P[i][1] : ""), probAltro:taglia(v("fProbAltro"), 300), magia:taglia(v("fMagia"), 300), provato:taglia(v("fProvato"), 300),
     vocale:A.vocale, tempi:A.tempi, decide:A.decide, budget:"Ne parliamo in call", pag:A.pag, iva:A.iva,
     ...(A.gest.serve ? { gest:gestDati(s) } : {}),
@@ -1060,6 +1088,7 @@ function messaggio(d, liv, cod) {
     if (d.segreteria.aiuto) r.push("Un aiuto in più dovrebbe: " + (breve ? corto(d.segreteria.aiuto) : d.segreteria.aiuto));
   }
   if (!breve && d.mappa.extra.length) r.push("Passaggi miei: " + d.mappa.extra.map(e => e.t).join(", "));
+  if (d.flusso.scelte.length || d.flusso.testo) r.push("Collegamenti utili: " + (breve ? d.flusso.scelte.length + " scelti" + (d.flusso.testo ? " + nota" : "") : corto([...d.flusso.scelte, d.flusso.testo].filter(Boolean).join("; "))));
   if (d.prob.length) { r.push("Dove perdo tempo:"); d.prob.forEach(([i, h]) => r.push("• " + s.P[i][1] + oreTxt(h))); }
   if (!breve && d.probAltro) r.push("Altro: " + corto(d.probAltro));
   if (!breve && d.magia) r.push("Vorrei sistemare: " + corto(d.magia));
@@ -1092,7 +1121,7 @@ function riepilogo() {
   $("sum").innerHTML =
     riga("Attività", [d.attivita, d.s === "Altra attività" ? d.tipoAltro : d.s, d.citta].filter(Boolean).join(" · ")) +
     riga("Nome", d.nome) + riga("Ruolo", d.ruolo) + riga("Per conto di", d.perConto ? [d.perConto.titolare, d.perConto.sa].filter(Boolean).join(" · ") : "") + riga("Obiettivo", [...d.ob.map(goalName), d.obAltro].filter(Boolean).join(", ")) +
-    riga("Mi serve", d.servizi.join("; ")) + Object.keys(d.dettagli).map(k => riga(SERV_T[k], detRiga(k, d.dettagli[k]))).join("") + riga("Tipo di problema", d.tipoProblema.join("; ")) + riga("Quanto è grande", d.dimensione) + riga("I tuoi problemi", d.problemi) +
+    riga("Mi serve", d.servizi.join("; ")) + riga("Collegamenti utili", [...d.flusso.scelte, d.flusso.testo].filter(Boolean).join("; ")) + Object.keys(d.dettagli).map(k => riga(SERV_T[k], detRiga(k, d.dettagli[k]))).join("") + riga("Tipo di problema", d.tipoProblema.join("; ")) + riga("Quanto è grande", d.dimensione) + riga("I tuoi problemi", d.problemi) +
     riga("Il tuo lavoro di ogni giorno", d.segreteria ? d.segreteria.perdite.join("; ") : "") + riga("Un aiuto in più", d.segreteria ? d.segreteria.aiuto : "") +
     riga("Come lavori", [d.team, d.can.join(", "), d.str.join(", ")].filter(Boolean).join(" · ")) +
     riga("Telefonate", [d.telefono.quante, d.telefono.nessuno.length && "se nessuno risponde: " + d.telefono.nessuno.join(", "), d.telefono.momenti.length && "difficile: " + d.telefono.momenti.join(", ")].filter(Boolean).join(" · ")) +
@@ -1444,6 +1473,78 @@ function mAdd() { const f = $("mNew"), t = f.value.trim(); if (!t) { $("mErr").t
   $("mErr").textContent = ""; A.extra.push({ t: t.slice(0, 60), st: null, n: "" }); f.value = ""; renderLav(); bozza(); f.focus(); }
 $("mAddBtn").addEventListener("click", mAdd); $("mNew").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); mAdd(); } });
 document.querySelectorAll(".err").forEach(e => e.setAttribute("role", "alert"));
+
+/* ===== «Insieme funzionano meglio»: abbinamenti, flusso delle informazioni, regole di esempio ===== */
+const ART = { appuntamento: "dell'appuntamento", prenotazione: "della prenotazione", intervento: "dell'intervento" };
+function flowRules() {
+  const n = sett().n, app = /Ristorante|Bar |Cantina|B&B|viaggi/.test(n + " ") ? "prenotazione" : /Officina/.test(n) ? "intervento" : "appuntamento", art = ART[app];
+  const r4 = /Ristorante|Bar |Cantina|B&B/.test(n + " ") ? { id: "evento", label: "Evento o serata in programma: avviso a chi l'ha chiesto", msg: "Ciao {nome}, sabato {data} facciamo una serata speciale. Vuoi prenotare un posto?", q: "Subito", consenso: true, canale: "WhatsApp" }
+    : /Palestra|estetico|Parrucchiere|Fisioterapista|danza|Autoscuola|dentistico|Psicolog|Dietista/.test(n) ? { id: "pacchetto", label: "Pacchetto, abbonamento o ciclo con sedute non usate o in scadenza: avviso", msg: "Ciao {nome}, ti restano {sedute} da usare entro il {data}. Vuoi fissare un giorno?", q: "Ogni mattina alle 9:00", consenso: true, canale: "WhatsApp" }
+    : { id: "scadenza", label: "Scadenza in arrivo (revisione, polizza, pratica, rinnovo): avviso", msg: "Ciao {nome}, ti ricordiamo che il {data} scade un tuo impegno. Vuoi che ti aiutiamo?", q: "3 giorni prima", consenso: false, canale: "WhatsApp" };
+  return [
+    { id: "promemoria", label: "Promemoria " + art + " il giorno prima", msg: "Ciao {nome}, ti ricordiamo " + art.replace("dell'", "l'").replace("della ", "la ") + " di domani {data} alle {ora}. Rispondi OK per confermare.", q: "1 giorno prima", consenso: false, canale: "WhatsApp" },
+    { id: "sera", label: "Chi ci contatta la sera viene richiamato la mattina dopo", msg: "Ciao {nome}, abbiamo ricevuto il tuo messaggio ieri sera: ti richiamiamo stamattina.", avviso: "Da richiamare: {nome}, telefono {telefono}.", q: "Ogni mattina alle 9:00", consenso: false, canale: "WhatsApp + avviso al personale" },
+    { id: "ritorno", label: "Cliente che non torna da qualche mese: lista da ricontattare", msg: "Ciao {nome}, è un po' che non ci vediamo. Vuoi fissare " + (app === "appuntamento" ? "un appuntamento" : app === "prenotazione" ? "una prenotazione" : "un intervento") + "?", q: "Dopo 6 mesi che non torna", consenso: true, canale: "Lista per il personale, poi messaggio" },
+    r4,
+    { id: "conferma", label: (app === "prenotazione" ? "Prenotazione" : app === "intervento" ? "Intervento" : "Appuntamento") + " confermato: messaggio di conferma", msg: "Ciao {nome}, " + art.replace("dell'", "l'").replace("della ", "la ") + " del {data} alle {ora} è confermato. A presto!", q: "Subito", consenso: false, canale: "WhatsApp" }
+  ];
+}
+const FQ = ["Subito", "Ogni mattina alle 9:00", "Durante il giorno", "La sera alle 18:00", "1 giorno prima", "3 giorni prima", "3 giorni dopo", "Dopo 3 mesi che non torna", "Dopo 6 mesi che non torna"];
+const T_ONESTO = ["I messaggi li puoi cambiare tu dal gestionale. Su WhatsApp i messaggi che partono per primi usano testi approvati da Meta: se cambi un testo, va riapprovato (di solito da pochi minuti a un giorno). Email e avvisi interni si cambiano subito.", "I promemoria di appuntamenti e scadenze si possono mandare a tutti; i messaggi per far tornare i clienti (offerte, sedute da usare, richiami dopo mesi) solo a chi ha dato il consenso: lo prepariamo insieme."];
+const COMBI = [
+  { t: "Gestionale + Automazioni", add: ["gest", "auto"], se: ["gest", "misura", "auto"], p: "Agenda e schede clienti dicono alle automazioni quando mandare promemoria e richiami: niente si dimentica." },
+  { t: "Sito + Prenotazioni + Promemoria", add: ["sito", "pren", "auto"], se: ["sito", "pren"], p: "Il cliente prenota dal sito e riceve da solo conferma e promemoria." },
+  { t: "Assistente telefono + Agenda nel gestionale", add: ["ass", "gest"], se: ["ass"], p: "L'assistente prende le richieste e le mette in agenda, così non le ricopi a mano." },
+  { t: "Fogli Excel, poi Gestionale + Automazioni", add: ["fogli", "gest", "auto"], se: ["fogli"], p: "I dati dei fogli finiscono in un unico pannello e le automazioni lavorano su quelli." },
+  { t: "Social, video o Google + Sito", add: ["sito"], se: ["social", "video", "goo"], p: "Chi ti trova sui social o su Google arriva su una pagina che spiega chi sei e raccoglie i contatti." }
+];
+const servSel = () => { const S = new Set(A.servizi.map(x => SERV_K[x])); if (S.has("misura")) S.add("gest"); return S; };
+const keyLabel = k => SERV.find(x => x[1] === k)[0];
+function renderIns() {
+  const S = servSel(), box = $("insCombos"); box.replaceChildren();
+  $("insLead").textContent = "Quando più cose lavorano insieme, si fa ancora meno a mano. " + (A.s && A.s !== "Altra attività" ? "Per un'attività come la tua (" + A.s.toLowerCase() + ") ha senso pensare a questi abbinamenti." : "Qualche abbinamento che ha senso per la tua attività.") + " Sono consigli: scegli tu.";
+  let c = COMBI.filter(x => x.se.some(k => S.has(k)) && x.add.some(k => !S.has(k))).slice(0, 3);
+  if (!S.size) c = COMBI.slice(0, 2);
+  if (!c.length) { box.append(elx("p", "ins-ok", "Hai già scelto servizi che lavorano bene insieme. Guarda sotto come si collegano.")); }
+  c.forEach(x => { const card = elx("div", "combo"), mis = x.add.filter(k => !S.has(k)); card.append(elx("h4", "", x.t), elx("p", "", x.p));
+    const b = btnx("Aggiungilo", "chip", () => { mis.forEach(k => { const l = keyLabel(k); if (!A.servizi.includes(l)) A.servizi.push(l); if ((k === "gest") && !A.gest.serve) A.gest.serve = "Sì"; }); linkFogli(); telNote(); bozza(); renderPacchetti(); });
+    b.setAttribute("aria-label", "Aggiungilo: " + mis.map(k => SERV_T[k]).join(", ")); card.append(b); box.append(card); });
+  const f = $("cFlusso"); f.replaceChildren(); const rs = flowRules(); A.flusso = A.flusso.filter(x => typeof x === "string");
+  rs.forEach(r => { const x = elx("button", "prop"); x.type = "button"; x.dataset.v = r.label; x.setAttribute("aria-pressed", A.flusso.includes(r.label)); x.append(elx("b", "", r.label)); f.append(x); });
+}
+$("cFlusso").addEventListener("click", e => { const x = e.target.closest(".prop"); if (!x) return; const l = x.dataset.v; A.flusso = A.flusso.includes(l) ? A.flusso.filter(z => z !== l) : [...A.flusso, l]; x.setAttribute("aria-pressed", A.flusso.includes(l)); bozza(); });
+const flussoDati = () => ({ scelte: flowRules().map(r => r.label).filter(l => A.flusso.includes(l)), testo: taglia(v("fFlusso").trim(), 600) });
+$("flussoBtn").addEventListener("click", () => demoFlusso());
+
+function demoFlusso() {
+  const rs = flowRules(), n = sett().n, ctx = /Palestra|estetico|Parrucchiere|Fisioterapista|danza|Autoscuola|dentistico|Psicolog|Dietista/.test(n) ? "Agenda, schede clienti, pacchetti e abbonamenti" : "Agenda, schede clienti e scadenze";
+  let ix = -1, timer = null; const VARS = { nome: "Cliente 1", data: "giovedì 12", ora: "10:30", sedute: "2 sedute", telefono: "000 000 0000" };
+  dlgOpen("Come si collega tutto", body => {
+    body.append(elx("p", "note", "Esempio con dati inventati. Nella demo le modifiche non si salvano."));
+    const ol = elx("ol", "fl"), live = elx("p", "sr"); live.setAttribute("aria-live", "polite");
+    [["Richiesta", "Dal sito, dal telefono o da WhatsApp: Cliente 1 prenota o scrive."], ["Gestionale", ctx + "."], ["Automazioni", "Le regole controllano le date e cosa è successo (ogni mattina, o appena succede qualcosa)."], ["Messaggi e avvisi", "Parte il messaggio al cliente e, se serve, l'avviso al titolare."]].forEach(([t, x], j) => { const li = elx("li", "fs"); li.style.setProperty("--i", j); const s = elx("span", "fs-x"); s.append(elx("b", "", t), elx("span", "fs-s", x)); li.append(elx("span", "fs-n", String(j + 1)), s); ol.append(li); });
+    const show = k => { ix = k; ol.querySelectorAll("li").forEach((li, j) => { li.classList.toggle("s-done", j < ix); li.classList.toggle("s-now", j === ix); }); if (ix >= 0) live.textContent = "Passo " + (ix + 1) + ": " + ol.children[ix].textContent; };
+    const play = btnx("Riproduci", "btn primary"), step = btnx("Passo dopo passo", "btn"), rst = btnx("Ricomincia", "btn ghost"); play.dataset.first = "1";
+    const stop = () => { clearInterval(timer); timer = null; play.textContent = "Riproduci"; };
+    play.addEventListener("click", () => { if (timer) { stop(); return; } if (ix >= 3) show(-1); play.textContent = "Ferma"; show(ix + 1); timer = setInterval(() => { if (ix >= 3) { stop(); return; } show(ix + 1); }, 1400); });
+    step.addEventListener("click", () => { stop(); show(ix >= 3 ? 0 : ix + 1); }); rst.addEventListener("click", () => { stop(); show(-1); });
+    const ctr = elx("div", "actions"); ctr.append(play, step, rst);
+    const ph = elx("h3", "fl-t", "Il pannello automazioni nel gestionale (esempio)"), pl = elx("p", "hint", "Accendi o spegni una regola, cambia il testo e scegli quando parte. Variabili: {nome} {data} {ora}.");
+    const lst = elx("div", "rls");
+    rs.forEach(r => { let on = true, msg = r.msg;
+      const c = elx("div", "rl"), h = elx("div", "rl-h"), sw = elx("button", "sw"); sw.type = "button"; sw.setAttribute("role", "switch"); sw.setAttribute("aria-checked", "true"); sw.setAttribute("aria-label", "Regola: " + r.label); const st = elx("span", "sw-t", "Accesa"); sw.append(elx("i"), st);
+      h.append(elx("b", "rl-t", r.label), sw); const bd = elx("div", "rl-b");
+      const sid = "q_" + r.id, sl = elx("label", "", "Quando parte"); sl.htmlFor = sid; const sel = elx("select"); sel.id = sid; FQ.forEach(q => { const o = elx("option", "", q); o.value = q; sel.append(o); }); sel.value = r.q;
+      const tid = "m_" + r.id, tl = elx("label", "", "Testo del messaggio"); tl.htmlFor = tid; const ta = elx("textarea", "mini"); ta.id = tid; ta.maxLength = 300; ta.rows = 3; ta.value = msg;
+      const pv = elx("div", "wa"), when = elx("p", "wa-w"), b1 = elx("p", "wa-b"), b2 = r.avviso ? elx("p", "wa-b wa-i") : null;
+      const sub = t => t.replace(/\{(\w+)\}/g, (m, k) => VARS[k] || m);
+      const upd = () => { c.classList.toggle("off", !on); sw.setAttribute("aria-checked", on); st.textContent = on ? "Accesa" : "Spenta"; when.textContent = on ? "Parte: " + sel.value + " · " + r.canale : "Spenta: non parte."; b1.textContent = sub(ta.value) || "(testo vuoto)"; if (b2) b2.textContent = "Avviso al personale: " + sub(r.avviso); };
+      sw.addEventListener("click", () => { on = !on; upd(); }); sel.addEventListener("change", upd); ta.addEventListener("input", upd);
+      pv.append(when, b1); if (b2) pv.append(b2);
+      bd.append(sl, sel, tl, ta, elx("p", "hint", r.consenso ? "Solo a chi ha dato il consenso." : "Può andare a tutti i clienti."), pv); c.append(h, bd); lst.append(c); upd(); });
+    body.append(ol, ctr, live, ph, pl, lst); T_ONESTO.forEach(t => body.append(elx("p", "note", t)));
+  }, "dlg-big", () => { clearInterval(timer); $("dlgB").replaceChildren(); });
+}
 
 /* navigazione */
 let cur = 0;
