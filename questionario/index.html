@@ -117,56 +117,8 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
 .gbranch{display:flex;flex-direction:column;gap:22px}.gbranch[hidden]{display:none}.gbranch:not([hidden]){animation:in .4s var(--ease)}
 /* ===== Pacchetti (schermata «Ecco cosa potremmo fare per te»): card chiare stile Apple, come i piani della Mappa ma senza prezzi ===== */
 .wrap.wide{max-width:1040px}
-.pk-hook{margin:0;font-size:17px;line-height:1.4;background:#eef5ff;color:#1d1d1f;border-radius:16px;padding:14px 16px}
-.pk-hook b{color:#0058b0;font-weight:650}
 .pk-vuoto{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px}
 .pk-vuoto b{font-size:19px;letter-spacing:-.01em}.pk-vuoto p{margin:6px 0 0;color:var(--muted)}
-.pk-swipe{display:none;margin:-4px 0 0;font-size:13px;color:var(--muted);text-align:center}
-.pk-non{justify-content:center}
-.pz{--pz-ink:#1d1d1f;--pz-muted:#5f5f64;--pz-faint:#6b6b70;--pz-line:#e5e5ea;--pz-bg:#f5f5f7;--pz-blue:#0071e3;--pz-ok:#34c759;--pz-ko:#ff3b30;color-scheme:light;color:var(--pz-ink);min-width:0}
-.pz *{box-sizing:border-box}
-.pz-grid{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));grid-template-rows:auto repeat(var(--r),auto) auto;column-gap:16px;padding:22px 4px 10px;align-items:stretch}
-.pz-card{position:relative;grid-row:1 / -1;display:grid;grid-template-rows:subgrid;background:#fff;border:1px solid var(--pz-line);border-radius:24px;padding:24px 20px 20px;cursor:pointer;
-  box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(0,0,0,.05);transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s cubic-bezier(.2,.8,.2,1),border-color .3s;
-  animation:pzIn .7s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i) * 90ms);min-width:0}
-.pz-card:hover{transform:translateY(-6px);box-shadow:0 2px 4px rgba(0,0,0,.04),0 22px 50px rgba(0,0,0,.10)}
-.pz-card.hl{border:2px solid var(--pz-blue);transform:translateY(-10px);box-shadow:0 2px 6px rgba(0,113,227,.08),0 26px 60px rgba(0,113,227,.16)}
-.pz-card.hl:hover{transform:translateY(-14px)}
-.pz-card.sel{border-color:var(--pz-ink);box-shadow:0 0 0 3px var(--pz-ink),0 18px 44px rgba(0,0,0,.14)}
-.pz-card.hl.sel{border-color:var(--pz-blue);box-shadow:0 0 0 3px var(--pz-blue),0 26px 60px rgba(0,113,227,.2)}
-@keyframes pzIn{from{opacity:0;transform:translateY(26px) scale(.98)}}
-.pz-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--pz-blue);color:#fff;font-size:12.5px;font-weight:650;letter-spacing:.01em;border-radius:999px;padding:6px 14px;box-shadow:0 6px 16px rgba(0,113,227,.28)}
-.pz-h h3{margin:0;font-size:22px;font-weight:700;letter-spacing:-.022em;line-height:1.15;overflow-wrap:anywhere}
-.pz-h p{margin:6px 0 0;font-size:14.5px;line-height:1.4;color:var(--pz-muted)}
-.pz-time{margin-top:14px;display:flex;flex-direction:column;gap:6px;padding-bottom:10px}
-.pz-time b{font-size:14.5px;font-weight:650;letter-spacing:-.005em}
-.pz-card.hl .pz-time b{color:var(--pz-blue)}
-.pz-all{align-self:flex-start;font-size:12.5px;font-weight:600;color:#1f8f45;background:#ebf9ef;border-radius:999px;padding:4px 10px}
-.pz-left{font-size:12.5px;line-height:1.4;color:#c9372c;background:#fff4f3;border-radius:10px;padding:7px 10px}
-.pz-list{display:contents;list-style:none;margin:0;padding:0}
-.pz-list li{display:flex;align-items:flex-start;gap:10px;font-size:15px;line-height:1.38;padding:8px 8px;margin:0 -8px;border-radius:12px;
-  animation:pzRow .5s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i) * 90ms + 220ms + var(--j) * 28ms)}
-@keyframes pzRow{from{opacity:0;transform:translateX(-6px)}}
-.pz-list li svg{flex:none;width:20px;height:20px;margin-top:1px}
-.pz-list li.no{color:var(--pz-faint)}
-.pz-list li.no span{text-decoration:line-through;text-decoration-color:rgba(161,161,166,.55)}
-.pz-list li.sep{margin-top:6px}
-.pz-list li.sub{font-size:13.5px;color:var(--pz-muted);padding-top:0;margin-top:-4px}
-.pz-list li.sub.no{color:var(--pz-faint)}
-.pz-cta{padding-top:16px;display:flex;align-items:flex-end}
-.pz-btn{width:100%;min-height:44px;text-align:center;font:inherit;font-size:15px;font-weight:600;border-radius:999px;padding:12px 16px;border:1px solid var(--pz-line);background:var(--pz-bg);color:var(--pz-ink);cursor:pointer;transition:background .25s,transform .15s,color .25s}
-.pz-btn:active{transform:scale(.97)}
-.pz-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-.pz-card.hl .pz-btn{background:var(--pz-blue);border-color:var(--pz-blue);color:#fff}
-.pz-btn[aria-pressed=true]{background:var(--pz-ink);border-color:var(--pz-ink);color:#fff}
-.pz-card.hl .pz-btn[aria-pressed=true]{background:#005bb8;border-color:#005bb8}
-@media (max-width:900px){
-  .pz-grid{grid-template-columns:repeat(var(--n),minmax(272px,84%));overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:24px 2px 14px;scrollbar-width:none}
-  .pz-grid::-webkit-scrollbar{display:none}
-  .pz-card{scroll-snap-align:center}
-  .pz-card.hl,.pz-card.hl:hover,.pz-card:hover{transform:none}
-  .pk-swipe{display:block}
-}
 /* ===== servizi, pannelli, anteprima gestionale ===== */
 input[type=email]{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px}
 input[type=email]:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 4px rgba(29,29,31,.08)}
@@ -1058,37 +1010,6 @@ function pkCalcola() {
   PK_FISSE.forEach((t, j) => out.righe.push({ t, sep: j === 0, inc: out.piani.map(() => true) }));
   return out;
 }
-/* disegno delle card (come pzHTML della Mappa, senza prezzi; la card si tocca per sceglierla) */
-function pkHTML(C) {
-  const OK = '<svg viewBox="0 0 20 20" aria-label="Incluso"><circle cx="10" cy="10" r="10" fill="#34c759"/><path d="M5.8 10.3l2.7 2.7 5.7-6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const KO = '<svg viewBox="0 0 20 20" aria-label="Non incluso"><circle cx="10" cy="10" r="9.25" fill="#fff0ef" stroke="#ffd2cf" stroke-width="1.5"/><path d="M7 7l6 6M13 7l-6 6" fill="none" stroke="#ff3b30" stroke-width="1.8" stroke-linecap="round"/></svg>';
-  const P = C.piani, Rg = C.righe;
-  return `<p class="pk-hook"><b>Risolviamo prima questo:</b> «${esc(C.hook)}»</p>
-  <div class="pz" style="--n:${P.length};--r:${Rg.length}"><div class="pz-grid" role="group" aria-label="Pacchetti">${P.map((p, i) => `
-    <article class="pz-card ${p.hl ? "hl" : ""}" style="--i:${i}" data-pk="${p.id}">
-      ${p.hl ? '<span class="pz-badge">Il più scelto</span>' : ""}
-      <header class="pz-h"><h3>${esc(p.nome)}</h3><p>${esc(p.perChi)}</p>
-        <div class="pz-time">${p.ore > 0 ? `<b>Ti fa risparmiare circa ${p.ore} ore al mese</b>` : ""}
-          ${!C.pr.length ? "" : p.tutto ? '<span class="pz-all">Risolve tutti i tuoi problemi</span>' : `<span class="pz-left">Restano scoperti: ${p.scop.map(x => "«" + esc(x) + "»").join(", ")}${p.persi ? ` · circa ${p.persi} ore al mese ancora perse` : ""}</span>`}</div></header>
-      <ul class="pz-list">${Rg.map((r, j) => `<li class="${r.inc[i] ? "si" : "no"}${r.sep ? " sep" : ""}${r.sub ? " sub" : ""}" style="--j:${j}">${r.inc[i] ? OK : KO}<span>${esc(r.t)}</span></li>`).join("")}</ul>
-      <div class="pz-cta"><button type="button" class="pz-btn" data-pk="${p.id}" aria-pressed="false">Scelgo ${esc(p.nome)}</button></div>
-    </article>`).join("")}</div></div>
-  <p class="pk-swipe">Scorri di lato per vedere gli altri pacchetti.</p>
-  <div class="chips pk-non"><button type="button" class="chip" data-pk="non-so" aria-pressed="false">Non so ancora, ne parliamo in call</button></div>`;
-}
-let pkC = null;
-function pkSync() {
-  $("pkBox").querySelectorAll("[data-pk]").forEach(el => { const on = el.dataset.pk === A.pk;
-    if (el.matches(".pz-card")) el.classList.toggle("sel", on);
-    else { el.setAttribute("aria-pressed", on); if (el.matches(".pz-btn")) el.textContent = (on ? "Hai scelto " : "Scelgo ") + (PK_NOMI[Object.keys(PK_NOMI).find(k => PK_NOMI[k][2] === el.dataset.pk)] || [""])[0]; } });
-}
-$("pkBox").addEventListener("click", e => { const b = e.target.closest("[data-pk]"); if (!b) return; A.pk = A.pk === b.dataset.pk ? null : b.dataset.pk; pkSync(); bozza(); });
-/* sul telefono i pacchetti scorrono di lato: all'apertura si vede quello centrale */
-function pkCentra() {
-  const gr = document.querySelector("#pkBox .pz-grid"), hl = gr && (gr.querySelector(".pz-card.hl") || gr.querySelector(".pz-card:last-child"));
-  if (!hl || gr.scrollWidth <= gr.clientWidth + 2) return;
-  gr.scrollTo({ left: hl.getBoundingClientRect().left - gr.getBoundingClientRect().left + gr.scrollLeft - (gr.clientWidth - hl.offsetWidth) / 2, behavior: "instant" });
-}
 /* dati da mandare: pacchetti proposti, quello scelto e il problema da cui si parte */
 function pkDati() {
   const C = pkCalcola(), ok = A.pk && (A.pk === "non-so" || C.piani.some(p => p.id === A.pk));
@@ -1804,7 +1725,7 @@ function go(n, back) {
   if (!back) { const e = valida(cur); document.querySelectorAll(".err").forEach(x => x.textContent = ""); if (e) { $(e[0]).textContent = e[1]; return; } }
   cur = Math.max(0, Math.min(STEPS - 1, n));
   if (cur === 7) renderGest(); if (cur === 4) renderLav(); if (cur === 5) renderProbs(); if (cur === 2) { renderGoals(); renderSvc(); } if (cur === 3) telNote(); mostraConsiglio(cur); if (cur === 8) renderPacchetti(); if (cur === LAST_Q) riepilogo(); if (cur === 11) { prenota(); finale(); $("piuBox").hidden = !A.veloce; }
-  document.querySelector(".wrap").classList.toggle("wide", cur === 8); document.querySelector(".wrap").classList.toggle("mid", cur === 2 || cur === 7); if (cur === 8) requestAnimationFrame(() => requestAnimationFrame(pkCentra));
+  document.querySelector(".wrap").classList.toggle("wide", cur === 8); document.querySelector(".wrap").classList.toggle("mid", cur === 2 || cur === 7);
   document.querySelectorAll(".step").forEach(s => { const on = Number(s.dataset.s) === cur; s.classList.toggle("on", on); s.classList.toggle("back", on && !!back); });
   $("barI").style.width = (A.veloce && cur <= 10 ? FAST.indexOf(cur) / 4 * 100 : cur / LAST_Q * 100) + "%"; applyFast();
   $("count").textContent = A.veloce ? (SEZ_FAST[cur] ? `${SEZ_FAST[cur]} · ${FAST.indexOf(cur)} di 3` : "") : cur > 0 && cur < LAST_Q ? `${SEZ[cur]} · ${cur} di ${LAST_Q - 1}` : "";
