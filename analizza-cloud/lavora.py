@@ -195,7 +195,38 @@ def lavora(modello, riga):
         shutil.rmtree(cartella, ignore_errors=True)  # niente file scaricati lasciati in giro
 
 
+def prova():
+    """Collaudo senza Supabase: link pubblici di prova, nel log solo esito, tempi e sezioni del report."""
+    from faster_whisper import WhisperModel
+    modello = WhisperModel(MODELLO, device="cpu", compute_type="int8")
+    for link in ("https://www.tiktok.com/@neildegrassetyson/video/7482856405934918955",
+                 "https://www.instagram.com/reel/Dd1gQBsCWE8/",
+                 "https://www.youtube.com/watch?v=jNQXAC9IVRw"):
+        inizio = time.time()
+        cartella = Path(tempfile.mkdtemp(prefix="analizza_"))
+        try:
+            wav, info = scarica(link, cartella)
+            audio = leggi_wav(wav)
+            if not info.get("duration"):
+                info["duration"] = len(audio) / 16000
+            righe, lingua, sicurezza = trascrivi(modello, audio)
+            report = componi_report(link, info, righe, lingua, sicurezza, time.time() - inizio)
+            sezioni = [r for r in report.splitlines() if r.startswith("#")]
+            ha_durata = "Durata: ?" not in report
+            scrivi("%s: OK in %.0f s | report %d caratteri | %d righe di trascrizione | durata %s | sezioni %s" % (
+                piattaforma(link), time.time() - inizio, len(report), len(righe),
+                "si'" if ha_durata else "no", " / ".join(sezioni)))
+        except Rimanda as e:
+            scrivi("%s: lasciato al PC in %.0f s | motivo per la pagina: %s" % (piattaforma(link), time.time() - inizio, e))
+        finally:
+            shutil.rmtree(cartella, ignore_errors=True)
+        scrivi("  cartella temporanea cancellata: %s" % ("si'" if not cartella.exists() else "NO"))
+
+
 def main():
+    if "--prova" in sys.argv:
+        prova()
+        return
     if not CODICE:
         scrivi("Manca il secret ANALIZZA_CLOUD_CODICE su GitHub.")
         sys.exit(1)
