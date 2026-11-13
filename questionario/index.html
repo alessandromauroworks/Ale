@@ -197,6 +197,11 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
         <div class="picked" id="tipoPicked" hidden>Scelto: <b id="tipoName"></b></div>
       </div>
       <div class="q" id="altroBox" hidden><label for="fAltroTipo">Che lavoro fai, in poche parole?</label><input id="fAltroTipo" maxlength="80" type="text" placeholder="Es. noleggio barche, studio di architettura…"></div>
+      <div class="q"><span class="lab">Tu che ruolo hai?</span><span class="hint">Così capisco meglio come lavori.</span><div class="chips" data-one="ruolo" id="cRuolo"></div></div>
+      <div class="gbranch" id="cBranch" hidden>
+        <div class="q"><label for="fTitolare">Nome del titolare o di chi decide (facoltativo)</label><input id="fTitolare" maxlength="80" type="text" placeholder="Es. Massimo Rossi"></div>
+        <div class="q"><span class="lab">Il titolare sa di questo questionario?</span><div class="chips" data-one="titolareSa" id="cTitSa"></div></div>
+      </div>
       <div class="q"><label for="fCitta">Città</label><input id="fCitta" maxlength="60" type="text" autocomplete="address-level2" placeholder="Es. Bari"></div>
       <p class="err" id="err1"></p>
     </section>
@@ -207,7 +212,9 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
       <div class="goals" id="goals"></div>
       <div class="q"><label for="fObAltro">Altro obiettivo (facoltativo)</label><input id="fObAltro" maxlength="120" type="text" placeholder="Es. aprire una seconda sede"></div>
       <div class="q"><span class="lab">Su cosa ti posso aiutare?</span><span class="hint">Facoltativo. Puoi sceglierne più di uno.</span><div class="chips" data-many="servizi" id="cServizi"></div></div>
-      <div class="q"><label for="fProblemi">Raccontami i problemi che vuoi risolvere, anche con i tuoi clienti (facoltativo)</label><textarea id="fProblemi" maxlength="2000" rows="6" placeholder="Es. i clienti mi scrivono su WhatsApp a tutte le ore e perdo prenotazioni; si dimenticano gli appuntamenti; non so chi ha pagato e chi no…"></textarea></div>
+      <div class="q"><span class="lab">Che tipo di problema è?</span><span class="hint">Facoltativo. Anche più di una risposta.</span><div class="chips" data-many="tipoProblema" id="cTipoProb"></div></div>
+      <div class="q"><span class="lab">Quanto è grande secondo te?</span><span class="hint">Facoltativo. Non c'è una risposta giusta.</span><div class="chips" data-one="dimensione" id="cDim"></div></div>
+      <div class="q"><label for="fProblemi" id="lProblemi">Raccontami i problemi che vuoi risolvere, anche con i tuoi clienti (facoltativo)</label><textarea id="fProblemi" maxlength="2000" rows="6" placeholder="Anche se non è nell'elenco: scrivi come lo racconteresti a un collega. Piccolo o grande, va bene tutto. Es. i clienti mi scrivono su WhatsApp a tutte le ore e perdo prenotazioni…"></textarea></div>
       <p class="note">Per favore non scrivere nomi o dati dei tuoi pazienti o clienti: bastano esempi generici.</p>
       <p class="err" id="err2"></p>
     </section>
@@ -217,6 +224,15 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
       <div class="q"><span class="lab">Quante persone lavorano con te?</span><div class="chips" data-one="team" id="cTeam"></div></div>
       <div class="q"><span class="lab">Come ti contattano i clienti?</span><span class="hint">Anche più di una risposta.</span><div class="chips" data-many="can" id="cCan"></div></div>
       <div class="q"><span class="lab">Con cosa ti organizzi?</span><div class="chips" data-many="str" id="cStr"></div></div>
+      <div class="q"><span class="lab">Quante telefonate ricevete più o meno al giorno?</span><span class="hint">Facoltativo.</span><div class="chips" data-one="telQuante" id="cTelQ"></div></div>
+      <div class="q"><span class="lab">Cosa succede quando nessuno può rispondere?</span><span class="hint">Facoltativo. Anche più di una risposta.</span><div class="chips" data-many="telNessuno" id="cTelN"></div></div>
+      <div class="q"><span class="lab">In quali momenti è più difficile rispondere?</span><span class="hint">Facoltativo. Anche più di una risposta.</span><div class="chips" data-many="telMomenti" id="cTelM"></div></div>
+      <div class="gbranch" id="sBranch" hidden>
+        <h3 style="margin:4px 0 0;font-size:18px">Il tuo lavoro di ogni giorno</h3>
+        <p class="note">Questi strumenti servono ad alleggerirti il lavoro, non a sostituirti: ti tolgono le cose ripetitive, così hai più tempo per quelle che solo tu sai fare bene.</p>
+        <div class="q"><span class="lab">Cosa ti fa perdere più tempo?</span><span class="hint">Anche più di una risposta.</span><div class="chips" data-many="segPerdite" id="cSegPerdite"></div></div>
+        <div class="q"><label for="fSegAiuto">Se avessi un aiuto in più, cosa vorresti che facesse al posto tuo?</label><textarea id="fSegAiuto" maxlength="500" rows="4" placeholder="Es. rispondere alle domande che mi fanno tutti i giorni, mandare i promemoria degli appuntamenti…"></textarea></div>
+      </div>
       <div class="row2">
         <div class="q"><label for="fIg">Pagina Instagram o Facebook</label><input id="fIg" maxlength="80" type="text" placeholder="@nomeattività"></div>
         <div class="q"><label for="fSito">Sito internet</label><input id="fSito" maxlength="120" type="url" placeholder="www.…"></div>
@@ -287,9 +303,11 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
       <div class="q"><span class="lab">Chi decide insieme a te?</span><span class="hint">Se decidete in due, è meglio che alla call ci siate entrambi.</span><div class="chips" data-one="decide" id="cDecide"></div></div>
       <div class="q"><span class="lab">Come preferiresti pagare?</span><div class="chips" data-one="pag" id="cPag"></div></div>
       <div class="q"><span class="lab">A chi va intestata la ricevuta?</span><span class="hint">Serve per scriverti cifre giuste fin da subito (per esempio se c'è la ritenuta d'acconto).</span><div class="chips" data-one="iva" id="cIva"></div></div>
-      <div class="q"><label for="fTel">Il tuo numero WhatsApp</label><input id="fTel" maxlength="25" type="tel" autocomplete="tel" placeholder="Es. 333 123 4567"></div>
+      <div class="q"><span class="lab">Come preferisci essere ricontattato?</span><div class="chips" data-one="contatto" id="cContatto"></div></div>
+      <div class="q"><label for="fTel">Un numero di telefono (va bene anche il fisso dell'ufficio)</label><input id="fTel" maxlength="25" type="tel" autocomplete="tel" placeholder="Es. 333 123 4567 oppure 0881 686119"></div>
+      <div class="gbranch" id="eBranch" hidden><div class="q"><label for="fEmail">La tua email</label><input id="fEmail" maxlength="100" type="email" autocomplete="email" placeholder="Es. nome@azienda.it"></div></div>
       <div class="hp" aria-hidden="true"><label for="fSitoWeb2">Lascia vuoto questo campo</label><input id="fSitoWeb2" name="sito_web2" type="text" tabindex="-1" autocomplete="off"></div>
-      <div class="privacy"><b>Come uso le tue risposte</b>Le risposte arrivano solo ad Alessandro Mauro: vengono salvate in modo protetto su Supabase (server nell'Unione Europea), passano nel suo spazio di lavoro privato su Claude (Anthropic), dove prepara la call, e ti si apre WhatsApp (servizio di Meta) con il messaggio già pronto. Servono solo a preparare la call e la proposta per la tua attività. Non vengono cedute a nessuno e non servono per pubblicità. Se non lavoriamo insieme vengono cancellate dopo 12 mesi, e puoi chiederne la cancellazione quando vuoi scrivendo a +39 339 405 2935 o alessandromauro.works@gmail.com. Se prenoti la call, il tuo nome e un breve riassunto delle risposte passano al servizio di prenotazione e al calendario di Alessandro, solo per fissare l'appuntamento. Finché non invii, la bozza resta solo su questo telefono o computer.</div>
+      <div class="privacy"><b>Come uso le tue risposte</b>Le risposte arrivano solo ad Alessandro Mauro: vengono salvate in modo protetto su Supabase (server nell'Unione Europea), passano nel suo spazio di lavoro privato su Claude (Anthropic), dove prepara la call, e, solo se scegli WhatsApp per essere ricontattato, si apre WhatsApp (servizio di Meta) con il messaggio già pronto. Se scegli email o telefono, le risposte arrivano ad Alessandro già salvate in modo protetto e ti ricontatta con il mezzo che hai scelto; se ti propongo di mandarle per email, il messaggio passa dal tuo programma di posta. Servono solo a preparare la call e la proposta per la tua attività. Non vengono cedute a nessuno e non servono per pubblicità. Se non lavoriamo insieme vengono cancellate dopo 12 mesi, e puoi chiederne la cancellazione quando vuoi scrivendo a +39 339 405 2935 o alessandromauro.works@gmail.com. Se prenoti la call, il tuo nome e un breve riassunto delle risposte passano al servizio di prenotazione e al calendario di Alessandro, solo per fissare l'appuntamento. Finché non invii, la bozza resta solo su questo telefono o computer.</div>
       <label class="check" for="fPriv"><input id="fPriv" type="checkbox"><span>Ho letto e acconsento a questo uso delle mie risposte.</span></label>
       <p class="err" id="err7"></p>
     </section>
@@ -305,6 +323,8 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
       <div class="done">
         <div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
         <h2>Ultimo passo: premi invio</h2>
+        <div class="note" id="noWa" hidden><b>Non usi WhatsApp qui?</b> Le risposte mi sono già arrivate, ti ricontatto io.</div>
+        <div class="actions" id="mailBox" hidden><a class="btn primary" id="mailBtn" href="#">Mandami le risposte per email</a></div>
         <p class="lead" id="doneTxt">Se si è aperta la chat di WhatsApp, premi invio: il messaggio è già scritto. Appena lo ricevo preparo la call sulla tua attività.</p>
         <p class="lead" id="doneTxt2">Se non vedi WhatsApp, tocca «Apri WhatsApp» oppure copia il messaggio e mandalo a questo numero:</p>
         <p class="num"><b>+39 339 405 2935</b></p>
@@ -348,7 +368,16 @@ const SALVA_URL = "https://udubhzamghhlkxgepmmc.supabase.co/functions/v1/questio
 const SANITA = /dentist|medic|dietist|nutrizion|fisioterap|osteopat|psicolog|veterinar|farmacia|altra attivit/i;
 const GOALS = [["clienti","Più clienti","Nuove persone che ti scelgono"],["visibilita","Più visibilità","Farti trovare online e sui social"],["tempo","Risparmiare tempo","Più ore per te e per il lavoro vero"],["ordine","Più ordine","Meno errori, dimenticanze e carta"],["ritorno","Clienti che tornano","Richiami, fedeltà, passaparola"],["messaggi","Meno messaggi ripetitivi","Telefonate e chat sempre uguali"]];
 const OPZ = {
-  servizi:["Sito internet nuovo o rifatto","Gestionale (clienti, appuntamenti, pagamenti, magazzino)","Automazioni (promemoria, messaggi, documenti che si fanno da soli)","Assistente che risponde ai clienti su WhatsApp o al telefono","Prenotazioni e richieste online","Social e contenuti","Video e foto per l'attività","Recensioni e Google Maps","Non so ancora, consigliami tu"],
+  servizi:["Sito internet nuovo o rifatto","Gestionale (clienti, appuntamenti, pagamenti, magazzino)","Automazioni (promemoria, messaggi, documenti che si fanno da soli)","Assistente che risponde ai clienti su WhatsApp o al telefono","Prenotazioni e richieste online","Social e contenuti","Video e foto per l'attività","Gestionale fatto su misura per noi","Velocizzare un lavoro lento o ripetitivo","Recensioni e Google Maps","Altro (lo scrivo io)","Non so ancora, consigliami tu"],
+  ruolo:["Titolare o socio","Segretaria / segretario","Assistente o collaboratore di studio","Dipendente o responsabile d'ufficio","Libero professionista che lavora da solo","Altro"],
+  segPerdite:["Il telefono che squilla di continuo","Rispondere sempre alle stesse domande","Fissare, spostare e disdire appuntamenti","Ricordare ai clienti appuntamenti e scadenze","Passare messaggi e richieste al titolare","Email e WhatsApp da smistare","Documenti, moduli e fotocopie","Richiamare chi non ha risposto","Ricevute, pagamenti e solleciti","Tenere in ordine l'agenda di più persone"],
+  tipoProblema:["Lavori lenti o fatti a mano","Cose ripetute tutti i giorni","Troppe telefonate e messaggi","Clienti persi o che non tornano","Errori e dimenticanze","Informazioni sparse in più posti","Pagamenti in ritardo","Poca visibilità su internet","Altro"],
+  titolareSa:["Sì, me l'ha chiesto lui/lei","Sì, gliene ho parlato","Non ancora"],
+  contatto:["WhatsApp","Email","Telefono (anche fisso)"],
+  telQuante:["Meno di 10","10-30","30-60","Più di 60","Non so"],
+  telNessuno:["Squilla a vuoto","Segreteria telefonica","Richiamiamo dopo se ce ne ricordiamo","Si perde la chiamata","Inoltro al cellulare"],
+  telMomenti:["Mattina presto","Pausa pranzo","Sera dopo la chiusura","Sabato e festivi","Quando c'è gente allo sportello","Sempre"],
+  dimensione:["Una piccola cosa da sistemare","Più cose da mettere in ordine","Un progetto grande o su misura","Non lo so, valutiamo insieme"],
   team:["Solo io","2-3 persone","4-10 persone","Più di 10"],
   can:["Telefono","WhatsApp","Instagram / Facebook","Email","Sito","Di persona","Portali e piattaforme"],
   str:["Agenda di carta","Excel o fogli","Un gestionale","WhatsApp e memoria","Niente di preciso"],
@@ -373,13 +402,13 @@ function normGest(g) {
   return b;
 }
 const PK_VALORI = ["essenziale", "professionale", "completo", "non-so"];
-let A = { s:null, ob:[], servizi:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pk:null, pag:null, iva:null, gest:{ serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null } };
-try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav","servizi"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); A.servizi = A.servizi.filter(x => OPZ.servizi.includes(x)); if (!A.prob || typeof A.prob !== "object" || Array.isArray(A.prob)) A.prob = {}; Object.keys(A.prob).forEach(k => { if (!A.prob[k] || typeof A.prob[k] !== "object") delete A.prob[k]; }); ["team","tempi","decide","pag","iva"].forEach(k => { if (A[k] != null && typeof A[k] !== "string") A[k] = null; }); A.budget = "Ne parliamo in call"; if (!PK_VALORI.includes(A.pk)) A.pk = null; A.vocale = A.vocale === true; A.gest = normGest(A.gest); if (A.s && !SETTORI.some(x => x.n === A.s)) A.s = null; setTimeout(() => { Object.entries(d.f || {}).forEach(([k,v]) => { const el = $(k); if (el && typeof v === "string") el.value = v; }); try { migraGest(A); } catch (er) {} if (A.s) pickTipo(A.s, true); $("vocaleBtn").setAttribute("aria-pressed", !!A.vocale); }, 0); } } catch(e) {}
+let A = { s:null, ruolo:null, titolareSa:null, contatto:null, telQuante:null, telNessuno:[], telMomenti:[], tipoProblema:[], dimensione:null, segPerdite:[], ob:[], servizi:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pk:null, pag:null, iva:null, gest:{ serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null } };
+try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav","servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); ["servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { A[k] = A[k].filter(x => OPZ[k].includes(x)); }); ["ruolo","dimensione","titolareSa","contatto","telQuante"].forEach(k => { if (!OPZ[k].includes(A[k])) A[k] = null; }); if (!A.prob || typeof A.prob !== "object" || Array.isArray(A.prob)) A.prob = {}; Object.keys(A.prob).forEach(k => { if (!A.prob[k] || typeof A.prob[k] !== "object") delete A.prob[k]; }); ["team","tempi","decide","pag","iva"].forEach(k => { if (A[k] != null && typeof A[k] !== "string") A[k] = null; }); A.budget = "Ne parliamo in call"; if (!PK_VALORI.includes(A.pk)) A.pk = null; A.vocale = A.vocale === true; A.gest = normGest(A.gest); if (A.s && !SETTORI.some(x => x.n === A.s)) A.s = null; setTimeout(() => { Object.entries(d.f || {}).forEach(([k,v]) => { const el = $(k); if (el && typeof v === "string") el.value = v; }); try { migraGest(A); } catch (er) {} if (A.s) pickTipo(A.s, true); $("vocaleBtn").setAttribute("aria-pressed", !!A.vocale); }, 0); } } catch(e) {}
 const ALIAS_EXTRA = { "Negozio / attività commerciale":"panificio forno macelleria fioraio fiori tabaccheria enoteca lavanderia alimentari abbigliamento ottica gioielleria ferramenta libreria", "Parrucchiere / barbiere":"parrucchiera hair salon acconciature", "Psicologo / psicoterapeuta":"psicologa psicoterapeuta", "Studio legale":"avvocata avvocato legale", "Farmacia / parafarmacia":"farmacista", "Centro estetico":"estetista nail unghie spa", "B&B / hotel / casa vacanze":"bnb b&b affittacamere agriturismo", "Ristorante / pizzeria":"trattoria osteria sushi pub braceria", "Bar / caffetteria":"pasticceria gelateria cornetteria", "Dietista / nutrizionista":"dietologa dietologo", "Fisioterapista / osteopata":"fisioterapista massaggi" };
 const stem = w => w.length > 4 ? w.replace(/[aeiou]$/, "") : w;
 /* ?att=Nome precompila il nome dell'attività (solo se il campo è vuoto) */
 setTimeout(() => { try { const a = (new URLSearchParams(location.search).get("att") || "").trim(); if (a && !$("fAtt").value.trim()) $("fAtt").value = Array.from(a).slice(0, 80).join(""); } catch (e) {} }, 0);
-const FIELDS = ["fNome","fAtt","fAltroTipo","fCitta","fObAltro","fIg","fSito","fLavAltro","fProbAltro","fProblemi","fMagia","fProvato","fGestPerdite","fGestNonManchi","fTel"];
+const FIELDS = ["fNome","fAtt","fAltroTipo","fCitta","fObAltro","fIg","fSito","fLavAltro","fProbAltro","fProblemi","fSegAiuto","fTitolare","fEmail","fMagia","fProvato","fGestPerdite","fGestNonManchi","fTel"];
 let saveT; function bozza(){ clearTimeout(saveT); saveT = setTimeout(() => { const f = {}; FIELDS.forEach(k => f[k] = $(k).value); stor.set("qpc:bozza", JSON.stringify({ A, f })); }, 300); }
 document.addEventListener("input", () => { if (cur < 11) bozza(); });
 
@@ -393,14 +422,23 @@ function chips(el, list, key, many) {
   const sync = () => el.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", many ? A[key].includes(b.dataset.v) : A[key] === b.dataset.v));
   el.addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return; const x = b.dataset.v;
     if (many) A[key] = A[key].includes(x) ? A[key].filter(y => y !== x) : [...A[key], x]; else A[key] = A[key] === x ? (key === "budget" ? "Ne parliamo in call" : null) : x;
-    sync(); bozza(); });
+    sync(); if (key === "ruolo" || key === "contatto") segShow(); bozza(); });
   sync(); return sync;
 }
 const syncs = [];
 document.querySelectorAll("[data-one]").forEach(el => syncs.push(chips(el, OPZ[el.dataset.one], el.dataset.one, false)));
 document.querySelectorAll("[data-many]").forEach(el => syncs.push(chips(el, OPZ[el.dataset.many], el.dataset.many, true)));
-setTimeout(() => syncs.forEach(f => f()), 0);
+setTimeout(() => { syncs.forEach(f => f()); segShow(); }, 0);
 
+/* ramo segreteria: visibile solo per chi risponde per l'azienda (segretaria, assistente, ufficio) */
+const RUOLI_SEG = ["Segretaria / segretario","Assistente o collaboratore di studio","Dipendente o responsabile d'ufficio"];
+const isSeg = () => RUOLI_SEG.includes(A.ruolo);
+const perConto = () => !!A.ruolo && !["Titolare o socio","Libero professionista che lavora da solo"].includes(A.ruolo);
+const nonWa = () => A.contatto === "Email" || A.contatto === "Telefono (anche fisso)";
+function segShow() {
+  $("sBranch").hidden = !isSeg(); $("cBranch").hidden = !perConto(); $("eBranch").hidden = A.contatto !== "Email";
+  $("lProblemi").textContent = isSeg() ? "Raccontami i problemi che vuoi risolvere, per te, per il titolare o con i clienti (facoltativo)" : "Raccontami i problemi che vuoi risolvere, anche con i tuoi clienti (facoltativo)";
+}
 /* ramo facoltativo: gestionale */
 const G_GEN = ["Clienti","Appuntamenti","Pagamenti e incassi","Fatture e ricevute","Magazzino e prodotti","Fornitori","Personale e turni","Documenti","Statistiche"];
 const G_LOSS = ["Cerco le cose in più posti","Scrivo le stesse cose due volte","Dimentico scadenze e richiami","Non so quanto incasso davvero","Rincorro i pagamenti","Agenda e appuntamenti confusi","Documenti sparsi ovunque"];
@@ -615,18 +653,30 @@ const PK_CORRELATI = { sito: ["goo"], vis: ["goo"], auto: ["ass"], gest: ["ass"]
 const PK_GRANDE = /pacchett|abbonament|magazzin|personale|turni|cassa/i;
 const ORE_MESE = 4.3;
 
+/* servizi voluti dalle nuove risposte: esp = scelti a mano; der = dedotti da telefono, segreteria e tipo di problema */
+const PK_SERV = { "Sito internet nuovo o rifatto":"sito2", "Gestionale (clienti, appuntamenti, pagamenti, magazzino)":"gest1", "Gestionale fatto su misura per noi":"gest2", "Automazioni (promemoria, messaggi, documenti che si fanno da soli)":"aut", "Assistente che risponde ai clienti su WhatsApp o al telefono":"ass", "Prenotazioni e richieste online":"pren", "Social e contenuti":"vf1", "Video e foto per l'attività":"vf1", "Recensioni e Google Maps":"goo", "Velocizzare un lavoro lento o ripetitivo":"aut" };
+const PK_SEG = { "Il telefono che squilla di continuo":"ass", "Rispondere sempre alle stesse domande":"ass", "Fissare, spostare e disdire appuntamenti":"pren", "Ricordare ai clienti appuntamenti e scadenze":"aut", "Passare messaggi e richieste al titolare":"ass", "Email e WhatsApp da smistare":"ass", "Documenti, moduli e fotocopie":"aut", "Richiamare chi non ha risposto":"ass", "Ricevute, pagamenti e solleciti":"aut", "Tenere in ordine l'agenda di più persone":"gest1" };
+const PK_TIPO = { "Lavori lenti o fatti a mano":"aut", "Cose ripetute tutti i giorni":"aut", "Troppe telefonate e messaggi":"ass", "Clienti persi o che non tornano":"aut", "Errori e dimenticanze":"aut", "Informazioni sparse in più posti":"gest1", "Pagamenti in ritardo":"aut", "Poca visibilità su internet":"goo" };
+const PK_HOOK = { sito2:"Il sito internet", gest1:"Il gestionale", gest2:"Il gestionale fatto su misura", pren:"Le prenotazioni online", aut:"I lavori ripetitivi da fare da soli", ass:"Le telefonate e i messaggi a cui nessuno riesce a rispondere", goo:"Farti trovare su Google", pag:"La pagina social", vf1:"I contenuti social e i video" };
+function pkVoluti() {
+  const u = a => [...new Set(a.filter(Boolean))], esp = u(A.servizi.map(x => PK_SERV[x]));
+  const chiamate = ["30-60","Più di 60"].includes(A.telQuante) || A.telNessuno.some(x => ["Squilla a vuoto","Si perde la chiamata","Richiamiamo dopo se ce ne ricordiamo"].includes(x));
+  const der = u([chiamate && "ass", ...(isSeg() ? A.segPerdite.map(x => PK_SEG[x]) : []), ...A.tipoProblema.map(x => PK_TIPO[x])]).filter(x => !esp.includes(x));
+  return { esp, der };
+}
 /* dai problemi segnati dal cliente ai 1-3 pacchetti a scalare */
 function pkCalcola() {
   const s = sett(), tab = PK_S[s.n] || [];
   const pr = Object.entries(A.prob).filter(([, x]) => x && x.si).map(([k, x]) => { const i = Number(k); if (!s.P[i]) return null;
     return { i, t: s.P[i][1], h: x.o != null && ORE[x.o] ? ORE[x.o][1] : s.P[i][2], ids: [...new Set(tab.filter(z => z[1].includes(i)).map(z => z[0]))] }; })
     .filter(Boolean).sort((a, b) => b.h - a.h || a.i - b.i);
-  const out = { pr, piani: [], righe: [], gancio: null, voci: [] };
-  if (!pr.length) return out;
+  const out = { pr, piani: [], righe: [], gancio: null, voci: [], hook: "" }, V = pkVoluti();
+  if (!pr.length && !V.esp.length && !V.der.length) return out;
   const seq = [], presi = new Set();
   const marg = id => pr.reduce((t, p) => t + (!presi.has(p.i) && p.ids.includes(id) ? p.h : 0), 0);
   const metti = id => { if (!seq.includes(id)) { seq.push(id); return true; } return false; };
   const segna = id => pr.forEach(p => { if (p.ids.includes(id)) presi.add(p.i); });
+  V.esp.forEach(id => metti(id));
   /* si parte dal servizio che risolve il problema più pesante (il gancio), poi uno per volta in ordine di ore ancora da risolvere */
   const con = pr.filter(p => p.ids.length);
   if (con.length) {
@@ -636,6 +686,7 @@ function pkCalcola() {
     for (;;) { const best = cand.map((id, n) => ({ id, n, h: marg(id) })).filter(x => x.h > 0).sort((a, b) => b.h - a.h || a.n - b.n)[0];
       if (!best) break; metti(best.id); segna(best.id); }
   }
+  V.der.forEach(id => metti(id));
   /* gestionale chiesto («Sì» dopo il primo servizio, quindi dal piano centrale; «Non so» solo nel completo) */
   const gd = A.gest.serve ? gestDati(s) : null, chiesto = !!gd && (gd.serve === "Sì" || gd.serve === "Non so");
   if (chiesto) {
@@ -645,9 +696,12 @@ function pkCalcola() {
     out.voci = gd.pannello;
   }
   /* se i servizi sono meno di 3 non si riescono a fare tre pacchetti a scalare: si aggiungono (al massimo 2) i servizi vicini del listino (prima i correlati, poi scheda Google, assistente, pagina social) */
-  let ex = 0; [...seq].forEach(id => { if (seq.length < 3) (PK_CORRELATI[PK_GRUPPO[id]] || []).forEach(x => { if (ex < 2 && seq.length < 3 && metti(x)) ex++; }); });
-  if (seq.length) ["goo", "ass", "pag"].forEach(x => { if (seq.length < 3) metti(x); });
+  if (A.dimensione === "Un progetto grande o su misura") { const ig = seq.findIndex(x => PK_GRUPPO[x] === "gest"); if (ig >= 0) { seq[ig] = "gest2"; pr.forEach(p => { p.ids = p.ids.map(x => x === "gest1" ? "gest2" : x); }); } }
+  const piccola = A.dimensione === "Una piccola cosa da sistemare";
+  let ex = 0; if (!piccola) [...seq].forEach(id => { if (seq.length < 3) (PK_CORRELATI[PK_GRUPPO[id]] || []).forEach(x => { if (ex < 2 && seq.length < 3 && metti(x)) ex++; }); });
+  if (seq.length && !piccola) ["goo", "ass", "pag"].forEach(x => { if (seq.length < 3) metti(x); });
   if (!seq.length) return out;
+  out.hook = out.gancio && out.gancio.ids.includes(seq[0]) ? out.gancio.t : (PK_HOOK[seq[0]] || "");
   const n = seq.length, tagli = n >= 3 ? [1, Math.max(2, Math.ceil(n / 2)), n] : n === 2 ? [1, 2] : [1];
   const ruoli = PK_NOMI_N[tagli.length];
   const risolto = (ids, p) => p.ids.some(x => ids.includes(x));
@@ -660,7 +714,7 @@ function pkCalcola() {
   const peso = id => pr.reduce((t, p) => t + (p.ids.includes(id) ? p.h : 0), 0);
   const nAut = Math.max(1, Math.min(10, tab.filter(z => z[0] === "aut" && pr.some(p => z[1].includes(p.i))).length));
   seq.map((id, k) => ({ id, k, w: peso(id) })).sort((a, b) => (b.id === seq[0]) - (a.id === seq[0]) || (b.w > 0) - (a.w > 0) || b.w - a.w || a.k - b.k).forEach(r => {
-    out.righe.push({ t: r.id === "aut" && nAut > 1 ? `${nAut} lavori ripetitivi fatti da soli: richiami, preventivi, documenti` : PK_RIGA[r.id], inc: out.piani.map(p => p.ids.includes(r.id)) });
+    out.righe.push({ t: r.id === "ass" && V.esp.concat(V.der).includes("ass") ? "Assistente che risponde ai clienti al telefono e su WhatsApp, anche quando nessuno può rispondere" : r.id === "aut" && nAut > 1 ? `${nAut} lavori ripetitivi fatti da soli: richiami, preventivi, documenti` : PK_RIGA[r.id], inc: out.piani.map(p => p.ids.includes(r.id)) });
     if (PK_GRUPPO[r.id] === "gest" && out.voci.length) out.righe.push({ t: "Nel pannello: " + out.voci.slice(0, 6).join(", ") + (out.voci.length > 6 ? ` e altre ${out.voci.length - 6} voci` : ""), inc: out.piani.map(p => p.ids.includes(r.id)), sub: true });
   });
   PK_FISSE.forEach((t, j) => out.righe.push({ t, sep: j === 0, inc: out.piani.map(() => true) }));
@@ -671,13 +725,13 @@ function pkHTML(C) {
   const OK = '<svg viewBox="0 0 20 20" aria-label="Incluso"><circle cx="10" cy="10" r="10" fill="#34c759"/><path d="M5.8 10.3l2.7 2.7 5.7-6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const KO = '<svg viewBox="0 0 20 20" aria-label="Non incluso"><circle cx="10" cy="10" r="9.25" fill="#fff0ef" stroke="#ffd2cf" stroke-width="1.5"/><path d="M7 7l6 6M13 7l-6 6" fill="none" stroke="#ff3b30" stroke-width="1.8" stroke-linecap="round"/></svg>';
   const P = C.piani, Rg = C.righe;
-  return `<p class="pk-hook"><b>Risolviamo prima questo:</b> «${esc(C.gancio ? C.gancio.t : C.pr[0].t)}»</p>
+  return `<p class="pk-hook"><b>Risolviamo prima questo:</b> «${esc(C.hook)}»</p>
   <div class="pz" style="--n:${P.length};--r:${Rg.length}"><div class="pz-grid" role="group" aria-label="Pacchetti">${P.map((p, i) => `
     <article class="pz-card ${p.hl ? "hl" : ""}" style="--i:${i}" data-pk="${p.id}">
       ${p.hl ? '<span class="pz-badge">Il più scelto</span>' : ""}
       <header class="pz-h"><h3>${esc(p.nome)}</h3><p>${esc(p.perChi)}</p>
         <div class="pz-time">${p.ore > 0 ? `<b>Ti fa risparmiare circa ${p.ore} ore al mese</b>` : ""}
-          ${p.tutto ? '<span class="pz-all">Risolve tutti i tuoi problemi</span>' : `<span class="pz-left">Restano scoperti: ${p.scop.map(x => "«" + esc(x) + "»").join(", ")}${p.persi ? ` · circa ${p.persi} ore al mese ancora perse` : ""}</span>`}</div></header>
+          ${!C.pr.length ? "" : p.tutto ? '<span class="pz-all">Risolve tutti i tuoi problemi</span>' : `<span class="pz-left">Restano scoperti: ${p.scop.map(x => "«" + esc(x) + "»").join(", ")}${p.persi ? ` · circa ${p.persi} ore al mese ancora perse` : ""}</span>`}</div></header>
       <ul class="pz-list">${Rg.map((r, j) => `<li class="${r.inc[i] ? "si" : "no"}${r.sep ? " sep" : ""}${r.sub ? " sub" : ""}" style="--j:${j}">${r.inc[i] ? OK : KO}<span>${esc(r.t)}</span></li>`).join("")}</ul>
       <div class="pz-cta"><button type="button" class="pz-btn" data-pk="${p.id}" aria-pressed="false">Scelgo ${esc(p.nome)}</button></div>
     </article>`).join("")}</div></div>
@@ -723,7 +777,7 @@ function dati() {
   const prob = Object.entries(A.prob).filter(([, x]) => x.si).map(([i, x]) => [Number(i), x.o != null ? ORE[x.o][1] : null]);
   const no = Object.entries(A.prob).filter(([, x]) => x.si === false).map(([i]) => Number(i));
   return { v:1, data:new Date().toISOString().slice(0, 10), s:s.n, tipoAltro:s.n === "Altra attività" ? taglia(v("fAltroTipo"), 80) : "", nome:taglia(v("fNome"), 80), attivita:taglia(v("fAtt"), 80), citta:taglia(v("fCitta"), 60), tel:taglia(v("fTel"), 25),
-    ig:taglia(v("fIg"), 80), sito:taglia(v("fSito"), 120), ob:A.ob, servizi:A.servizi, problemi:taglia(v("fProblemi"), 2000), obAltro:taglia(v("fObAltro"), 120), team:A.team, can:A.can, str:A.str, lav:A.lav, lavAltro:taglia(v("fLavAltro"), 300),
+    ig:taglia(v("fIg"), 80), sito:taglia(v("fSito"), 120), ob:A.ob, ruolo:A.ruolo, contatto:A.contatto || "WhatsApp", email:taglia(v("fEmail"), 100), ...(perConto() ? { perConto:{ titolare:taglia(v("fTitolare"), 80), sa:A.titolareSa } } : {}), telefono:{ quante:A.telQuante, nessuno:A.telNessuno, momenti:A.telMomenti }, servizi:A.servizi, tipoProblema:A.tipoProblema, dimensione:A.dimensione, ...(isSeg() ? { segreteria:{ perdite:A.segPerdite, aiuto:taglia(v("fSegAiuto"), 500) } } : {}), problemi:taglia(v("fProblemi"), 2000), obAltro:taglia(v("fObAltro"), 120), team:A.team, can:A.can, str:A.str, lav:A.lav, lavAltro:taglia(v("fLavAltro"), 300),
     prob, probT:prob.map(([i]) => s.P[i] ? s.P[i][1] : ""), no, noT:no.map(i => s.P[i] ? s.P[i][1] : ""), probAltro:taglia(v("fProbAltro"), 300), magia:taglia(v("fMagia"), 300), provato:taglia(v("fProvato"), 300),
     vocale:A.vocale, tempi:A.tempi, decide:A.decide, budget:"Ne parliamo in call", pag:A.pag, iva:A.iva,
     ...(A.gest.serve ? { gest:gestDati(s) } : {}),
@@ -753,10 +807,18 @@ function messaggio(d, liv, cod) {
   const corto = t => { const a = Array.from(t); return a.length > 160 ? a.slice(0, 160).join("") + "…" : t; };
   r.push("Ciao Alessandro, ecco le mie risposte per preparare la call.");
   r.push(""); r.push(`*${d.attivita || "La mia attività"}* · ${d.s === "Altra attività" ? (d.tipoAltro || "altra attività") : d.s}${d.citta ? " · " + d.citta : ""}`);
-  r.push(`Sono ${d.nome}${d.tel ? " · " + d.tel : ""}`);
+  r.push(`Sono ${d.nome}${d.tel ? " · " + d.tel : ""}${d.ruolo ? " (" + d.ruolo.toLowerCase() + ")" : ""}`);
   if (d.ob.length || d.obAltro) r.push("Obiettivo: " + [...d.ob.map(goalName), d.obAltro].filter(Boolean).join(", "));
   if (d.servizi.length) r.push("Mi serve: " + d.servizi.join("; "));
+  if (d.perConto && (d.perConto.titolare || d.perConto.sa)) r.push("Per conto di: " + [d.perConto.titolare, d.perConto.sa && "il titolare " + (d.perConto.sa === "Non ancora" ? "non sa ancora del questionario" : "lo sa")].filter(Boolean).join(" · "));
+  { const t = d.telefono, x = [t.quante && t.quante + " telefonate al giorno", t.nessuno.length && "se nessuno risponde: " + t.nessuno.join(", "), t.momenti.length && "più difficile: " + t.momenti.join(", ")].filter(Boolean).join("; "); if (x) r.push("Telefono: " + (breve ? corto(x) : x)); }
+  if (d.tipoProblema.length) r.push("Tipo di problema: " + d.tipoProblema.join("; "));
+  if (d.dimensione) r.push("Dimensione: " + d.dimensione);
   if (d.problemi) r.push("I miei problemi: " + (breve ? corto(d.problemi) : d.problemi));
+  if (d.segreteria) {
+    if (d.segreteria.perdite.length) r.push("Nel lavoro di ogni giorno perdo tempo con: " + d.segreteria.perdite.join("; "));
+    if (d.segreteria.aiuto) r.push("Un aiuto in più dovrebbe: " + (breve ? corto(d.segreteria.aiuto) : d.segreteria.aiuto));
+  }
   if (d.prob.length) { r.push("Dove perdo tempo:"); d.prob.forEach(([i, h]) => r.push("• " + s.P[i][1] + oreTxt(h))); }
   if (!breve && d.probAltro) r.push("Altro: " + corto(d.probAltro));
   if (!breve && d.magia) r.push("Vorrei sistemare: " + corto(d.magia));
@@ -777,6 +839,7 @@ function messaggio(d, liv, cod) {
   }
   r.push([d.tempi && "Partenza: " + d.tempi, d.decide && "Decide: " + d.decide].filter(Boolean).join(" · "));
   if (d.pk && d.pk.scelto) r.push("Pacchetto che mi interessa: " + pkNome(d.pk.scelto));
+  r.push("Ricontattami: " + d.contatto + (d.email ? " (" + d.email + ")" : ""));
   if (d.vocale) r.push("Ti mando anche un vocale.");
   if (breve) r.push("Le risposte complete sono nel codice qui sotto.");
   r.push(""); r.push("Codice delle risposte (non modificarlo):"); r.push(cod);
@@ -787,15 +850,17 @@ function riepilogo() {
   const riga = (k, x) => x ? `<div><dt>${k}</dt><dd>${esc(x)}</dd></div>` : "";
   $("sum").innerHTML =
     riga("Attività", [d.attivita, d.s === "Altra attività" ? d.tipoAltro : d.s, d.citta].filter(Boolean).join(" · ")) +
-    riga("Nome", d.nome) + riga("Obiettivo", [...d.ob.map(goalName), d.obAltro].filter(Boolean).join(", ")) +
-    riga("Mi serve", d.servizi.join("; ")) + riga("I tuoi problemi", d.problemi) +
+    riga("Nome", d.nome) + riga("Ruolo", d.ruolo) + riga("Per conto di", d.perConto ? [d.perConto.titolare, d.perConto.sa].filter(Boolean).join(" · ") : "") + riga("Obiettivo", [...d.ob.map(goalName), d.obAltro].filter(Boolean).join(", ")) +
+    riga("Mi serve", d.servizi.join("; ")) + riga("Tipo di problema", d.tipoProblema.join("; ")) + riga("Quanto è grande", d.dimensione) + riga("I tuoi problemi", d.problemi) +
+    riga("Il tuo lavoro di ogni giorno", d.segreteria ? d.segreteria.perdite.join("; ") : "") + riga("Un aiuto in più", d.segreteria ? d.segreteria.aiuto : "") +
     riga("Come lavori", [d.team, d.can.join(", "), d.str.join(", ")].filter(Boolean).join(" · ")) +
+    riga("Telefonate", [d.telefono.quante, d.telefono.nessuno.length && "se nessuno risponde: " + d.telefono.nessuno.join(", "), d.telefono.momenti.length && "difficile: " + d.telefono.momenti.join(", ")].filter(Boolean).join(" · ")) +
     riga("Passaggi pesanti", d.lav.map(i => s.L[i]).join(", ")) +
     riga("Dove perdi tempo", d.prob.map(([i, h]) => s.P[i][1] + oreTxt(h)).join("; ")) +
     riga("Altro", d.probAltro) + riga("Da sistemare", d.magia) + riga("Già provato", d.provato) +
     riga("Sul tuo lavoro", d.lavAltro) + riga("Gestionale", d.gest ? gTesto(d.gest) : "") +
     riga("Partenza", d.tempi) + riga("Chi decide", d.decide) + riga("Pacchetto", d.pk && d.pk.scelto ? pkNome(d.pk.scelto) : "") + riga("Pagamento", d.pag) +
-    riga("Ricevuta", d.iva) + riga("Instagram o Facebook", d.ig) + riga("Sito", d.sito) + riga("WhatsApp", d.tel) +
+    riga("Ricevuta", d.iva) + riga("Instagram o Facebook", d.ig) + riga("Sito", d.sito) + riga("Telefono", d.tel) + riga("Ricontatto", d.contatto + (d.email ? " · " + d.email : "")) +
     riga("Vocale", d.vocale ? "Te lo mando su WhatsApp" : "");
   const tok = ++rtoken, bs = $("sendBtn");
   bs.classList.add("wait"); bs.setAttribute("aria-disabled", "true"); $("lungo").hidden = true; invio = null;
@@ -847,16 +912,25 @@ function prenota() {
 }
 
 /* salvataggio protetto: parte insieme a WhatsApp, non lo blocca mai e non si ripete per lo stesso invio */
-let salvato = "";
+let salvato = "", salvatoOk = false;
+/* schermata finale per chi non usa WhatsApp: «già arrivate» solo se il salvataggio online ha risposto ok; altrimenti email */
+function finale() {
+  const d = (invio && invio.d) || dati(), nw = d.contatto !== "WhatsApp";
+  $("noWa").hidden = !(nw && salvatoOk); $("mailBox").hidden = !(nw && !salvatoOk);
+  if (nw && !salvatoOk) {
+    const corpo = messaggio(d, 1, "").replace(/\n+Codice delle risposte[\s\S]*$/, "").replace(/\nLe risposte complete[^\n]*/, "").slice(0, 1500);
+    $("mailBtn").setAttribute("href", "mailto:alessandromauro.works@gmail.com?subject=" + encodeURIComponent("Questionario prima call - " + (d.attivita || "")) + "&body=" + encodeURIComponent(corpo));
+  }
+}
 function salvaOnline(r) {
   try {
     if (!r || !r.cod || salvato === r.cod || !SALVA_URL || typeof fetch !== "function") return;
-    salvato = r.cod;
+    salvato = r.cod; salvatoOk = false;
     const d = r.d || dati(), ctl = typeof AbortController === "function" ? new AbortController() : null;
     const t = ctl ? setTimeout(() => ctl.abort(), 8000) : 0;
     fetch(SALVA_URL, { method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true, credentials: "omit", ...(ctl ? { signal: ctl.signal } : {}),
       body: JSON.stringify({ d, codice: r.cod, hp: $("fSitoWeb2").value }) })
-      .then(x => { if (!x.ok) salvato = ""; }, () => { salvato = ""; })
+      .then(x => { if (!x.ok) salvato = ""; else { salvatoOk = true; finale(); } }, () => { salvato = ""; })
       .finally(() => clearTimeout(t));
   } catch (e) { salvato = ""; }
 }
@@ -864,16 +938,19 @@ function salvaOnline(r) {
 /* navigazione */
 let cur = 0;
 function valida(n) {
-  if (n === 1) { if (!v("fNome") || !v("fAtt")) return ["err1", "Scrivi il tuo nome e quello dell'attività."]; if (!A.s) return ["err1", "Scegli il tipo di attività dall'elenco (se non c'è, scegli «Altra attività»)."]; }
+  if (n === 1) { if (!v("fNome") || !v("fAtt")) return ["err1", "Scrivi il tuo nome e quello dell'attività."]; if (!A.s) return ["err1", "Scegli il tipo di attività dall'elenco (se non c'è, scegli «Altra attività»)."]; if (!A.ruolo) return ["err1", "Scegli che ruolo hai: titolare, segretaria, assistente…"]; }
   if (n === 5 && Object.values(A.prob).some(x => x && x.si && x.o == null)) return ["err5", "Per ogni «Sì, mi succede» scegli più o meno quanto tempo ti porta via."];
   if (n === 2 && !A.ob.length && !v("fObAltro")) return ["err2", "Scegli almeno un obiettivo."];
-  if (n === 9) { if (v("fTel").replace(/\D/g, "").length < 8) return ["err7", "Scrivi il tuo numero WhatsApp, così ti confermo la call."]; if (!$("fPriv").checked) return ["err7", "Per inviare serve il tuo consenso qui sopra."]; }
+  if (n === 9) { const tel = v("fTel"), cifre = tel.replace(/\D/g, "").length, mail = v("fEmail");
+    if (cifre < 8 || cifre > 15 || !/^[+0-9 ().\/-]{6,25}$/.test(tel)) return ["err7", "Scrivi un numero di telefono valido (anche il fisso dell'ufficio), così ti confermo la call."];
+    if ((A.contatto === "Email" || mail) && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) return ["err7", "Scrivi un'email valida, per esempio nome@azienda.it."];
+    if (!$("fPriv").checked) return ["err7", "Per inviare serve il tuo consenso qui sopra."]; }
   return null;
 }
 function go(n, back) {
   if (!back) { const e = valida(cur); document.querySelectorAll(".err").forEach(x => x.textContent = ""); if (e) { $(e[0]).textContent = e[1]; return; } }
   cur = Math.max(0, Math.min(STEPS - 1, n));
-  if (cur === 7) renderGest(); if (cur === 4) renderLav(); if (cur === 5) renderProbs(); if (cur === 2) renderGoals(); if (cur === 8) renderPacchetti(); if (cur === LAST_Q) riepilogo(); if (cur === 11) prenota();
+  if (cur === 7) renderGest(); if (cur === 4) renderLav(); if (cur === 5) renderProbs(); if (cur === 2) renderGoals(); if (cur === 8) renderPacchetti(); if (cur === LAST_Q) riepilogo(); if (cur === 11) { prenota(); finale(); }
   document.querySelector(".wrap").classList.toggle("wide", cur === 8); if (cur === 8) requestAnimationFrame(() => requestAnimationFrame(pkCentra));
   document.querySelectorAll(".step").forEach(s => { const on = Number(s.dataset.s) === cur; s.classList.toggle("on", on); s.classList.toggle("back", on && !!back); });
   $("barI").style.width = (cur / LAST_Q * 100) + "%";
