@@ -167,6 +167,47 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
   .pz-card.hl,.pz-card.hl:hover,.pz-card:hover{transform:none}
   .pk-swipe{display:block}
 }
+/* ===== servizi, pannelli, anteprima gestionale ===== */
+input[type=email]{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px}
+input[type=email]:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 4px rgba(29,29,31,.08)}
+.wrap.mid{max-width:860px}
+.wrap{overflow-x:clip}
+.top{flex-wrap:wrap}.count{text-align:right}
+.why{margin:-12px 0 0;color:var(--muted);font-size:16px}
+.svcs{display:flex;flex-direction:column;gap:10px}
+.svcb{width:100%;text-align:left;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 14px;min-height:44px;cursor:pointer;display:flex;gap:12px;align-items:flex-start;transition:border-color .2s,box-shadow .25s,transform .12s}
+.svcb:hover{border-color:var(--faint)}.svcb:active{transform:scale(.985)}
+.svcb:focus-visible,.prop:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.svcb[aria-pressed=true]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.svcb .tick{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--muted);margin-top:1px;position:relative;transition:background .2s,border-color .2s}
+.svcb[aria-pressed=true] .tick{background:var(--ink);border-color:var(--ink)}
+.svcb[aria-pressed=true] .tick::after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.svct{display:block;min-width:0}.svct b{display:block;font-size:16px;letter-spacing:-.01em}.svct .d{display:block;font-size:14px;color:var(--muted);margin-top:2px;line-height:1.4}
+.acc{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows .35s var(--ease),visibility 0s .35s}
+.acc.open{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows .35s var(--ease),visibility 0s}
+.acc>div{overflow:hidden;min-height:0}
+.panel{margin:8px 0 4px;padding:16px 14px;background:var(--soft);border-radius:16px;display:flex;flex-direction:column;gap:18px}
+.panel .ph{margin:0;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.panel textarea.mini{min-height:84px}
+.props{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:640px){.props{grid-template-columns:1fr}}
+.prop{font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 13px;min-height:44px;cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:background .2s,color .2s,border-color .2s,transform .12s;overflow-wrap:anywhere}
+.prop:active{transform:scale(.97)}
+.prop b{font-size:15px;font-weight:600}.prop span{font-size:13.5px;color:var(--muted)}
+.prop[aria-pressed=true]{background:var(--sel);border-color:var(--sel);color:var(--sel-ink)}.prop[aria-pressed=true] span{color:#d2d2d7}
+.gnote{display:flex;flex-direction:column;gap:8px;align-items:flex-start;font-size:15px}
+.gp{display:grid;grid-template-columns:200px 1fr;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.gp-nav{display:flex;flex-direction:column;background:var(--soft);padding:8px;gap:2px;min-width:0}
+.gp-nav button{font:inherit;font-size:14.5px;text-align:left;background:none;border:0;border-radius:10px;padding:10px 10px;min-height:44px;cursor:pointer;color:var(--ink);transition:background .2s;overflow-wrap:anywhere}
+.gp-nav button:hover{background:#e6e6ea}.gp-nav button[aria-current=true]{background:var(--ink);color:#fff}
+.gp-nav button.in::before{content:"✓ "}
+.gp-main{padding:14px;min-width:0;display:flex;flex-direction:column;gap:14px;animation:in .3s var(--ease)}
+.gp-h{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}.gp-h h4{margin:0;font-size:18px}
+.gp-k{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gp-c{background:var(--soft);border-radius:12px;padding:10px;min-width:0}.gp-c b{display:block;font-size:22px}.gp-c span{display:block;font-size:13px;color:var(--muted)}
+.gp-t{display:flex;flex-direction:column}
+.gp-r{display:grid;grid-template-columns:1.3fr 1fr .8fr;gap:8px;padding:10px 0;border-top:1px solid var(--line);font-size:14.5px}.gp-r span{min-width:0;overflow-wrap:anywhere}.gp-s{color:var(--muted)}
+@media (max-width:640px){.gp{grid-template-columns:1fr}.gp-nav{order:2;flex-direction:row;overflow-x:auto;border-top:1px solid var(--line);gap:4px}.gp-nav button{white-space:nowrap;flex:none}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 <div class="wrap">
@@ -187,6 +228,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
 
     <section class="step" data-s="1">
       <h2>Partiamo da te</h2>
+      <p class="why">Mi serve per sapere con chi parlo e di che attività si tratta.</p>
       <div class="row2">
         <div class="q"><label for="fNome">Nome e cognome</label><input id="fNome" maxlength="80" type="text" autocomplete="name" placeholder="Es. Marco Rossi"></div>
         <div class="q"><label for="fAtt">Nome dell'attività</label><input id="fAtt" maxlength="80" type="text" autocomplete="organization" placeholder="Es. Pizzeria Da Marco"></div>
@@ -211,7 +253,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
       <p class="lead">Tocca quelli che contano per te, in ordine di importanza: il primo che scegli è il più importante.</p>
       <div class="goals" id="goals"></div>
       <div class="q"><label for="fObAltro">Altro obiettivo (facoltativo)</label><input id="fObAltro" maxlength="120" type="text" placeholder="Es. aprire una seconda sede"></div>
-      <div class="q"><span class="lab">Su cosa ti posso aiutare?</span><span class="hint">Facoltativo. Puoi sceglierne più di uno.</span><div class="chips" data-many="servizi" id="cServizi"></div></div>
+      <div class="q"><span class="lab">Su cosa ti posso aiutare?</span><span class="hint">Facoltativo. Puoi sceglierne più di uno: ogni scelta apre qualche domanda in più.</span><div class="svcs" id="svcList"></div></div>
       <div class="q"><span class="lab">Che tipo di problema è?</span><span class="hint">Facoltativo. Anche più di una risposta.</span><div class="chips" data-many="tipoProblema" id="cTipoProb"></div></div>
       <div class="q"><span class="lab">Quanto è grande secondo te?</span><span class="hint">Facoltativo. Non c'è una risposta giusta.</span><div class="chips" data-one="dimensione" id="cDim"></div></div>
       <div class="q"><label for="fProblemi" id="lProblemi">Raccontami i problemi che vuoi risolvere, anche con i tuoi clienti (facoltativo)</label><textarea id="fProblemi" maxlength="2000" rows="6" placeholder="Anche se non è nell'elenco: scrivi come lo racconteresti a un collega. Piccolo o grande, va bene tutto. Es. i clienti mi scrivono su WhatsApp a tutte le ore e perdo prenotazioni…"></textarea></div>
@@ -221,9 +263,11 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
 
     <section class="step" data-s="3">
       <h2>Come lavori oggi</h2>
+      <p class="why">Mi aiuta a capire come arrivano i clienti e dove si perdono le chiamate.</p>
       <div class="q"><span class="lab">Quante persone lavorano con te?</span><div class="chips" data-one="team" id="cTeam"></div></div>
       <div class="q"><span class="lab">Come ti contattano i clienti?</span><span class="hint">Anche più di una risposta.</span><div class="chips" data-many="can" id="cCan"></div></div>
       <div class="q"><span class="lab">Con cosa ti organizzi?</span><div class="chips" data-many="str" id="cStr"></div></div>
+      <p class="note" id="telNote" hidden>Hai scelto l'assistente che risponde ai clienti: queste tre domande mi servono per impostarlo bene.</p>
       <div class="q"><span class="lab">Quante telefonate ricevete più o meno al giorno?</span><span class="hint">Facoltativo.</span><div class="chips" data-one="telQuante" id="cTelQ"></div></div>
       <div class="q"><span class="lab">Cosa succede quando nessuno può rispondere?</span><span class="hint">Facoltativo. Anche più di una risposta.</span><div class="chips" data-many="telNessuno" id="cTelN"></div></div>
       <div class="q"><span class="lab">In quali momenti è più difficile rispondere?</span><span class="hint">Facoltativo. Anche più di una risposta.</span><div class="chips" data-many="telMomenti" id="cTelM"></div></div>
@@ -258,6 +302,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
 
     <section class="step" data-s="6">
       <h2>Come lo vorresti?</h2>
+      <p class="why">Qui mi dici cosa vorresti cambiare, con parole tue.</p>
       <p class="note san" hidden>Per favore non scrivere nomi o dati dei tuoi pazienti o clienti: bastano esempi generici.</p>
       <div class="q"><label for="fMagia">Se domani potessi sistemare una cosa sola, quale sarebbe?</label><textarea id="fMagia" maxlength="300" placeholder="Es. non dover rispondere a mano agli stessi messaggi ogni sera"></textarea></div>
       <div class="q"><label for="fProvato">Hai già provato qualcosa? Com'è andata?</label><textarea id="fProvato" maxlength="300" placeholder="Es. un programma che nessuno usava, un'agenzia per i social…"></textarea></div>
@@ -279,6 +324,9 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
         <p class="note san" hidden>Per favore non scrivere nomi o dati dei tuoi pazienti o clienti: bastano esempi generici.</p>
         <div class="q"><span class="lab">Come gestisci tutto oggi?</span><div class="chips" id="cGOggi"></div></div>
         <div class="q"><span class="lab">Cosa vorresti avere chiaro in un unico pannello?</span><span class="hint">Anche più di una risposta.</span><div class="chips" id="cGPannello"></div></div>
+        <div class="q" id="gpBox"><span class="lab" id="gpLab">Guarda come potrebbe essere</span>
+          <p class="note">Anteprima di esempio con dati inventati: il gestionale vero si costruisce su misura per te. Tocca un modulo per vederlo e aggiungilo al tuo gestionale.</p>
+          <div class="gp" role="group" aria-labelledby="gpLab"><div class="gp-nav" id="gpNav"></div><div class="gp-main" id="gpMain" aria-live="polite"></div></div></div>
         <div class="q"><span class="lab">Cosa ti fa perdere più tempo o ti crea più confusione?</span><span class="hint">Anche più di una risposta.</span><div class="chips" id="cGPerdite"></div>
           <label class="hint" for="fGestPerdite" style="margin-top:4px">Altro (facoltativo)</label><textarea id="fGestPerdite" maxlength="300" placeholder="Raccontalo come lo diresti a voce"></textarea></div>
         <div class="row2">
@@ -299,6 +347,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0
 
     <section class="step" data-s="9">
       <h2>Ultime cose</h2>
+      <p class="why">Gli ultimi dati per fissare la call e ricontattarti nel modo che preferisci.</p>
       <div class="q"><span class="lab">Quando vorresti partire?</span><div class="chips" data-one="tempi" id="cTempi"></div></div>
       <div class="q"><span class="lab">Chi decide insieme a te?</span><span class="hint">Se decidete in due, è meglio che alla call ci siate entrambi.</span><div class="chips" data-one="decide" id="cDecide"></div></div>
       <div class="q"><span class="lab">Come preferiresti pagare?</span><div class="chips" data-one="pag" id="cPag"></div></div>
@@ -367,8 +416,123 @@ const PRENOTA_URL = "";
 const SALVA_URL = "https://udubhzamghhlkxgepmmc.supabase.co/functions/v1/questionario-ricevi";
 const SANITA = /dentist|medic|dietist|nutrizion|fisioterap|osteopat|psicolog|veterinar|farmacia|altra attivit/i;
 const GOALS = [["clienti","Più clienti","Nuove persone che ti scelgono"],["visibilita","Più visibilità","Farti trovare online e sui social"],["tempo","Risparmiare tempo","Più ore per te e per il lavoro vero"],["ordine","Più ordine","Meno errori, dimenticanze e carta"],["ritorno","Clienti che tornano","Richiami, fedeltà, passaparola"],["messaggi","Meno messaggi ripetitivi","Telefonate e chat sempre uguali"]];
+/* ===== SERVIZI: ogni voce ha una riga che spiega e un pannello di approfondimento (si apre solo se scelta) ===== */
+const SERV = [
+  ["Sito internet nuovo o rifatto","sito","Un sito che ti fa trovare e racconta chi sei e cosa fai."],
+  ["Gestionale (clienti, appuntamenti, pagamenti, magazzino)","gest","Un pannello unico dove tieni clienti, agenda, incassi e magazzino."],
+  ["Gestionale fatto su misura per noi","misura","Un programma disegnato sul tuo modo di lavorare, non uno standard."],
+  ["Automazioni (promemoria, messaggi, documenti che si fanno da soli)","auto","Cose che oggi fai a mano e che partono da sole al momento giusto."],
+  ["Assistente che risponde ai clienti su WhatsApp o al telefono","ass","Qualcuno che risponde anche quando non puoi e ti passa solo ciò che conta."],
+  ["Prenotazioni e richieste online","pren","I clienti prenotano o scrivono dal sito, senza telefonare."],
+  ["Fogli Excel, Google Fogli o file CSV","fogli","Metto in ordine i fogli che usi già, li collego tra loro o li porto in un gestionale."],
+  ["Social e contenuti","social","Post e pagine curate, nati dalle domande vere dei clienti."],
+  ["Video e foto per l'attività","video","Foto e video brevi per mostrare il tuo lavoro."],
+  ["Velocizzare un lavoro lento o ripetitivo","veloce","Un lavoro che richiede troppo tempo e che si può accorciare."],
+  ["Recensioni e Google Maps","goo","Farti trovare e scegliere su Google, con la scheda curata e più recensioni."],
+  ["Altro (lo scrivo io)","altro","Qualcosa che qui non c'è: raccontamelo con parole tue."],
+  ["Non so ancora, consigliami tu","nonso","Nessun problema: ne parliamo in call e ti consiglio da dove partire."]
+];
+const SERV_T = Object.fromEntries(SERV.map(x => [x[1], x[0].split(" (")[0]]));
+const SERV_K = Object.fromEntries(SERV.map(x => [x[0], x[1]]));
+const DET_MAX = 700;
+const T_DESC = { id:"testo", k:"text", t:"Descrivi come la vorresti", s:"Come la vorresti", ph:"Con parole tue, come lo racconteresti a un collega." };
+const AUTO_GEN = ["Promemoria appuntamenti su WhatsApp|Un messaggio prima, così nessuno si dimentica","Richiesta di recensione dopo il servizio|La chiede al momento giusto, con garbo","Sollecito gentile dei pagamenti|Ricorda a chi non ha ancora pagato","Risposta automatica fuori orario|Dice quando rispondi e prende il messaggio","Documenti mancanti richiesti da soli|Chiede al cliente ciò che manca","Riepilogo della giornata per il titolare|Ogni sera: cosa è successo e cosa resta"];
+const AUTO_SET = {
+ "Concessionaria auto":["Richiamo per tagliando e revisione|Avvisa il cliente quando scade","Seguito dopo la prova su strada|Un messaggio il giorno dopo","Avviso auto pronta alla consegna|Il cliente sa quando passare","Risposta ai contatti dei portali|Risponde subito e prende i dati"],
+ "Agenzia immobiliare":["Risposta alle richieste dagli annunci|Prima risposta subito, con i dati","Promemoria delle visite|Al cliente e a te","Abbinamento immobili e richieste|Segnala chi potrebbe essere interessato","Seguito dopo la visita|Chiede com'è andata"],
+ "Patronato / CAF":["Avviso pratica pronta|Il cliente sa quando ritirare","Richiesta documenti mancanti|Elenco chiaro, inviato da solo","Promemoria scadenze|Domande, rinnovi, appuntamenti","Appuntamenti con conferma|Prenota e ricorda"],
+ "Studio dentistico":["Richiamo per l'igiene periodica|Scrive quando è ora","Promemoria visita con conferma|Meno posti vuoti in agenda","Istruzioni dopo un intervento|Un messaggio con i consigli utili","Promemoria dei piani di cura|Chi ha una cura da proseguire"],
+ "Studio medico / poliambulatorio":["Promemoria visita con conferma|Il paziente conferma o sposta","Richiamo per controlli periodici|Scrive quando è ora","Preparazione alla visita o all'esame|Istruzioni inviate prima","Referti pronti da ritirare|Un avviso, senza dettagli sanitari"],
+ "Dietista / nutrizionista":["Promemoria della visita di controllo|Con conferma","Promemoria per il diario alimentare|Un messaggio a metà percorso","Richiamo a chi ha smesso di venire|Un invito gentile","Invio di materiali e consigli|Dopo ogni visita"],
+ "Ristorante / pizzeria":["Conferma prenotazione|Subito, su WhatsApp","Promemoria il giorno della prenotazione|Meno tavoli vuoti","Avviso a chi è in lista d'attesa|Se si libera un posto","Richiesta di recensione dopo la cena|Il giorno dopo"],
+ "Bar / caffetteria":["Messaggio per eventi e serate|Ai clienti che l'hanno chiesto","Prenotazione tavoli e aperitivi|Con conferma","Risposta automatica su orari e menu|Fuori orario","Richiesta di recensione|Dopo la visita"],
+ "Centro estetico":["Promemoria appuntamento con conferma|Meno buchi in agenda","Richiamo per il trattamento successivo|Quando è ora di tornare","Avviso di posto libero|A chi è in lista","Auguri e promemoria per promozioni|Solo a chi l'ha chiesto"],
+ "Parrucchiere / barbiere":["Promemoria appuntamento con conferma|Meno posti vuoti","Richiamo dopo alcune settimane|Per il taglio o il colore","Avviso di posto libero|A chi è in lista","Richiesta di recensione|Dopo il servizio"],
+ "Palestra / centro sportivo":["Avviso di abbonamento in scadenza|Con il modo per rinnovare","Richiamo a chi non viene da tempo|Un invito gentile","Conferma e promemoria dei corsi|Anche per la lista d'attesa","Benvenuto ai nuovi iscritti|Con le prime informazioni"],
+ "B&B / hotel / casa vacanze":["Messaggi agli ospiti prima dell'arrivo|Indicazioni e orari","Istruzioni per il check-in|Inviate da sole","Messaggio durante il soggiorno|Per sapere se va tutto bene","Richiesta di recensione dopo la partenza|Con il link giusto"],
+ "Studio commercialista":["Promemoria scadenze fiscali|Ai clienti interessati","Richiesta documenti mancanti|Elenco chiaro e solleciti gentili","Avviso documenti pronti|Il cliente sa quando ritirare","Promemoria appuntamenti|Con conferma"],
+ "Studio legale":["Richiesta documenti per la pratica|Elenco chiaro","Promemoria udienze e scadenze|Per te e per il cliente","Aggiornamento sullo stato della pratica|Un messaggio semplice","Conferma appuntamenti|Con promemoria"],
+ "Officina / carrozzeria / autolavaggio":["Auto pronta|Il cliente riceve un messaggio","Revisione in scadenza|Avvisa in anticipo","Promemoria tagliando|Dopo i chilometri o il tempo","Preventivo inviato e seguito|Richiama chi non ha risposto"],
+ "Negozio / attività commerciale":["Avviso arrivo di un ordine|Il cliente sa quando passare","Messaggio per novità e promozioni|Solo a chi l'ha chiesto","Richiesta di recensione|Dopo l'acquisto","Risposta automatica su orari e disponibilità|Fuori orario"],
+ "Fisioterapista / osteopata":["Promemoria seduta con conferma|Meno posti vuoti","Promemoria degli esercizi|Tra una seduta e l'altra","Richiamo a fine ciclo|Per un controllo","Avviso di posto libero|A chi è in lista"],
+ "Impresa edile / artigiano":["Preventivo inviato e seguito|Richiama chi non ha risposto","Promemoria sopralluogo|Con conferma","Aggiornamento sullo stato dei lavori|Un messaggio semplice","Richiesta di recensione a lavoro finito|Con il link giusto"],
+ "Psicologo / psicoterapeuta":["Promemoria seduta con conferma|Senza dettagli sensibili","Avviso di disdetta o spostamento|Gestito con regole chiare","Invio di materiali tra una seduta e l'altra|Scelto da te","Risposta automatica fuori orario|Con indicazioni per le urgenze"],
+ "Veterinario":["Richiamo vaccini e controlli|Scrive quando è ora","Promemoria visita con conferma|Meno posti vuoti","Istruzioni dopo una visita o un intervento|Un messaggio con i consigli","Avviso farmaco o prodotto pronto|Il cliente sa quando passare"],
+ "Farmacia / parafarmacia":["Avviso prodotto o ordine pronto|Il cliente sa quando passare","Promemoria per terapie e rinnovi|Se il cliente lo chiede","Risposta automatica su orari e turni|Anche fuori orario","Messaggio per servizi e giornate speciali|Solo a chi l'ha chiesto"],
+ "Scuola di danza / musica":["Promemoria lezioni e saggi|A famiglie e allievi","Avviso di assenza o recupero|Con le nuove date","Iscrizioni e rinnovi|Con promemoria","Messaggi alle famiglie|Comunicazioni importanti"],
+ "Agenzia viaggi":["Richiesta documenti per il viaggio|Elenco chiaro","Promemoria prima della partenza|Con le informazioni utili","Seguito dopo il preventivo|Richiama chi non ha risposto","Messaggio al ritorno|Con richiesta di recensione"],
+ "Agenzia assicurativa":["Avviso polizza in scadenza|In anticipo","Richiesta documenti mancanti|Elenco chiaro","Seguito dopo un preventivo|Un messaggio gentile","Promemoria appuntamenti|Con conferma"],
+ "Autoscuola":["Promemoria lezioni ed esami|Agli allievi","Avviso di documenti da portare|Elenco chiaro","Promemoria rinnovo e scadenze|Foglio rosa, visita medica","Risposta automatica su orari e iscrizioni|Fuori orario"],
+ "Cantina / agriturismo":["Conferma prenotazione di visite e pranzi|Subito","Messaggio prima dell'arrivo|Indicazioni e orari","Richiesta di recensione dopo la visita|Con il link giusto","Messaggio per eventi e vendemmia|Solo a chi l'ha chiesto"]
+};
+const split2 = s => { const i = s.indexOf("|"); return i < 0 ? [s, ""] : [s.slice(0, i), s.slice(i + 1)]; };
+const autoSpec = () => (AUTO_SET[A.s] || []).map(split2);
+const PAN = {
+  sito:[
+    { id:"tipo", k:"one", t:"Che tipo di sito?", o:[["Sito di presentazione","Chi sei, cosa fai, dove trovarti"],["Landing page per una promozione o un servizio","Una sola pagina, un solo obiettivo"],["Sito con prenotazioni o richieste","I clienti scrivono o prenotano dal sito"],["Negozio online","Vendi i prodotti direttamente"],["Rifare il sito che ho già","Nuovo aspetto e contenuti"]] },
+    { id:"pagine", k:"many", t:"Quali pagine ti servono?", o:[["Home",""],["Chi siamo",""],["Servizi",""],["Prezzi",""],["Galleria foto",""],["Recensioni",""],["Domande frequenti",""],["Contatti e mappa",""],["Prenota",""],["Blog",""]] },
+    { id:"stile", k:"many", t:"Stile ed effetti", o:[["Semplice e pulito","Poche cose, chiare"],["Elegante","Spazio, eleganza, cura dei dettagli"],["Animazioni mentre scorri","Le cose appaiono con calma"],["Video in apertura","Un video all'inizio della pagina"],["Effetto «wow» per stupire","Più scenografico, per chi vuole colpire"]] },
+    { id:"url", k:"url", t:"Hai un sito attuale? (facoltativo)", s:"Sito attuale", ph:"www.…" },
+    { id:"testo", k:"text", t:"Siti che ti piacciono e perché", s:"Siti che piacciono", ph:"Anche di altri settori: scrivi l'indirizzo e cosa ti piace." }
+  ],
+  gest:[ { id:"testo", k:"text", t:"Oppure descrivi il problema da risolvere", s:"Problema", ph:"Es. non so mai chi ha pagato e chi no." } ],
+  misura:[
+    { id:"scelte", k:"many", t:"Cosa dovrebbe fare?", o:[["Gestire clienti e pratiche a modo nostro","Con i passaggi che usate voi"],["Agenda con più persone o più sedi",""],["Preventivi, fatture e documenti",""],["Collegarsi ai programmi che usiamo già",""],["Accessi diversi per chi lavora con noi","Ognuno vede solo ciò che serve"]] },
+    T_DESC
+  ],
+  auto:[
+    { id:"spec", k:"many", t:"Pensate per la tua attività", s:"Per la mia attività", o:autoSpec, hide:() => !autoSpec().length },
+    { id:"gen", k:"many", t:"Utili a tutti", s:"Utili a tutti", o:() => AUTO_GEN.map(split2) },
+    T_DESC
+  ],
+  ass:[
+    { id:"cosa", k:"many", t:"Cosa deve fare?", o:[["Rispondere alle domande frequenti","Orari, prezzi, indirizzo, come funziona"],["Prendere e spostare appuntamenti","Fissa, sposta e disdice in agenda"],["Dare orari e indicazioni","Anche come arrivare"],["Passare le chiamate urgenti a una persona","Se serve, la chiamata arriva a voi"],["Prendere i messaggi","Chi è, cosa vuole, e te lo manda"]] },
+    { id:"quando", k:"many", t:"Quando deve rispondere?", o:[["Sempre",""],["Solo fuori orario",""],["In pausa pranzo",""],["Quando la linea è occupata",""]] },
+    T_DESC
+  ],
+  pren:[
+    { id:"scelte", k:"many", t:"Cosa devono poter fare i clienti?", o:[["Prenotare un appuntamento o un tavolo","Scelgono giorno e ora"],["Chiedere un preventivo","Con un modulo semplice"],["Ricevere conferma e promemoria","Arrivano da soli su WhatsApp"],["Spostare o disdire da soli","Senza telefonare"],["Lasciare una caparra online","Per ridurre chi non si presenta"]] },
+    T_DESC
+  ],
+  fogli:[
+    { id:"uso", k:"many", t:"Per cosa li usi?", o:[["Clienti",""],["Magazzino",""],["Ordini",""],["Pagamenti e incassi",""],["Turni",""],["Preventivi",""],["Altro",""]] },
+    { id:"quanti", k:"one", t:"Quanti sono, più o meno?", o:[["1-3",""],["4-10",""],["Più di 10",""]] },
+    { id:"problemi", k:"many", t:"Che problemi hai?", o:[["Più versioni dello stesso file",""],["Doppioni ed errori",""],["Formule che si rompono",""],["Difficile da usare dal telefono",""],["Più persone che modificano insieme",""],["Devo copiare dati a mano da un foglio all'altro",""]] },
+    { id:"vorrei", k:"many", t:"Cosa vorresti?", o:[["Tenere i fogli ma automatizzarli",""],["Collegarli al sito o ai moduli",""],["Portarli in un gestionale",""],["Non so, consigliami",""]] },
+    { id:"testo", k:"text", t:"Altro da dirmi", s:"Altro", ph:"Es. un foglio che usano in tre e si rompe sempre." }
+  ],
+  social:[
+    { id:"scelte", k:"many", t:"Cosa ti servirebbe?", o:[["Piano mensile di post","Idee e calendario già pronti"],["Pagina sistemata","Nome, bio, link e copertine"],["Post nati dalle domande dei clienti","Rispondono a dubbi veri"],["Storie e reel brevi","Video verticali"],["Risposte a messaggi e commenti",""]] },
+    T_DESC
+  ],
+  video:[
+    { id:"scelte", k:"many", t:"Cosa ti servirebbe?", o:[["Video di presentazione","Chi sei e cosa fai"],["Reel brevi per i social",""],["Foto professionali dei locali e del lavoro",""],["Foto e video dei prodotti o dei piatti",""],["Video con le testimonianze dei clienti","Con il loro consenso"]] },
+    T_DESC
+  ],
+  veloce:[
+    { id:"quale", k:"text", t:"Quale lavoro è lento o ripetitivo?", s:"Quale lavoro", m:300, ph:"Es. preparare i preventivi a mano.", short:true },
+    { id:"volte", k:"one", t:"Quante volte a settimana?", o:[["Meno di 5",""],["Da 5 a 20",""],["Più di 20",""],["Non so",""]] },
+    { id:"tempo", k:"one", t:"Quanto tempo ci vuole ora?", o:[["Pochi minuti",""],["Circa mezz'ora",""],["Un'ora o più",""],["Dipende",""]] },
+    T_DESC
+  ],
+  goo:[
+    { id:"scelte", k:"many", t:"Cosa ti servirebbe?", o:[["Scheda Google curata","Foto, orari, categorie e descrizione"],["Più recensioni, in modo corretto","Chiederle ai clienti soddisfatti"],["Risposte alle recensioni","Gentili e puntuali"],["Posizione e indicazioni su Maps","Così ti trovano subito"],["Novità sulla scheda",""]] },
+    T_DESC
+  ],
+  altro:[ { id:"testo", k:"text", t:"Di cosa hai bisogno?", s:"Di cosa ho bisogno", ph:"Scrivi come lo racconteresti a un collega." } ]
+};
+const optsOf = b => { const o = typeof b.o === "function" ? b.o() : b.o; return o ? o.map(x => Array.isArray(x) ? x[0] : split2(x)[0]) : null; };
+function normDet(x) {
+  const out = {}; if (!x || typeof x !== "object" || Array.isArray(x)) x = {};
+  Object.keys(PAN).forEach(k => { const src = x[k] && typeof x[k] === "object" && !Array.isArray(x[k]) ? x[k] : {}; out[k] = {};
+    PAN[k].forEach(b => { const val = src[b.id], ok = Array.isArray(b.o) ? optsOf(b) : null;
+      if (b.k === "many") out[k][b.id] = Array.isArray(val) ? val.filter(z => typeof z === "string" && z.length < 140 && (!ok || ok.includes(z))).slice(0, 30) : [];
+      else if (b.k === "one") out[k][b.id] = typeof val === "string" && val.length < 140 && (!ok || ok.includes(val)) ? val : null;
+      else out[k][b.id] = typeof val === "string" ? val.slice(0, b.m || DET_MAX) : ""; }); });
+  return out;
+}
 const OPZ = {
-  servizi:["Sito internet nuovo o rifatto","Gestionale (clienti, appuntamenti, pagamenti, magazzino)","Automazioni (promemoria, messaggi, documenti che si fanno da soli)","Assistente che risponde ai clienti su WhatsApp o al telefono","Prenotazioni e richieste online","Social e contenuti","Video e foto per l'attività","Gestionale fatto su misura per noi","Velocizzare un lavoro lento o ripetitivo","Recensioni e Google Maps","Altro (lo scrivo io)","Non so ancora, consigliami tu"],
+  servizi:SERV.map(x => x[0]),
   ruolo:["Titolare o socio","Segretaria / segretario","Assistente o collaboratore di studio","Dipendente o responsabile d'ufficio","Libero professionista che lavora da solo","Altro"],
   segPerdite:["Il telefono che squilla di continuo","Rispondere sempre alle stesse domande","Fissare, spostare e disdire appuntamenti","Ricordare ai clienti appuntamenti e scadenze","Passare messaggi e richieste al titolare","Email e WhatsApp da smistare","Documenti, moduli e fotocopie","Richiamare chi non ha risposto","Ricevute, pagamenti e solleciti","Tenere in ordine l'agenda di più persone"],
   tipoProblema:["Lavori lenti o fatti a mano","Cose ripetute tutti i giorni","Troppe telefonate e messaggi","Clienti persi o che non tornano","Errori e dimenticanze","Informazioni sparse in più posti","Pagamenti in ritardo","Poca visibilità su internet","Altro"],
@@ -402,8 +566,8 @@ function normGest(g) {
   return b;
 }
 const PK_VALORI = ["essenziale", "professionale", "completo", "non-so"];
-let A = { s:null, ruolo:null, titolareSa:null, contatto:null, telQuante:null, telNessuno:[], telMomenti:[], tipoProblema:[], dimensione:null, segPerdite:[], ob:[], servizi:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pk:null, pag:null, iva:null, gest:{ serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null } };
-try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav","servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); ["servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { A[k] = A[k].filter(x => OPZ[k].includes(x)); }); ["ruolo","dimensione","titolareSa","contatto","telQuante"].forEach(k => { if (!OPZ[k].includes(A[k])) A[k] = null; }); if (!A.prob || typeof A.prob !== "object" || Array.isArray(A.prob)) A.prob = {}; Object.keys(A.prob).forEach(k => { if (!A.prob[k] || typeof A.prob[k] !== "object") delete A.prob[k]; }); ["team","tempi","decide","pag","iva"].forEach(k => { if (A[k] != null && typeof A[k] !== "string") A[k] = null; }); A.budget = "Ne parliamo in call"; if (!PK_VALORI.includes(A.pk)) A.pk = null; A.vocale = A.vocale === true; A.gest = normGest(A.gest); if (A.s && !SETTORI.some(x => x.n === A.s)) A.s = null; setTimeout(() => { Object.entries(d.f || {}).forEach(([k,v]) => { const el = $(k); if (el && typeof v === "string") el.value = v; }); try { migraGest(A); } catch (er) {} if (A.s) pickTipo(A.s, true); $("vocaleBtn").setAttribute("aria-pressed", !!A.vocale); }, 0); } } catch(e) {}
+let A = { s:null, det:normDet({}), ruolo:null, titolareSa:null, contatto:null, telQuante:null, telNessuno:[], telMomenti:[], tipoProblema:[], dimensione:null, segPerdite:[], ob:[], servizi:[], team:null, can:[], str:[], lav:[], prob:{}, vocale:false, tempi:null, decide:null, budget:"Ne parliamo in call", pk:null, pag:null, iva:null, gest:{ serve:null, oggi:null, pannello:[], perdite:[], chi:null, persone:null, dove:[], dati:null } };
+try { const d = JSON.parse(stor.get("qpc:bozza") || "null"); if (d && d.A && typeof d.A === "object") { A = Object.assign(A, d.A); ["ob","can","str","lav","servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); ["servizi","tipoProblema","segPerdite","telNessuno","telMomenti"].forEach(k => { A[k] = A[k].filter(x => OPZ[k].includes(x)); }); A.det = normDet(A.det); ["ruolo","dimensione","titolareSa","contatto","telQuante"].forEach(k => { if (!OPZ[k].includes(A[k])) A[k] = null; }); if (!A.prob || typeof A.prob !== "object" || Array.isArray(A.prob)) A.prob = {}; Object.keys(A.prob).forEach(k => { if (!A.prob[k] || typeof A.prob[k] !== "object") delete A.prob[k]; }); ["team","tempi","decide","pag","iva"].forEach(k => { if (A[k] != null && typeof A[k] !== "string") A[k] = null; }); A.budget = "Ne parliamo in call"; if (!PK_VALORI.includes(A.pk)) A.pk = null; A.vocale = A.vocale === true; A.gest = normGest(A.gest); if (A.s && !SETTORI.some(x => x.n === A.s)) A.s = null; setTimeout(() => { Object.entries(d.f || {}).forEach(([k,v]) => { const el = $(k); if (el && typeof v === "string") el.value = v; }); try { migraGest(A); } catch (er) {} if (A.s) pickTipo(A.s, true); $("vocaleBtn").setAttribute("aria-pressed", !!A.vocale); }, 0); } } catch(e) {}
 const ALIAS_EXTRA = { "Negozio / attività commerciale":"panificio forno macelleria fioraio fiori tabaccheria enoteca lavanderia alimentari abbigliamento ottica gioielleria ferramenta libreria", "Parrucchiere / barbiere":"parrucchiera hair salon acconciature", "Psicologo / psicoterapeuta":"psicologa psicoterapeuta", "Studio legale":"avvocata avvocato legale", "Farmacia / parafarmacia":"farmacista", "Centro estetico":"estetista nail unghie spa", "B&B / hotel / casa vacanze":"bnb b&b affittacamere agriturismo", "Ristorante / pizzeria":"trattoria osteria sushi pub braceria", "Bar / caffetteria":"pasticceria gelateria cornetteria", "Dietista / nutrizionista":"dietologa dietologo", "Fisioterapista / osteopata":"fisioterapista massaggi" };
 const stem = w => w.length > 4 ? w.replace(/[aeiou]$/, "") : w;
 /* ?att=Nome precompila il nome dell'attività (solo se il campo è vuoto) */
@@ -531,7 +695,7 @@ function gShow() { $("gBranch").hidden = !(A.gest.serve === "Sì" || A.gest.serv
 function renderGest() {
   const o = gOpts(sett()), g = A.gest;
   g.pannello = g.pannello.filter(x => o.p.includes(x)); g.perdite = g.perdite.filter(x => o.l.includes(x));
-  gDraw($("cGPannello"), o.p, "pannello", true); gDraw($("cGPerdite"), o.l, "perdite", true); gShow();
+  gDraw($("cGPannello"), o.p, "pannello", true); gDraw($("cGPerdite"), o.l, "perdite", true); gShow(); try { drawPrev(); } catch (e) {}
 }
 const gTesto = g => g.serve === "No" ? "No" : [g.serve, g.oggi && "Oggi: " + g.oggi, g.pannello.length && "Nel pannello: " + g.pannello.join(", "), (g.perdite.length || g.libero) && "Perdo tempo: " + [...g.perdite, g.libero].filter(Boolean).join(", "), g.chi && "Lo usa: " + g.chi + (g.persone ? " (" + g.persone + " persone)" : ""), g.dove.length && "Da: " + g.dove.join(", "), g.dati && "Dati: " + g.dati, g.nonManchi && "Non deve mancare: " + g.nonManchi].filter(Boolean).join(" · ");
 
@@ -561,6 +725,7 @@ function pickTipo(n, quiet) {
   $("altroBox").hidden = n !== "Altra attività";
   document.querySelectorAll(".san").forEach(x => x.hidden = !SANITA.test(n));
   if (!quiet) { A.lav = []; A.prob = {}; }
+  try { renderSvc(); } catch (e) {}
   bozza();
 }
 $("fTipo").addEventListener("focus", e => filtra(e.target.value));
@@ -654,12 +819,13 @@ const PK_GRANDE = /pacchett|abbonament|magazzin|personale|turni|cassa/i;
 const ORE_MESE = 4.3;
 
 /* servizi voluti dalle nuove risposte: esp = scelti a mano; der = dedotti da telefono, segreteria e tipo di problema */
-const PK_SERV = { "Sito internet nuovo o rifatto":"sito2", "Gestionale (clienti, appuntamenti, pagamenti, magazzino)":"gest1", "Gestionale fatto su misura per noi":"gest2", "Automazioni (promemoria, messaggi, documenti che si fanno da soli)":"aut", "Assistente che risponde ai clienti su WhatsApp o al telefono":"ass", "Prenotazioni e richieste online":"pren", "Social e contenuti":"vf1", "Video e foto per l'attività":"vf1", "Recensioni e Google Maps":"goo", "Velocizzare un lavoro lento o ripetitivo":"aut" };
+const PK_SERV = { "Sito internet nuovo o rifatto":"sito2", "Gestionale (clienti, appuntamenti, pagamenti, magazzino)":"gest1", "Gestionale fatto su misura per noi":"gest2", "Automazioni (promemoria, messaggi, documenti che si fanno da soli)":"aut", "Assistente che risponde ai clienti su WhatsApp o al telefono":"ass", "Prenotazioni e richieste online":"pren", "Social e contenuti":"vf1", "Video e foto per l'attività":"vf1", "Recensioni e Google Maps":"goo", "Velocizzare un lavoro lento o ripetitivo":"aut", "Fogli Excel, Google Fogli o file CSV":"aut" };
 const PK_SEG = { "Il telefono che squilla di continuo":"ass", "Rispondere sempre alle stesse domande":"ass", "Fissare, spostare e disdire appuntamenti":"pren", "Ricordare ai clienti appuntamenti e scadenze":"aut", "Passare messaggi e richieste al titolare":"ass", "Email e WhatsApp da smistare":"ass", "Documenti, moduli e fotocopie":"aut", "Richiamare chi non ha risposto":"ass", "Ricevute, pagamenti e solleciti":"aut", "Tenere in ordine l'agenda di più persone":"gest1" };
 const PK_TIPO = { "Lavori lenti o fatti a mano":"aut", "Cose ripetute tutti i giorni":"aut", "Troppe telefonate e messaggi":"ass", "Clienti persi o che non tornano":"aut", "Errori e dimenticanze":"aut", "Informazioni sparse in più posti":"gest1", "Pagamenti in ritardo":"aut", "Poca visibilità su internet":"goo" };
 const PK_HOOK = { sito2:"Il sito internet", gest1:"Il gestionale", gest2:"Il gestionale fatto su misura", pren:"Le prenotazioni online", aut:"I lavori ripetitivi da fare da soli", ass:"Le telefonate e i messaggi a cui nessuno riesce a rispondere", goo:"Farti trovare su Google", pag:"La pagina social", vf1:"I contenuti social e i video" };
 function pkVoluti() {
   const u = a => [...new Set(a.filter(Boolean))], esp = u(A.servizi.map(x => PK_SERV[x]));
+  if (A.servizi.includes(SERV.find(x => x[1] === "fogli")[0]) && A.det.fogli.vorrei.includes("Portarli in un gestionale") && !esp.includes("gest1")) esp.push("gest1");
   const chiamate = ["30-60","Più di 60"].includes(A.telQuante) || A.telNessuno.some(x => ["Squilla a vuoto","Si perde la chiamata","Richiamiamo dopo se ce ne ricordiamo"].includes(x));
   const der = u([chiamate && "ass", ...(isSeg() ? A.segPerdite.map(x => PK_SEG[x]) : []), ...A.tipoProblema.map(x => PK_TIPO[x])]).filter(x => !esp.includes(x));
   return { esp, der };
@@ -777,7 +943,7 @@ function dati() {
   const prob = Object.entries(A.prob).filter(([, x]) => x.si).map(([i, x]) => [Number(i), x.o != null ? ORE[x.o][1] : null]);
   const no = Object.entries(A.prob).filter(([, x]) => x.si === false).map(([i]) => Number(i));
   return { v:1, data:new Date().toISOString().slice(0, 10), s:s.n, tipoAltro:s.n === "Altra attività" ? taglia(v("fAltroTipo"), 80) : "", nome:taglia(v("fNome"), 80), attivita:taglia(v("fAtt"), 80), citta:taglia(v("fCitta"), 60), tel:taglia(v("fTel"), 25),
-    ig:taglia(v("fIg"), 80), sito:taglia(v("fSito"), 120), ob:A.ob, ruolo:A.ruolo, contatto:A.contatto || "WhatsApp", email:taglia(v("fEmail"), 100), ...(perConto() ? { perConto:{ titolare:taglia(v("fTitolare"), 80), sa:A.titolareSa } } : {}), telefono:{ quante:A.telQuante, nessuno:A.telNessuno, momenti:A.telMomenti }, servizi:A.servizi, tipoProblema:A.tipoProblema, dimensione:A.dimensione, ...(isSeg() ? { segreteria:{ perdite:A.segPerdite, aiuto:taglia(v("fSegAiuto"), 500) } } : {}), problemi:taglia(v("fProblemi"), 2000), obAltro:taglia(v("fObAltro"), 120), team:A.team, can:A.can, str:A.str, lav:A.lav, lavAltro:taglia(v("fLavAltro"), 300),
+    ig:taglia(v("fIg"), 80), sito:taglia(v("fSito"), 120), ob:A.ob, dettagli:dettagli(), ruolo:A.ruolo, contatto:A.contatto || "WhatsApp", email:taglia(v("fEmail"), 100), ...(perConto() ? { perConto:{ titolare:taglia(v("fTitolare"), 80), sa:A.titolareSa } } : {}), telefono:{ quante:A.telQuante, nessuno:A.telNessuno, momenti:A.telMomenti }, servizi:A.servizi, tipoProblema:A.tipoProblema, dimensione:A.dimensione, ...(isSeg() ? { segreteria:{ perdite:A.segPerdite, aiuto:taglia(v("fSegAiuto"), 500) } } : {}), problemi:taglia(v("fProblemi"), 2000), obAltro:taglia(v("fObAltro"), 120), team:A.team, can:A.can, str:A.str, lav:A.lav, lavAltro:taglia(v("fLavAltro"), 300),
     prob, probT:prob.map(([i]) => s.P[i] ? s.P[i][1] : ""), no, noT:no.map(i => s.P[i] ? s.P[i][1] : ""), probAltro:taglia(v("fProbAltro"), 300), magia:taglia(v("fMagia"), 300), provato:taglia(v("fProvato"), 300),
     vocale:A.vocale, tempi:A.tempi, decide:A.decide, budget:"Ne parliamo in call", pag:A.pag, iva:A.iva,
     ...(A.gest.serve ? { gest:gestDati(s) } : {}),
@@ -809,7 +975,8 @@ function messaggio(d, liv, cod) {
   r.push(""); r.push(`*${d.attivita || "La mia attività"}* · ${d.s === "Altra attività" ? (d.tipoAltro || "altra attività") : d.s}${d.citta ? " · " + d.citta : ""}`);
   r.push(`Sono ${d.nome}${d.tel ? " · " + d.tel : ""}${d.ruolo ? " (" + d.ruolo.toLowerCase() + ")" : ""}`);
   if (d.ob.length || d.obAltro) r.push("Obiettivo: " + [...d.ob.map(goalName), d.obAltro].filter(Boolean).join(", "));
-  if (d.servizi.length) r.push("Mi serve: " + d.servizi.join("; "));
+  if (d.servizi.length) r.push("Mi serve: " + d.servizi.map(x => breve ? x.split(" (")[0] : x).join("; "));
+  { const ks = Object.keys(d.dettagli); if (ks.length) { if (breve) r.push("Dettagli su: " + ks.map(k => SERV_T[k]).join(", ")); else ks.forEach(k => r.push("• " + SERV_T[k] + ": " + corto(detRiga(k, d.dettagli[k])))); } }
   if (d.perConto && (d.perConto.titolare || d.perConto.sa)) r.push("Per conto di: " + [d.perConto.titolare, d.perConto.sa && "il titolare " + (d.perConto.sa === "Non ancora" ? "non sa ancora del questionario" : "lo sa")].filter(Boolean).join(" · "));
   { const t = d.telefono, x = [t.quante && t.quante + " telefonate al giorno", t.nessuno.length && "se nessuno risponde: " + t.nessuno.join(", "), t.momenti.length && "più difficile: " + t.momenti.join(", ")].filter(Boolean).join("; "); if (x) r.push("Telefono: " + (breve ? corto(x) : x)); }
   if (d.tipoProblema.length) r.push("Tipo di problema: " + d.tipoProblema.join("; "));
@@ -851,7 +1018,7 @@ function riepilogo() {
   $("sum").innerHTML =
     riga("Attività", [d.attivita, d.s === "Altra attività" ? d.tipoAltro : d.s, d.citta].filter(Boolean).join(" · ")) +
     riga("Nome", d.nome) + riga("Ruolo", d.ruolo) + riga("Per conto di", d.perConto ? [d.perConto.titolare, d.perConto.sa].filter(Boolean).join(" · ") : "") + riga("Obiettivo", [...d.ob.map(goalName), d.obAltro].filter(Boolean).join(", ")) +
-    riga("Mi serve", d.servizi.join("; ")) + riga("Tipo di problema", d.tipoProblema.join("; ")) + riga("Quanto è grande", d.dimensione) + riga("I tuoi problemi", d.problemi) +
+    riga("Mi serve", d.servizi.join("; ")) + Object.keys(d.dettagli).map(k => riga(SERV_T[k], detRiga(k, d.dettagli[k]))).join("") + riga("Tipo di problema", d.tipoProblema.join("; ")) + riga("Quanto è grande", d.dimensione) + riga("I tuoi problemi", d.problemi) +
     riga("Il tuo lavoro di ogni giorno", d.segreteria ? d.segreteria.perdite.join("; ") : "") + riga("Un aiuto in più", d.segreteria ? d.segreteria.aiuto : "") +
     riga("Come lavori", [d.team, d.can.join(", "), d.str.join(", ")].filter(Boolean).join(" · ")) +
     riga("Telefonate", [d.telefono.quante, d.telefono.nessuno.length && "se nessuno risponde: " + d.telefono.nessuno.join(", "), d.telefono.momenti.length && "difficile: " + d.telefono.momenti.join(", ")].filter(Boolean).join(" · ")) +
@@ -935,6 +1102,92 @@ function salvaOnline(r) {
   } catch (e) { salvato = ""; }
 }
 
+/* ===== servizi con pannello di approfondimento (costruiti con il DOM, mai con innerHTML sul testo dell'utente) ===== */
+const elx = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+function drawBlock(key, b) {
+  const st = A.det[key], q = elx("div", "q"), id = "d_" + key + "_" + b.id;
+  if (b.k === "many" || b.k === "one") {
+    const raw = typeof b.o === "function" ? b.o() : b.o, list = raw.map(x => Array.isArray(x) ? x : split2(x)), g = elx("div", "props");
+    g.setAttribute("role", "group"); const lab = elx("span", "lab", b.t); lab.id = id; g.setAttribute("aria-labelledby", id); q.append(lab);
+    if (typeof b.o === "function") st[b.id] = st[b.id].filter(z => list.some(x => x[0] === z));
+    list.forEach(([l, d]) => { const x = elx("button", "prop"); x.type = "button"; x.dataset.v = l; x.setAttribute("aria-pressed", b.k === "many" ? st[b.id].includes(l) : st[b.id] === l); x.append(elx("b", "", l)); if (d) x.append(elx("span", "", d)); g.append(x); });
+    g.addEventListener("click", e => { const x = e.target.closest(".prop"); if (!x) return; const l = x.dataset.v;
+      if (b.k === "many") st[b.id] = st[b.id].includes(l) ? st[b.id].filter(z => z !== l) : [...st[b.id], l]; else st[b.id] = st[b.id] === l ? null : l;
+      g.querySelectorAll(".prop").forEach(y => y.setAttribute("aria-pressed", b.k === "many" ? st[b.id].includes(y.dataset.v) : st[b.id] === y.dataset.v));
+      linkFogli(); bozza(); });
+    q.append(g);
+  } else {
+    const l = elx("label", "", b.t); l.htmlFor = id; q.append(l);
+    const f = elx(b.k === "text" ? "textarea" : "input"); f.id = id; f.maxLength = b.m || DET_MAX; f.value = st[b.id] || ""; f.placeholder = b.ph || "";
+    if (b.k === "text") { f.rows = b.short ? 2 : 3; f.className = "mini"; } else { f.type = "text"; f.inputMode = "url"; f.autocomplete = "off"; }
+    f.addEventListener("input", () => { st[b.id] = f.value; }); q.append(f);
+  }
+  return q;
+}
+function linkFogli() {
+  if (!A.servizi.includes(SERV.find(x => x[1] === "fogli")[0])) return;
+  if (!A.gest.dati) A.gest.dati = "Sì, Excel o fogli"; if (!A.gest.oggi) A.gest.oggi = "Excel o fogli";
+  if (A.det.fogli.vorrei.includes("Portarli in un gestionale") && !A.gest.serve) A.gest.serve = "Sì";
+}
+function telNote() { const n = $("telNote"); if (n) n.hidden = !A.servizi.includes(SERV.find(x => x[1] === "ass")[0]); }
+function renderSvc() {
+  const box = $("svcList"); if (!box) return; box.replaceChildren();
+  SERV.forEach(([label, key, desc]) => {
+    const on = A.servizi.includes(label), w = elx("div", "svc"), b = elx("button", "svcb"), pid = "svcp_" + key;
+    b.type = "button"; b.setAttribute("aria-pressed", on); const t = elx("span", "svct"); t.append(elx("b", "", SERV_T[key]), elx("span", "d", desc)); b.append(elx("i", "tick"), t); w.append(b);
+    let acc = null;
+    if (PAN[key]) {
+      acc = elx("div", "acc" + (on ? " open" : "")); acc.id = pid; b.setAttribute("aria-expanded", on); b.setAttribute("aria-controls", pid);
+      const inner = elx("div"), pn = elx("div", "panel"); pn.setAttribute("role", "group"); pn.setAttribute("aria-label", "Più nel dettaglio: " + SERV_T[key]);
+      pn.append(elx("p", "ph", "Più nel dettaglio (facoltativo)"));
+      if (key === "gest" || key === "misura") { const n = elx("div", "gnote"); n.append(elx("span", "", "Le voci e un'anteprima di esempio le scegli al passo «Ti serve un gestionale?». "), (() => { const g = elx("button", "chip", "Costruisci il tuo gestionale"); g.type = "button"; g.addEventListener("click", () => go(7)); return g; })()); pn.append(n); }
+      if (key === "ass") pn.append(elx("p", "hint", "Più avanti ti chiedo quante telefonate ricevete e cosa succede quando nessuno risponde: mi serve per impostarlo bene."));
+      PAN[key].forEach(bl => { if (!bl.hide || !bl.hide()) pn.append(drawBlock(key, bl)); });
+      inner.append(pn); acc.append(inner); w.append(acc);
+    }
+    b.addEventListener("click", () => { const i = A.servizi.indexOf(label); if (i >= 0) A.servizi.splice(i, 1); else A.servizi.push(label);
+      const now = A.servizi.includes(label); b.setAttribute("aria-pressed", now); if (acc) { acc.classList.toggle("open", now); b.setAttribute("aria-expanded", now); }
+      if (now && (key === "gest" || key === "misura") && !A.gest.serve) A.gest.serve = "Sì";
+      linkFogli(); telNote(); bozza(); });
+    box.append(w);
+  });
+  telNote();
+}
+function dettagli() {
+  const out = {};
+  A.servizi.map(l => SERV_K[l]).filter(k => PAN[k]).forEach(k => { const o = {};
+    PAN[k].forEach(b => { let val = A.det[k][b.id]; const ok = optsOf(b);
+      if (Array.isArray(val)) { if (ok) val = val.filter(z => ok.includes(z)); if (val.length) o[b.id] = val; }
+      else if (typeof val === "string") { if (b.k === "one" && ok && !ok.includes(val)) return; val = b.k === "one" ? val : taglia(val.trim(), b.m || DET_MAX); if (val) o[b.id] = val; } });
+    if (Object.keys(o).length) out[k] = o; });
+  return out;
+}
+const detRiga = (k, o) => PAN[k].map(b => o[b.id] && ((b.s || b.t.replace(/\?$/, "")) + ": " + (Array.isArray(o[b.id]) ? o[b.id].join(", ") : o[b.id]))).filter(Boolean).join(" · ");
+
+/* ===== anteprima del gestionale (dati inventati, nessun salvataggio): moduli = quelli del settore, sincronizzata con «Nel pannello» ===== */
+let gpSel = null;
+const hs = s => Array.from(s).reduce((t, c) => (t * 31 + c.charCodeAt(0)) % 997, 7);
+function gpMods() { return gOpts(sett()).p; }
+function gpMarks() { const mods = gpMods(); $("gpNav").querySelectorAll("button").forEach((b, i) => { const m = mods[i]; b.classList.toggle("in", A.gest.pannello.includes(m)); b.setAttribute("aria-current", m === gpSel ? "true" : "false"); }); }
+function gpMain() {
+  const m = gpSel, box = $("gpMain"), h = hs(m), inn = A.gest.pannello.includes(m); box.replaceChildren(); if (!m) return;
+  const head = elx("div", "gp-h"); head.append(elx("h4", "", m));
+  const tg = elx("button", "chip", inn ? "È nel tuo gestionale ✓" : "Aggiungi al tuo gestionale"); tg.type = "button"; tg.setAttribute("aria-pressed", inn); tg.addEventListener("click", () => gpToggle(m)); head.append(tg); box.append(head);
+  const k = elx("div", "gp-k"); [["Oggi", 3 + h % 9], ["Questa settimana", 14 + h % 40], ["Da fare", 2 + h % 7]].forEach(([l, n]) => { const c = elx("div", "gp-c"); c.append(elx("b", "", String(n)), elx("span", "", l)); k.append(c); }); box.append(k);
+  const tb = elx("div", "gp-t"); tb.setAttribute("role", "table"); tb.setAttribute("aria-label", "Righe di esempio");
+  const st = ["Nuovo", "In corso", "Fatto", "Da fare"], gg = ["Lun 12", "Mar 13", "Mer 14", "Gio 15"];
+  for (let i = 0; i < 4; i++) { const r = elx("div", "gp-r"); r.setAttribute("role", "row"); [["Cliente " + (i + 1), "gp-n"], [st[(h + i) % 4], "gp-s"], [gg[i], "gp-d"]].forEach(([x, c]) => { const e = elx("span", c, x); e.setAttribute("role", "cell"); r.append(e); }); tb.append(r); }
+  box.append(tb);
+}
+function gpToggle(m) { const g = A.gest; g.pannello = g.pannello.includes(m) ? g.pannello.filter(x => x !== m) : [...g.pannello, m]; gSync($("cGPannello"), "pannello", true); gpMarks(); gpMain(); bozza(); }
+function drawPrev() {
+  const mods = gpMods(), nav = $("gpNav"); nav.replaceChildren(); $("gpBox").hidden = !mods.length; if (!mods.length) return;
+  if (!mods.includes(gpSel)) gpSel = mods[0];
+  mods.forEach(m => { const b = elx("button", "", m); b.type = "button"; b.addEventListener("click", () => { gpSel = m; gpMarks(); gpMain(); }); nav.append(b); });
+  gpMarks(); gpMain();
+}
+$("cGPannello").addEventListener("click", () => { if ($("gpNav").children.length) { gpMarks(); gpMain(); } });
+
 /* navigazione */
 let cur = 0;
 function valida(n) {
@@ -947,14 +1200,15 @@ function valida(n) {
     if (!$("fPriv").checked) return ["err7", "Per inviare serve il tuo consenso qui sopra."]; }
   return null;
 }
+const SEZ = ["", "Su di te", "Cosa vuoi ottenere", "Come lavori", "Il tuo lavoro", "Dove perdi tempo", "Come lo vorresti", "Gestionale", "Pacchetti", "Ultime cose"];
 function go(n, back) {
   if (!back) { const e = valida(cur); document.querySelectorAll(".err").forEach(x => x.textContent = ""); if (e) { $(e[0]).textContent = e[1]; return; } }
   cur = Math.max(0, Math.min(STEPS - 1, n));
-  if (cur === 7) renderGest(); if (cur === 4) renderLav(); if (cur === 5) renderProbs(); if (cur === 2) renderGoals(); if (cur === 8) renderPacchetti(); if (cur === LAST_Q) riepilogo(); if (cur === 11) { prenota(); finale(); }
-  document.querySelector(".wrap").classList.toggle("wide", cur === 8); if (cur === 8) requestAnimationFrame(() => requestAnimationFrame(pkCentra));
+  if (cur === 7) renderGest(); if (cur === 4) renderLav(); if (cur === 5) renderProbs(); if (cur === 2) { renderGoals(); renderSvc(); } if (cur === 3) telNote(); if (cur === 8) renderPacchetti(); if (cur === LAST_Q) riepilogo(); if (cur === 11) { prenota(); finale(); }
+  document.querySelector(".wrap").classList.toggle("wide", cur === 8); document.querySelector(".wrap").classList.toggle("mid", cur === 2 || cur === 7); if (cur === 8) requestAnimationFrame(() => requestAnimationFrame(pkCentra));
   document.querySelectorAll(".step").forEach(s => { const on = Number(s.dataset.s) === cur; s.classList.toggle("on", on); s.classList.toggle("back", on && !!back); });
   $("barI").style.width = (cur / LAST_Q * 100) + "%";
-  $("count").textContent = cur > 0 && cur < LAST_Q ? `${cur} di ${LAST_Q - 1}` : "";
+  $("count").textContent = cur > 0 && cur < LAST_Q ? `${SEZ[cur]} · ${cur} di ${LAST_Q - 1}` : "";
   $("backBtn").style.visibility = cur > 0 && cur < 11 ? "visible" : "hidden";
   $("nextBtn").hidden = cur >= LAST_Q; $("sendBtn").hidden = cur !== LAST_Q;
   $("nextBtn").textContent = cur === 0 ? "Inizia" : cur === 9 ? "Controlla" : "Avanti";
