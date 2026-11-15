@@ -71,12 +71,18 @@ p{margin:0 0 1em}
 .lead{font-size:clamp(17px,2.2vw,20px);color:var(--mut);max-width:560px;margin-bottom:32px}
 .cta{display:flex;flex-wrap:wrap;gap:14px}
 .hv{display:flex;justify-content:center;will-change:transform}
-.hv svg{width:min(62vw,420px);height:auto;overflow:visible;filter:drop-shadow(0 0 40px rgba(var(--ac-rgb),.22))}
+.hv svg{width:min(56vw,380px);height:auto;overflow:visible;filter:drop-shadow(0 0 40px rgba(var(--ac-rgb),.22))}
 @media(min-width:900px){.hero .wrap{grid-template-columns:1.3fr .7fr}}
 
 /* logo che si disegna */
 .dr{stroke-dasharray:var(--l,100);stroke-dashoffset:var(--l,100);animation:disegna 2.2s .3s cubic-bezier(.6,.05,.2,1) forwards}
 .dr.l2{animation-delay:1.1s}
+.dr.d3{animation-delay:.9s}
+.onde ellipse{transform-box:fill-box;transform-origin:center;opacity:0;animation:onda 6s 2.6s ease-out infinite}
+.onde .o2{animation-delay:4.6s}.onde .o3{animation-delay:6.6s}
+@keyframes onda{0%{transform:scale(.15);opacity:.55}100%{transform:scale(1.3);opacity:0}}
+.rif{animation:riflesso2 5s ease-in-out infinite alternate}
+@keyframes riflesso2{from{opacity:.4;transform:translateX(-4px)}to{opacity:1;transform:translateX(4px)}}
 @keyframes disegna{to{stroke-dashoffset:0}}
 .moon{animation:respira 6s ease-in-out infinite alternate}
 @keyframes respira{from{opacity:.55}to{opacity:1}}
@@ -188,7 +194,7 @@ footer li a:hover{color:var(--tx)}
 /* pagine interne */
 .ph{padding:150px 0 60px;position:relative;overflow:hidden;isolation:isolate}
 .ph:before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse 50% 70% at 85% 10%,rgba(var(--ac-rgb),.12),transparent 70%)}
-.ph h1{font-size:clamp(40px,8vw,80px);margin-bottom:20px;max-width:900px}
+.ph h1{text-wrap:balance;font-size:clamp(40px,8vw,80px);margin-bottom:20px;max-width:900px}
 .ph .lead{margin-bottom:28px}
 .crumb{font-size:13px;color:var(--mut);margin-bottom:22px}
 .crumb a{color:var(--ac);text-decoration:none}
