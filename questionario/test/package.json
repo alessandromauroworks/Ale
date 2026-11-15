@@ -1,0 +1,7 @@
+{
+  "name": "collaudo-questionario",
+  "private": true,
+  "description": "Collaudi automatici del questionario (solo per sviluppo, non vanno online)",
+  "scripts": { "test": "node collaudo.mjs" },
+  "devDependencies": { "playwright": "^1.48.0", "axe-core": "^4.10.2" }
+}
