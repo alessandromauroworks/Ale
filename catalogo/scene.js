@@ -100,6 +100,21 @@ var AUTOMAZIONI = [
     ["⭐","Tornano diretti","auto","Voto, recensione e le notti libere a chi è già venuto.",{t:"chat",m:[["in","How was your stay, from 1 to 10?"],["out","10, amazing!"],["in","Thank you! Next time book directly with us 👉","See free dates"]]},"Più prenotazioni dirette"]],
   serve:[["💬","WhatsApp Business","Check-in, codici e risposte agli ospiti.","Ricevi solo le urgenze."],["🔑","Serratura con codice","Crea un codice valido solo per il soggiorno.","Niente chiavi da consegnare."],["🏛","Alloggiati Web","Riceve i dati degli ospiti.","Confermi l'invio con un clic."]],
   ottieni:[["⏱","Ore di telefono risparmiate"],["🗂","Documenti in regola"],["🏡","Più prenotazioni dirette"]]
+},
+{ id:"generale", settoriQ:["Concessionaria auto", "Agenzia immobiliare", "Patronato / CAF", "Studio medico / poliambulatorio", "Dietista / nutrizionista", "Parrucchiere / barbiere", "Studio legale", "Officina / carrozzeria / autolavaggio", "Negozio / attività commerciale", "Fisioterapista / osteopata", "Impresa edile / artigiano", "Psicologo / psicoterapeuta", "Veterinario", "Farmacia / parafarmacia", "Scuola di danza / musica", "Agenzia viaggi", "Agenzia assicurativa", "Autoscuola", "Cantina / agriturismo", "Altra attività"], pezziMappa:["Prenotazioni online","Promemoria automatici","Richiami e fidelizzazione automatici","Raccolta recensioni automatica"], domande:[["Quanti messaggi o chiamate ricevi al giorno?",["Meno di 10","10-30","Più di 30"]],["Usi un'agenda online per gli appuntamenti?",["Sì","No, carta o a memoria","Non so"]]], gancio:"Il cliente che ti scrive e non riceve risposta.", risolto:"Risposta in 30 secondi, anche mentre lavori.", settore:"Tutte le altre attività", icona:"💬",
+  nome:"Nessun cliente perso.", frase:"Chi ti cerca trova risposta, prenota, torna e ti lascia una recensione.",
+  problema:"I contatti arrivano da tanti canali e qualcuno si perde per strada.",
+  storia:"Seguiamo un nuovo cliente dal primo messaggio alla recensione.",
+  oggi:{t:"notif",title:"Oggi, senza automazione",n:[["📞","Telefono","2 chiamate perse mentre lavoravi"],["💬","WhatsApp","Il messaggio di ieri sera è ancora senza risposta"],["📅","Agenda","Appuntamento saltato: nessuno l'aveva ricordato"]]},
+  passi:[
+    ["💬","Risposta in 30 secondi","auto","Chi scrive o chiama mentre sei occupato riceve subito risposta.",{t:"chat",pre:"Chiamata persa · 11:20",m:[["in","Ciao! Ci hai chiamato e non siamo riusciti a rispondere."],["in","Dimmi pure di cosa hai bisogno, oppure prenota qui 👉","Prenota"]]},"Nessun contatto perso"],
+    ["📅","Appuntamento in agenda","cliente","Sceglie giorno e ora liberi, senza telefonate.",{t:"form",title:"Prenota il tuo appuntamento",f:[["Servizio","Primo incontro"],["Giorno","Giovedì"],["Ora","17:30"]],btn:"Conferma",tag:"Finisce da solo nella tua agenda"},"Agenda che si riempie da sola"],
+    ["🔔","Promemoria","auto","Il giorno prima un messaggio. Se deve spostare, risponde.",{t:"chat",m:[["in","Ti aspettiamo domani alle 17:30 👋"],["out","Posso venire alle 18?"],["in","Certo, spostato alle 18 ✓"]]},"Meno appuntamenti saltati"],
+    ["🧾","Preventivo pronto","titolare","La bozza arriva dalla richiesta: la controlli e la mandi con un clic.",{t:"doc",title:"Bozza di preventivo",r:[["Richiesta","Come da messaggio"],["Tempi","2 settimane"],["Pagamento","Acconto e saldo"]],b:["Modifica","Approva e invia"],tag:"Preparata dalla richiesta"},"Preventivi in pochi minuti"],
+    ["🔁","Il cliente torna","auto","Al momento giusto un messaggio per farlo tornare.",{t:"chat",pre:"Sono passati 3 mesi",m:[["in","Ciao! È passato un po' dall'ultima volta 😊"],["in","Vuoi fissare il prossimo appuntamento?","Prenota"]]},"Clienti che tornano"],
+    ["⭐","Voto e recensione","auto","Voto basso: ti avvisa. La recensione si chiede a tutti.",{t:"chat",m:[["in","Da 1 a 10, come ti sei trovato?"],["out","9, tutto perfetto"],["in","Grazie! Ci lasci una recensione? 👉","Lascia una recensione"]]},"Più recensioni"]],
+  serve:[["💬","WhatsApp Business","Risposte, promemoria e richiami.","Rispondi solo quando serve davvero."],["📅","La tua agenda","Riceve gli appuntamenti confermati.","La usi come sempre."],["⭐","Scheda Google","Raccoglie le recensioni.","Non devi chiederle a mano."]],
+  ottieni:[["⏱","Ore di telefono risparmiate"],["📅","Agenda più piena"],["⭐","Più recensioni"]]
 }
 ];
 
@@ -148,7 +163,7 @@ box:'<path d="M3.5 7.5L12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5L12 12l
 doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>'
 };
 var EMO={"📝":"form","💬":"chat","💳":"card","📋":"clipboard","🔔":"bell","📸":"camera","📷":"camera","📞":"phone","🗂":"folder","🧾":"receipt","🔁":"refresh","🪑":"seat","📉":"down","📈":"up","⭐":"star","✨":"sparkle","📅":"calendar","🔍":"search","☀️":"sun","✅":"check","🧮":"calc","📎":"clip","📲":"mobile","🏛":"bank","🔑":"key","🌍":"globe","🧹":"brush","⏱":"clock","✍️":"pen","🍽":"utensils","🌙":"moon","🏡":"home","🏋️":"dumbbell","🦷":"tooth","🍝":"utensils","💆":"leaf","📊":"chart","😩":"alert","👤":"person","⚠️":"alert","⏳":"hourglass","📦":"box","📵":"phone","🍕":"utensils","📱":"mobile","🛏":"seat","🪪":"doc","❓":"search","🧍":"person","🏃":"person"};
-var ACC={"personal-trainer":["#ff9f0a","#ff6a00"],"dentisti":["#5ac8fa","#0a84ff"],"ristoranti":["#ff6961","#e8333a"],"estetica":["#ff7eb3","#e5397a"],"commercialisti":["#7d7aff","#4b46d6"],"affitti-brevi":["#4cd964","#20a84a"]};
+var ACC={"personal-trainer":["#ff9f0a","#ff6a00"],"dentisti":["#5ac8fa","#0a84ff"],"ristoranti":["#ff6961","#e8333a"],"estetica":["#ff7eb3","#e5397a"],"commercialisti":["#7d7aff","#4b46d6"],"affitti-brevi":["#4cd964","#20a84a"],"generale":["#64d2ff","#0a84b8"]};
 function svg(n,s){return '<svg class="ico" width="'+(s||22)+'" height="'+(s||22)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICO[n]||ICO.sparkle)+'</svg>'}
 function icn(e,s){return svg(EMO[e]||"sparkle",s)}
 function acc(a){return ACC[a.id]||["#5ac8fa","#0071e3"]}
