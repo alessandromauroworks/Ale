@@ -1608,6 +1608,8 @@ function go(n, back) {
 }
 $("nextBtn").onclick = () => { if (cur === 0) { A.veloce = false; applyFast(); } go(cur + 1); };
 $("fastBtn").addEventListener("click", () => { A.veloce = true; applyFast(); bozza(); go(1); });
+/* dal sito (pagina «Prenota una call»): ?veloce=1 apre subito la versione veloce, ma solo se non c'è una bozza da riprendere */
+setTimeout(() => { try { if (new URLSearchParams(location.search).get("veloce") === "1" && cur === 0 && $("riprendiBox").hidden) $("fastBtn").click(); } catch (e) {} }, 30);
 setTimeout(applyFast, 0);
 $("backBtn").onclick = () => go(cur - 1, true);
 /* dopo un ricaricamento a metà: invece di ripartire dalla copertina, si riprende dal passo salvato (o dal primo passo ancora da completare) */
