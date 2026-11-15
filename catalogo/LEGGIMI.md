@@ -1,4 +1,3 @@
-# Catalogo automazioni (pubblico, senza prezzi)
-Generato dal repository privato `catalogo-automazioni` (`collaudo.py`). Non modificare qui a mano:
-- `index.html`: catalogo con le scene animate, aperto dalla Mappa Call Live come demo pronta (`#id-automazione`).
-- `scene.js`: dati, icone e scene usati dal Questionario Prima Call nella schermata «Ecco cosa potremmo fare per te».
+# Scene delle automazioni per il questionario
+`scene.js` (dati, icone e scene animate) è generato dal repository privato `catalogo-automazioni` con `collaudo.py`: non modificarlo a mano.
+Il catalogo completo non sta qui: è privato (artifact «Catalogo automazioni (privato, per le call)») e si apre dalla Mappa Call Live.
