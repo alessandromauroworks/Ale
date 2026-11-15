@@ -286,7 +286,7 @@
       const sv = (SITO_TXT[nomeSett] || SITO_TXT["Altra attività"]).split("|")[2].split(";");
       const righe = [["Cliente 1", "3/11", sv[0], "50", "sì"], ["Cliente 2", "04-11-2026", sv[1], "€ 80,00", ""], ["cliente 1 ", "3/11", sv[0], "50", "SI"], ["Cliente 3", "5 novembre", sv[2], "120 euro", "no"], ["Cliente 4", "06/11/26", sv[0], "50", "si"]];
       const passi = ["Tolgo i doppioni", "Sistemo le date", "Sistemo gli importi", "Segno chi deve pagare", "Calcolo i totali"];
-      const w = el("div", "fg-w"), tab = el("table", "fg"), live = el("p", "sr"); live.setAttribute("aria-live", "polite");
+      const w = el("div", "fg-w"); w.tabIndex = 0; w.setAttribute("role", "region"); w.setAttribute("aria-label", "Foglio di esempio (sul telefono scorre di lato)"); const tab = el("table", "fg"), live = el("p", "sr"); live.setAttribute("aria-live", "polite");
       const cap = el("caption", "sr", "Foglio di esempio: clienti, date, servizi, importi e pagamenti"); tab.append(cap);
       const th = el("thead"), trh = el("tr"); ["Cliente", "Data", "Servizio", "Importo", "Pagato"].forEach(x => { const t = el("th", "", x); t.scope = "col"; trh.append(t); }); th.append(trh); tab.append(th);
       const tb = el("tbody"), tf = el("tfoot"); tab.append(tb, tf); w.append(tab);

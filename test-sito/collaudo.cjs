@@ -40,6 +40,7 @@ const scorri = p => p.evaluate(async () => { for (let y = 0; y < document.body.s
       verifica(`${w} /${pg} niente scroll di lato`, sw <= w, "larghezza " + sw);
       verifica(`${w} /${pg} zero errori in console`, p.errs.length === 0, p.errs.join(" | "));
       if (AXE && (w === 390 || w === 1280)) {
+        await p.evaluate(() => Promise.race([Promise.all(document.getAnimations().map(a => a.finished.catch(() => {}))), new Promise(r => setTimeout(r, 6000))])); /* contrasto misurato a animazioni finite */
         await p.addScriptTag({ content: AXE });
         const v = await p.evaluate(async () => (await axe.run(document, { resultTypes: ["violations"] })).violations.filter(x => x.impact === "serious" || x.impact === "critical").map(x => x.id + "(" + x.nodes.length + ")"));
         verifica(`${w} /${pg} accessibilità: 0 problemi seri`, v.length === 0, v.join(", "));
@@ -61,7 +62,7 @@ const scorri = p => p.evaluate(async () => { for (let y = 0; y < document.body.s
           if (visti.has(k)) continue; visti.add(k); n++;
           const r = await p.request.get(u); verifica(`link ${h.replace(BASE, "/")} (da /${pg})`, r.status() === 200, String(r.status()));
           if (anc) { const q = await (await p.context().newPage()); await q.goto(u); verifica(`ancora #${anc} esiste in ${u.replace(BASE, "/")}`, (await q.locator("#" + anc).count()) === 1); await q.close(); } } }
-      const est = await p.evaluate(() => [...document.querySelectorAll("a[href^='https://wa.me/']")].length);
+      await p.goto(BASE); const est = await p.evaluate(() => [...document.querySelectorAll("a[href^='https://wa.me/393394052935']")].length);
       verifica("link WhatsApp presenti", est > 0); console.log("   link controllati:", n);
       await p.context().close(); }
 
@@ -87,7 +88,7 @@ const scorri = p => p.evaluate(async () => { for (let y = 0; y < document.body.s
             if (d === "sito") { await p.locator(".dlg-b .chip", { hasText: "Telefono" }).click(); await p.locator(".dlg-b .chip", { hasText: "Effetto wow" }).click(); await p.fill("#dNome", "Prova"); verifica(`demo sito · ${s}: nome scritto compare`, await p.locator(".sd-logo", { hasText: "Prova" }).count() === 1); }
             if (d === "gest") { await p.locator(".gp-nav button").nth(1).click(); verifica(`demo gest · ${s}: modulo aperto`, await p.locator(".gp-main .gp-t [role=row]").count() >= 5); }
             if (d === "auto") { await p.locator(".dlg-b .chip", { hasText: "Le regole" }).click(); const sw = p.locator(".rl .sw").first(); await sw.click(); verifica(`demo auto · ${s}: regola spenta`, (await sw.getAttribute("aria-checked")) === "false"); }
-            if (d === "ass") { await p.waitForTimeout(1600); verifica(`demo ass · ${s}: la chat parte e si dichiara assistente virtuale`, /assistente virtuale/.test(await p.locator(".chat").innerText())); }
+            if (d === "ass") { await p.waitForFunction(() => /assistente virtuale/.test((document.querySelector(".chat") || {}).innerText || ""), null, { timeout: 6000 }).catch(() => {}); verifica(`demo ass · ${s}: la chat parte e si dichiara assistente virtuale`, /assistente virtuale/.test(await p.locator(".chat").innerText())); }
             if (d === "vf") { await p.locator(".cal button.post").nth(1).click(); verifica(`demo vf · ${s}: anteprima aggiornata`, (await p.locator(".cal button.post").nth(1).getAttribute("aria-pressed")) === "true"); }
             if (d === "fogli") { await p.locator(".dlg-b .btn", { hasText: "Metti in ordine" }).click(); await p.waitForTimeout(5200); verifica(`demo fogli · ${s}: totale calcolato`, await p.locator(".fg tfoot td", { hasText: "€ 300,00" }).count() === 1); }
           }
@@ -115,7 +116,7 @@ const scorri = p => p.evaluate(async () => { for (let y = 0; y < document.body.s
     { const p = await nuova(b, 390); await p.goto(BASE);
       await p.click(".hamb"); verifica("menu telefono si apre", await p.locator("#menu").isVisible());
       await p.keyboard.press("Escape"); verifica("menu telefono si chiude con Esc", !(await p.locator("#menu").isVisible()));
-      await p.keyboard.press("Tab"); verifica("primo Tab: «Vai al contenuto»", await p.evaluate(() => document.activeElement.classList.contains("salta")));
+      await p.goto(BASE); await p.keyboard.press("Tab"); verifica("primo Tab: «Vai al contenuto»", await p.evaluate(() => document.activeElement.classList.contains("salta")));
       await p.context().close(); }
 
     /* 5. movimento ridotto: tutto visibile subito */

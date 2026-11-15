@@ -426,3 +426,14 @@ dialog.dlg.chiude::backdrop{animation:sfuma .2s ease reverse forwards}
 .sett .sel{flex:1 1 220px;min-width:0;max-width:440px;text-overflow:ellipsis}
 .demo-uno .sett{margin-bottom:0;flex:1 1 300px}
 .demo-uno>.btn{flex:none}
+@media (max-width:640px){
+  /* gestionale sul telefono: la barra dei moduli resta sempre visibile e scorre di lato */
+  .gp{display:flex;flex-direction:column}
+  .gp-nav{flex:none;min-height:61px}
+  .gp-t[role=list] .gp-r{grid-template-columns:minmax(0,1fr) auto}
+  .gp-t[role=list] .gp-r>span:last-child{display:none}
+  .gp-t[role=list] .chip{justify-self:start;text-align:left;overflow-wrap:normal}
+  /* foglio di esempio: la tabella scorre di lato dentro il suo riquadro, la pagina no */
+  .fg{min-width:540px;font-size:13.5px}
+  .fg th,.fg td{overflow-wrap:normal;white-space:nowrap}
+}

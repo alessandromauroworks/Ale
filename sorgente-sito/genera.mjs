@@ -13,7 +13,7 @@ import { SERVIZI, BISOGNI, PASSI_LAVORO, FAQ_HOME, PERCHE } from "./testi.mjs";
 const RADICE = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DOMINIO = "https://alessandromauroworks.it/";
 const OGGI = "15 novembre 2026";
-const V = "20261115"; // versione dei file comuni (cambiarla quando cambiano css/js, così i browser li ricaricano)
+const V = "20261115b"; // versione dei file comuni (cambiarla quando cambiano css/js, così i browser li ricaricano)
 
 /* contatti dal file condiviso comune/config.js */
 const cfg = {}; vm.runInNewContext(readFileSync(join(RADICE, "comune/config.js"), "utf8") + ";this.C=CONTATTI;", cfg);
