@@ -15,7 +15,7 @@ const dlgOpen=p=>p.evaluate(()=>!document.getElementById('dlg').hidden);
   await p.locator('.cm-l').first().click(); ok(w+' foglia mostra la riga',(await p.textContent('.cm-d')).includes('Una pagina'));
   await p.waitForTimeout(900); if(w===390||w===1280) await p.screenshot({path:`${S}/pres-mappa-${w}.png`});
   await p.keyboard.press('ArrowRight'); await p.waitForTimeout(400); await chk('pres3'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(400); await chk('pres4'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(400); await chk('pres5');
-  ok(w+' ultima schermata: Inizia + sito',(await p.locator('#dlgB >> text=Inizia il questionario').count())===1&&await p.locator('#dlgB a[href="https://alessandromauro.lovable.app/"]').count()===1);
+  ok(w+' ultima schermata: Inizia + sito',(await p.locator('#dlgB >> text=Inizia il questionario').count())===1&&await p.locator('#dlgB a[href="../"]').count()===1);
   await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(300); ok(w+' freccia indietro',await p.locator('.pc').count()===1);
   await p.keyboard.press('Escape'); await p.waitForTimeout(400); ok(w+' Esc chiude e restituisce il focus',!(await dlgOpen(p))&&(await p.evaluate(()=>document.activeElement.id))==='presBtn');
   await p.click('#presBtn'); await p.waitForTimeout(300); await p.mouse.click(3,3); await p.waitForTimeout(400); 

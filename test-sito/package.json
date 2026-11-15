@@ -1,0 +1,7 @@
+{
+  "name": "collaudo-sito",
+  "private": true,
+  "description": "Collaudo automatico del sito (solo per sviluppo, non va online)",
+  "scripts": { "test": "node collaudo.cjs" },
+  "devDependencies": { "playwright": "^1.48.0", "axe-core": "^4.10.2" }
+}
