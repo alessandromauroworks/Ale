@@ -9,6 +9,9 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const ORIGINI = new Set([
   "https://alessandromauroworks.github.io",
+  // dominio proprio del sito (attivo quando Alessandro collega alessandromauroworks.it a GitHub Pages)
+  "https://alessandromauroworks.it",
+  "https://www.alessandromauroworks.it",
 ]);
 const MAX_BYTE = 96_000;
 const LIMITE_IP_ORA = 5;        // invii per ora dallo stesso IP

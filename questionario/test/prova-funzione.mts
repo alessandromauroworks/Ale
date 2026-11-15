@@ -99,6 +99,10 @@ r = await manda({ ...pacco(base({ tel: "339 222 3335" })), hp: "bot" });
 ok("trappola anti-bot piena: rifiutato", r.stato === 400);
 r = await manda(pacco(base({ tel: "339 222 3336" })), { origin: "https://cattivo.example" });
 ok("origine non permessa: 403", r.stato === 403);
+for (const o of ["https://alessandromauroworks.it", "https://www.alessandromauroworks.it"]) {
+  r = await manda(pacco(base({ tel: o.includes("www") ? "339 222 3341" : "339 222 3340" })), { origin: o });
+  ok("origine del dominio proprio accettata: " + o, r.stato === 200, String(r.stato));
+}
 r = await manda(JSON.stringify({ ...pacco(base({ tel: "339 222 3337" })), riempi: "x".repeat(97_000) }));
 ok("corpo oltre 96 KB: 413", r.stato === 413);
 const lunghi = base({ tel: "339 222 3338", problemi: "è".repeat(1990) + "😀".repeat(10) });

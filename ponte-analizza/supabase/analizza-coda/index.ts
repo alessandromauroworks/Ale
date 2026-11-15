@@ -2,7 +2,12 @@
 // Protezione: header x-codice uguale al segreto ANALIZZA_CODICE.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const ORIGINI_OK = ["https://alessandromauroworks.github.io"];
+const ORIGINI_OK = [
+  "https://alessandromauroworks.github.io",
+  // dominio proprio del sito (alessandromauroworks.it su GitHub Pages)
+  "https://alessandromauroworks.it",
+  "https://www.alessandromauroworks.it",
+];
 const DOMINI_OK = [
   "instagram.com", "youtube.com", "youtu.be", "tiktok.com", "vm.tiktok.com",
   "facebook.com", "fb.watch", "x.com", "twitter.com", "threads.net",

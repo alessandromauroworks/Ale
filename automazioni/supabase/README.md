@@ -26,4 +26,4 @@ File:
 
 Collaudo del 10/11/2026: prova completa reale (pagina pubblica = main, invio vero con origine GitHub → riga in tabella → call creata dalla Mappa aperta in 15 secondi), poi righe e call di prova cancellate.
 
-Origini permesse: solo `https://alessandromauroworks.github.io`. Se il questionario si pubblica altrove, aggiungere l'origine in `ORIGINI` e rifare il deploy. Le origini rifiutate finiscono nel registro (`esito = 'origine_rifiutata'`).
+Origini permesse: `https://alessandromauroworks.github.io`, `https://alessandromauroworks.it` e `https://www.alessandromauroworks.it` (dominio proprio). Se il questionario si pubblica altrove, aggiungere l'origine in `ORIGINI` e rifare il deploy. Le origini rifiutate finiscono nel registro (`esito = 'origine_rifiutata'`).
