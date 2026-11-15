@@ -4,7 +4,7 @@ const TELOK=t=>/^[+0-9 ().\/-]{6,25}$/.test(t)&&t.replace(/\D/g,'').length>=8&&t
 async function conUrl(b,vp,prenota){ const ctx=await b.newContext({viewport:vp,deviceScaleFactor:1}); const p=await ctx.newPage(); p.errs=[]; p.posts=[];
   p.on('pageerror',e=>p.errs.push(String(e))); p.on('console',m=>{if(m.type()==='error'&&!/net::|Failed to load/.test(m.text()))p.errs.push(m.text())});
   await p.route(/^https?:\/\/(?!localhost)/,r=>{const q=r.request(); if(q.method()==='POST')p.posts.push(JSON.parse(q.postData())); r.fulfill({status:200,contentType:'application/json',body:'{"ok":true}',headers:{'access-control-allow-origin':'*'}})});
-  if(prenota!==undefined) await p.route(u=>u.href.startsWith(BASE+'/questionario/'),async r=>{const res=await r.fetch(); let t=await res.text(); t=t.replace('const PRENOTA_URL = "";','const PRENOTA_URL = "'+prenota+'";'); r.fulfill({response:res,body:t});});
+  if(prenota!==undefined) await p.route(u=>u.href.startsWith(BASE+'/questionario/')||u.href.startsWith(BASE+'/comune/config.js'),async r=>{const res=await r.fetch(); let t=await res.text(); t=t.replace('const PRENOTA_URL = "";','const PRENOTA_URL = "'+prenota+'";'); r.fulfill({response:res,body:t});});
   await p.goto(BASE+'/questionario/'); await p.waitForTimeout(250); return p; }
 (async()=>{
  const b=await L.chromium.launch();
