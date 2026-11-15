@@ -65,14 +65,14 @@ p{margin:0 0 1em}
 .hero canvas{position:absolute;inset:-5% 0 0 0;width:100%;height:105%;z-index:-1;pointer-events:none}
 .hero:after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse 60% 50% at 75% 40%,rgba(var(--ac-rgb),.10),transparent 70%),linear-gradient(180deg,transparent 60%,var(--bg) 100%);pointer-events:none}
 .hero .wrap{display:grid;gap:40px;align-items:center}
-.eyebrow{display:inline-block;font:600 12px/1 "Manrope",sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--ac);margin-bottom:22px;padding:8px 14px;border:1px solid var(--line2);border-radius:999px}
-.hero h1{font-size:clamp(42px,9.5vw,92px);margin-bottom:22px}
+.eyebrow{display:inline-block;font:600 11px "Manrope",sans-serif;line-height:1.4;letter-spacing:.2em;text-transform:uppercase;color:var(--ac);margin-bottom:22px;padding:8px 14px;border:1px solid var(--line2);border-radius:999px}
+.hero h1{font-size:clamp(40px,8.6vw,78px);margin-bottom:22px;text-wrap:balance}
 .hero h1 span{display:block}
 .lead{font-size:clamp(17px,2.2vw,20px);color:var(--mut);max-width:560px;margin-bottom:32px}
 .cta{display:flex;flex-wrap:wrap;gap:14px}
 .hv{display:flex;justify-content:center;will-change:transform}
-.hv svg{width:min(78vw,420px);height:auto;overflow:visible;filter:drop-shadow(0 0 40px rgba(var(--ac-rgb),.22))}
-@media(min-width:900px){.hero .wrap{grid-template-columns:1.15fr .85fr}}
+.hv svg{width:min(62vw,420px);height:auto;overflow:visible;filter:drop-shadow(0 0 40px rgba(var(--ac-rgb),.22))}
+@media(min-width:900px){.hero .wrap{grid-template-columns:1.3fr .7fr}}
 
 /* logo che si disegna */
 .dr{stroke-dasharray:var(--l,100);stroke-dashoffset:var(--l,100);animation:disegna 2.2s .3s cubic-bezier(.6,.05,.2,1) forwards}

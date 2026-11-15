@@ -132,7 +132,7 @@
         ctx.fillStyle = "rgba(" + rgb + "," + a.toFixed(3) + ")";
         ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
       }
-      var base = H * 0.78;
+      var base = H * 0.9;
       for (var k = 0; k < 4; k++) {
         ctx.beginPath();
         var amp = 3 + k * 2.2, y0 = base + k * 15, vel = 0.35 + k * 0.12;
