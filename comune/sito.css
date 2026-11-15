@@ -420,3 +420,9 @@ dialog.dlg.chiude::backdrop{animation:sfuma .2s ease reverse forwards}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important;animation-delay:0s!important;scroll-behavior:auto!important}
   .bolla{opacity:1;transform:none}
 }
+
+/* correzioni dopo il collaudo: il menu a tendina dei settori non deve mai allargare la pagina sul telefono */
+.sett{min-width:0;max-width:100%}
+.sett .sel{flex:1 1 220px;min-width:0;max-width:440px;text-overflow:ellipsis}
+.demo-uno .sett{margin-bottom:0;flex:1 1 300px}
+.demo-uno>.btn{flex:none}

@@ -1,2 +1,11 @@
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /strumenti/
+Disallow: /analizza/
+Disallow: /jarvis/
+Disallow: /privacy-contatti/
+Disallow: /questionario/test/
+Disallow: /sorgente-sito/
+Disallow: /test-sito/
+
+Sitemap: https://alessandromauroworks.it/sitemap.xml
