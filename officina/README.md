@@ -13,13 +13,13 @@ Link: https://alessandromauroworks.github.io/Ale/officina/
 ## Sicurezza
 - Database: progetto Supabase «Alessandro», tabelle `officina_lavori` e `officina_pezzi`, RLS: ognuno vede solo le sue righe e solo se la sua email è in `officina_utenti`.
 - Registrazione bloccata a livello di database (trigger su `auth.users`): può creare un account solo un'email presente in `officina_utenti`. Vale per tutto il progetto «Alessandro».
-- Accesso: email e password una volta per dispositivo, poi un codice di 4 cifre (5 errori = serve di nuovo l'accesso completo). Il codice protegge il dispositivo, non il server: dal server senza il primo accesso non entra nessuno.
 - Nessuna chiave segreta nella pagina (solo la chiave pubblica).
 
-## Aggiungere l'account di Antonio
-1. In Supabase › SQL: `insert into public.officina_utenti(email) values ('email-di-antonio');`
-2. Supabase › Authentication › Users › Add user › email e password (spunta «Auto confirm»).
-3. Sul PC e sul telefono di Antonio: apri il link, inserisci email e password, scegli il codice di 4 cifre insieme a lui.
+## Accesso
+- Antonio entra solo con un **codice di 6 cifre**, una volta per dispositivo; poi la sessione resta aperta.
+- Il codice è salvato cifrato (bcrypt) in `private.officina_codice` e lo controlla `public.officina_controlla_codice` (solo service_role), chiamata dalla Edge Function `officina-accesso` (`supabase/functions/officina-accesso/`). Blocchi: 5 sbagliati = 15 minuti, 20 in 24 ore = 24 ore. Tentativi in `officina_tentativi`.
+- Account nascosto: `antonio@officina.invalid` (nessuna email reale, password inutilizzabile).
+- **Impostare o cambiare il codice:** Supabase › SQL Editor › `select public.officina_imposta_codice('123456');` (con le proprie 6 cifre) › Run.
 
 ## Clienti da caricare nell'account di Antonio
 Sono le sottocartelle della cartella Laser sul server. Si caricano in `officina_clienti` appena esiste il suo account, con la cartella base `<percorso Laser>\<nome>` (percorso Laser da chiedere).
