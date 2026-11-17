@@ -5,6 +5,8 @@ description: Regola fissa di Alessandro per OGNI gestionale, nuovo o vecchio - u
 
 # Gestionale per settore
 
+Da usare insieme alla skill `gestionale-universale` (base obbligatoria con CRM su Supabase, stile di Alessandro, sicurezza per dati sensibili, moduli opzionali, collaudo). Se le due skill dicono cose diverse su base, stile, sicurezza o collaudo, vale `gestionale-universale`.
+
 ## 1. Una sola base
 Archivio unico: cartella `gestionali/` del repository Ale (vedi `gestionali/README.md`). Ogni gestionale parte dalla base comune (struttura del gestionale del Patronato di Carapelle, stile Apple, tasti Liquid Glass / normale e chiaro / scuro in alto a destra). Struttura dei file:
 - `base/base.css`, `base/base.js`: layout, navigazione, tasti, salvataggio, componenti (tabelle, schede, agenda, pipeline a colonne, modali, statistiche, ricerca, esporta CSV);
