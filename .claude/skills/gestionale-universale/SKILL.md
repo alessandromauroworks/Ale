@@ -17,6 +17,7 @@ Due prodotti diversi. Ogni voce di base e sicurezza vale in uno, nell'altro o in
 |---|---|---|
 | CRM, schede, storico, appuntamenti | sì | sì |
 | CSV (importa/esporta), dashboard, ricerca globale | sì | sì |
+| Bilancio e storico del mese | sì (mesi di esempio) | sì |
 | Agenda, notifiche e scadenze | sì | sì |
 | Registro delle modifiche, documenti per cliente | sì | sì |
 | Uso da telefono, stile, Liquid Glass, giorno/notte | sì | sì |
@@ -63,15 +64,25 @@ Scrivi le risposte in 5-10 righe nel README del settore prima di scrivere codice
 2. **Agenda.** Vista calendario (giorno e settimana) degli appuntamenti del CRM.
 3. **CSV.** Solo per spostare dati dentro e fuori, mai come archivio. Importazione con anteprima, associazione guidata delle colonne, controllo duplicati (unire, saltare o creare nuovo), riepilogo finale. Esportazione di clienti, report e backup. Ogni importazione passa dal CRM.
 4. **Dashboard.** Animata, con storico, andamenti, grafici e report su entrate, spese, guadagni e confronto tra periodi. Numeri onesti: skill `dashboard-dati-onesti`.
-5. **Ricerca globale.** Una barra che trova al volo clienti, pratiche e prodotti.
-6. **Notifiche e scadenze.** Per esempio magazzino in esaurimento e appuntamenti in arrivo.
-7. **Registro delle modifiche.** Chi ha cambiato cosa e quando.
-8. **Area documenti per cliente.** Contratti, fatture e PDF allegati alla scheda.
-9. **Uso da telefono.** Prima di tutto schermi piccoli, tasti grandi, tabelle che non si rompono.
-10. **Connessione debole.** Se la rete cade mentre si compila non si perde niente: bozza salvata, avviso chiaro, salvataggio quando torna la rete.
-11. **Backup automatici con ripristino** (versione vera). Il ripristino va provato davvero.
-12. **Ruoli e permessi** (versione vera). Titolare, dipendenti e figure esterne vedono cose diverse, accesso minimo. Per privati e chi lavora da solo partono semplici; ruoli e permessi completi si attivano dal secondo utente.
-13. **Dati di esempio realistici** (demo). Per ogni settore, sempre segnati come dimostrativi.
+5. **Bilancio e storico del mese.** Ogni mese si chiude da solo il 1° del mese dopo e resta nello storico, consultabile mese per mese e anno per anno:
+   - entrate, uscite e margine, divisi per servizio, prodotto o categoria di spesa;
+   - confronto col mese prima e con lo stesso mese dell'anno prima;
+   - incassi da riscuotere e pagamenti in scadenza;
+   - clienti nuovi, clienti tornati e clienti persi (non tornano da tempo, soglia scelta per settore);
+   - servizi o prodotti che rendono di più e di meno;
+   - obiettivo del mese contro risultato, se il titolare imposta un obiettivo;
+   - esporta in PDF e CSV, pronto da mandare al commercialista.
+
+   È un bilancio di gestione, per capire come va l'attività: non è il bilancio d'esercizio né un documento fiscale, e va scritto così nella pagina. I numeri nascono solo dai movimenti registrati: se un mese è incompleto, lo si dice.
+6. **Ricerca globale.** Una barra che trova al volo clienti, pratiche e prodotti.
+7. **Notifiche e scadenze.** Per esempio magazzino in esaurimento e appuntamenti in arrivo.
+8. **Registro delle modifiche.** Chi ha cambiato cosa e quando.
+9. **Area documenti per cliente.** Contratti, fatture e PDF allegati alla scheda.
+10. **Uso da telefono.** Prima di tutto schermi piccoli, tasti grandi, tabelle che non si rompono.
+11. **Connessione debole.** Se la rete cade mentre si compila non si perde niente: bozza salvata, avviso chiaro, salvataggio quando torna la rete.
+12. **Backup automatici con ripristino** (versione vera). Il ripristino va provato davvero.
+13. **Ruoli e permessi** (versione vera). Titolare, dipendenti e figure esterne vedono cose diverse, accesso minimo. Per privati e chi lavora da solo partono semplici; ruoli e permessi completi si attivano dal secondo utente.
+14. **Dati di esempio realistici** (demo). Per ogni settore, sempre segnati come dimostrativi.
 
 ## 8. Sicurezza e privacy
 **Codice, vale sempre (demo e vera):**
@@ -109,6 +120,7 @@ Con Playwright (`require('playwright')`, `chromium.launch()`), a 390x844 e 1440x
 - crea, modifica ed elimina un elemento in ogni sezione e controlla che resti dopo il ricaricamento;
 - prova i due tasti (Liquid Glass e giorno/notte) e che la scelta resti dopo il ricaricamento;
 - ogni collegamento va provato davvero (una vendita scala il magazzino e compare nei report);
+- il bilancio del mese torna al centesimo con la somma dei movimenti, e la chiusura del mese passa nello storico;
 - prova la rete che cade mentre si compila: bozza salvata e avviso;
 - nessun errore in console, nessuno scroll orizzontale, testi leggibili in chiaro e scuro, anche col vetro;
 - salva gli screenshot.
