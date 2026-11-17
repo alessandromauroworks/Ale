@@ -363,6 +363,7 @@ table.dk-tab{width:100%;border-collapse:collapse;font-size:17px}
 .dk-tab td{padding:6px 10px;border-bottom:1px solid var(--sep);vertical-align:middle}
 .dk-tab tr:last-child td{border-bottom:0}
 .dk-tab td.c,.dk-tab th.c{text-align:center}
+.dk-riga td:last-child{padding-left:0;padding-right:8px;width:28px}
 .dk-riga{cursor:pointer}
 .dk-riga:hover td{background:var(--primary-soft)}
 .dk-sort{border:0;background:transparent;font:inherit;font-weight:700;color:inherit;cursor:pointer;padding:0;letter-spacing:inherit}
@@ -1988,7 +1989,7 @@ function viewSchedaDesk() {
     var barra = h('div', { class: 'dk-passi', role: 'list', 'aria-label': 'Fasi del lavoro' }, fasi.map(function (v, i) {
       var fatta = faseFatta(l, v), corrente = v === att, prevFatta = i > 0 && faseFatta(l, fasi[i - 1]);
       var cls = 'dk-passo' + (fatta ? ' fatto' : '') + (corrente ? ' attuale' : '') + (prevFatta ? ' dopo-fatto' : '');
-      var cont = [h('span', { class: 'cerchio' }, fatta ? icona('spunta', 18) : h('span', { text: String(i + 1) })), h('span', { class: 'et', text: nomeFase(v) }), h('span', { class: 'st', text: fatta ? 'Fatto' : corrente ? 'Adesso' : '' })];
+      var cont = [h('span', { class: 'cerchio' }, fatta ? icona('spunta', 18) : h('span', { text: String(i + 1) })), h('span', { class: 'et', text: nomeFase(v) }), h('span', { class: 'st', text: fatta ? 'Fatto' : corrente ? 'Adesso' : 'Da fare' })];
       if (fatta) return h('button', { class: cls, testid: 'fase-' + v, role: 'listitem', 'aria-label': nomeFase(v) + ': fatto. Clicca per rimettere da fare', onclick: function () { rimettiDaFare(l, v); } }, cont);
       return h('div', { class: cls, testid: 'fase-' + v, role: 'listitem', 'aria-current': corrente ? 'step' : null }, cont);
     }));
@@ -2134,7 +2135,7 @@ function viewShellDesk() {
   var corpo;
   if (S.loadError) corpo = h('div', { class: 'errore-rete' }, [h('p', { text: S.loadError }), h('button', { class: 'btn primary', text: 'Riprova', testid: 'riprova', onclick: riprova })]);
   else if (!S.loaded) corpo = h('p', { class: 'vuoto', text: 'Un attimo, carico i lavori…' });
-  else corpo = { oggi: viewDashboardDesk, lavori: viewLavoriDesk, scheda: viewSchedaDesk, taglio: viewCodaDesk, clienti: viewClientiDesk, impostazioni: function () { return h('div', { class: 'dk-imp' }, viewImpostazioni()); } }[base];
+  else corpo = { oggi: viewDashboardDesk, lavori: viewLavoriDesk, scheda: viewSchedaDesk, taglio: viewCodaDesk, clienti: viewClientiDesk, impostazioni: function () { var v = viewImpostazioni(); var t1 = v.querySelector('h1'); if (t1) t1.remove(); return h('div', { class: 'dk-imp' }, v); } }[base];
   if (typeof corpo === 'function') corpo = corpo();
   var main = h('main', { class: 'dk-main' }, [testa].concat(corpo));
   var out = [side, main];
