@@ -300,6 +300,12 @@ button.fase-riga{cursor:pointer}
 .centro{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px 16px}
 .pannello{width:100%;max-width:440px;background:var(--card);border-radius:26px;padding:24px}
 .pannello h1{text-align:center;font-size:30px}
+.cod-riga{display:flex;justify-content:center;gap:14px;margin:18px 0 14px}
+.cod-pallino{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);background:transparent;transition:background .15s}
+.cod-pallino.pieno{background:var(--primary);border-color:var(--primary)}
+.cod-griglia{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:340px;margin:0 auto}
+.btn.cod-tasto{min-height:72px;font-size:30px;font-weight:700;padding:0}
+.btn.cod-canc{font-size:17px}
 .msg-accesso{text-align:center;font-weight:700;margin:0 0 14px;min-height:1.4em}
 .msg-accesso.err{color:var(--red-text)}
 .msg-accesso.info{color:var(--primary-text)}
@@ -450,6 +456,7 @@ button.dk-passo{cursor:pointer;color:var(--text)}
 
 /* ============ Costanti ============ */
 var SUPABASE_URL = 'https://udubhzamghhlkxgepmmc.supabase.co';
+var loginTastiera = null;
 var SUPABASE_KEY = 'sb_publishable__XCdrk4q0UlAEcFtM2SFjA_zlwVTW6G';
 var FASI = [
   { v: 'disegno', t: 'Disegno' },
@@ -959,46 +966,90 @@ function viewFatal() {
   ]));
 }
 
-/* ---- Accesso con email e password ---- */
+/* ---- Accesso con codice di 6 cifre ---- */
 function viewLogin() {
-  var msg = h('p', { class: 'msg-accesso ' + (S.loginMsg ? 'err' : ''), id: 'login-msg', role: 'alert', text: S.loginMsg });
-  var email = h('input', { id: 'l-email', type: 'email', autocomplete: 'username', inputmode: 'email', autocapitalize: 'none', spellcheck: 'false', required: true, testid: 'login-email' });
-  var pass = h('input', { id: 'l-pass', type: 'password', autocomplete: 'current-password', required: true, testid: 'login-password' });
-  var mostra = h('button', { class: 'btn piccolo', text: 'Mostra la password', 'aria-pressed': 'false', onclick: function () {
-    var vis = pass.type === 'password';
-    pass.type = vis ? 'text' : 'password';
-    mostra.textContent = vis ? 'Nascondi la password' : 'Mostra la password';
-    mostra.setAttribute('aria-pressed', vis ? 'true' : 'false');
-  } });
-  var invia = h('button', { class: 'btn primary blocco', type: 'submit', text: 'Entra', testid: 'login-invia' });
-  var form = h('form', { novalidate: true, onsubmit: async function (ev) {
-    ev.preventDefault();
-    var em = email.value.trim(), pw = pass.value;
-    msg.className = 'msg-accesso'; msg.textContent = '';
-    if (!em || !pw) { msg.className = 'msg-accesso err'; msg.textContent = 'Scrivi email e password'; return; }
-    invia.disabled = true; invia.textContent = 'Un attimo…';
+  var codice = '';
+  var attesa = false;
+  var msg = h('p', { class: 'msg-accesso ' + (S.loginMsg ? 'err' : ''), id: 'login-msg', role: 'alert', text: S.loginMsg, testid: 'codice-messaggio' });
+  var pallini = [];
+  for (var i = 0; i < 6; i++) pallini.push(h('span', { class: 'cod-pallino' }));
+  var riga = h('div', { class: 'cod-riga', 'aria-hidden': 'true' }, pallini);
+  var tasti = {};
+  function aggiorna() {
+    pallini.forEach(function (p, k) { p.className = 'cod-pallino' + (k < codice.length ? ' pieno' : ''); });
+    Object.keys(tasti).forEach(function (k) { tasti[k].disabled = attesa; });
+    riga.setAttribute('data-cifre', String(codice.length));
+  }
+  function errore(t) { msg.className = 'msg-accesso err'; msg.textContent = t; }
+  async function invia() {
+    attesa = true; aggiorna();
+    msg.className = 'msg-accesso info'; msg.textContent = 'Un attimo…';
+    var esito = null;
     try {
-      var r = await sb.auth.signInWithPassword({ email: em, password: pw });
-      if (r.error) {
-        var m = String(r.error.message || '');
-        var sbagliate = r.error.status === 400 || r.error.status === 401 || /invalid login|invalid credentials/i.test(m);
-        msg.className = 'msg-accesso err';
-        msg.textContent = sbagliate ? 'Email o password sbagliate' : errText(r.error);
-        invia.disabled = false; invia.textContent = 'Entra';
+      var res = await fetch(SUPABASE_URL + '/functions/v1/officina-accesso', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+        body: JSON.stringify({ codice: codice })
+      });
+      var dati = {};
+      try { dati = await res.json(); } catch (e) {}
+      esito = { stato: res.status, dati: dati || {} };
+    } catch (e) { esito = null; }
+    codice = '';
+    if (!esito) { attesa = false; aggiorna(); errore('Niente connessione, riprova'); return; }
+    var d = esito.dati;
+    if (esito.stato === 200 && d.access_token && d.refresh_token) {
+      try {
+        var r = await sb.auth.setSession({ access_token: d.access_token, refresh_token: d.refresh_token });
+        if (r.error) throw r.error;
+        S.loginMsg = '';
+        entraApp();
         return;
-      }
-      S.loginMsg = '';
-      entraApp();
-    } catch (e) {
-      msg.className = 'msg-accesso err'; msg.textContent = errText(e);
-      invia.disabled = false; invia.textContent = 'Entra';
+      } catch (e) { attesa = false; aggiorna(); errore('Niente connessione, riprova'); return; }
     }
-  } }, [
-    h('div', { class: 'campo' }, [h('label', { for: 'l-email', text: 'Email' }), email]),
-    h('div', { class: 'campo' }, [h('label', { for: 'l-pass', text: 'Password' }), pass, h('div', { style: 'margin-top:8px' }, mostra)]),
-    invia
+    attesa = false; aggiorna();
+    if (esito.stato === 401 && d.errore === 'sbagliato') {
+      var n = Number(d.rimasti);
+      errore(n === 1 ? 'Codice sbagliato. Ti resta 1 tentativo' : 'Codice sbagliato. Ti restano ' + (isFinite(n) ? n : 0) + ' tentativi');
+    } else if (esito.stato === 429) {
+      var mi = Math.max(1, Number(d.minuti) || 1);
+      errore('Troppi tentativi. Riprova tra ' + mi + (mi === 1 ? ' minuto' : ' minuti'));
+    } else if (esito.stato === 503) {
+      errore('Il codice non è ancora stato impostato');
+    } else {
+      errore('Niente connessione, riprova');
+    }
+  }
+  function premi(c) {
+    if (attesa || codice.length >= 6) return;
+    codice += c;
+    if (codice.length === 1) { msg.className = 'msg-accesso'; msg.textContent = ''; }
+    aggiorna();
+    if (codice.length === 6) invia();
+  }
+  function cancella() {
+    if (attesa || !codice.length) return;
+    codice = codice.slice(0, -1);
+    aggiorna();
+  }
+  function tasto(c) {
+    var b = h('button', { class: 'btn cod-tasto', type: 'button', text: c, testid: 'codice-tasto-' + c, onclick: function () { premi(c); } });
+    tasti[c] = b; return b;
+  }
+  var canc = h('button', { class: 'btn cod-tasto cod-canc', type: 'button', text: 'Cancella', 'aria-label': 'Cancella l\'ultima cifra', testid: 'codice-cancella', onclick: cancella });
+  tasti.canc = canc;
+  var griglia = h('div', { class: 'cod-griglia' }, [
+    tasto('1'), tasto('2'), tasto('3'), tasto('4'), tasto('5'), tasto('6'), tasto('7'), tasto('8'), tasto('9'),
+    h('span', {}), tasto('0'), canc
   ]);
-  return h('div', { class: 'centro' }, h('div', { class: 'pannello' }, [h('h1', { text: 'Primo collegamento di questo dispositivo' }), h('p', { class: 'centro-testo piccolo-testo', text: 'Si fa una volta sola' }), msg, form]));
+  if (loginTastiera) document.removeEventListener('keydown', loginTastiera);
+  loginTastiera = function (ev) {
+    if (S.screen !== 'login' || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    if (/^[0-9]$/.test(ev.key)) { ev.preventDefault(); premi(ev.key); }
+    else if (ev.key === 'Backspace' || ev.key === 'Delete') { ev.preventDefault(); cancella(); }
+  };
+  document.addEventListener('keydown', loginTastiera);
+  return h('div', { class: 'centro' }, h('div', { class: 'pannello centro-testo' }, [h('h1', { text: 'Inserisci il codice' }), h('p', { class: 'piccolo-testo', text: 'Sono 6 cifre' }), riga, msg, griglia]));
 }
 
 /* ---- Struttura con testata e barra ---- */
@@ -1756,9 +1807,9 @@ function viewImpostazioni() {
     h('h2', { class: 'sez-titolo', text: 'Colori' }),
     h('div', { class: 'inset' }, h('button', { class: 'voce', testid: 'tema', onclick: cambiaTema }, h('span', { class: 'corpo', text: scuro ? '☀ Passa al tema chiaro' : '☾ Passa al tema scuro' }))),
     h('div', { class: 'esci-zona' }, [
-      h('p', { class: 'muted', text: 'Se scolleghi questo dispositivo, per rientrare servono di nuovo email e password.' }),
+      h('p', { class: 'muted', text: 'Se scolleghi questo dispositivo, per rientrare serve il codice.' }),
       h('button', { class: 'btn piccolo', text: 'Esci', testid: 'esci', onclick: async function () {
-        var ok = await conferma({ titolo: 'Vuoi scollegare questo dispositivo?', corpo: h('p', { text: 'Per rientrare serviranno email e password' }), no: 'No, resta collegato', si: 'Sì, scollega' });
+        var ok = await conferma({ titolo: 'Vuoi scollegare questo dispositivo?', corpo: h('p', { text: 'Per rientrare servirà il codice' }), no: 'No, resta collegato', si: 'Sì, scollega' });
         if (ok) logoutCompleto('');
       } })
     ])
