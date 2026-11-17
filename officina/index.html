@@ -1,0 +1,1172 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src https://udubhzamghhlkxgepmmc.supabase.co wss://udubhzamghhlkxgepmmc.supabase.co; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#f4f5f7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Officina">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Officina</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b57d0'/%3E%3Ccircle cx='32' cy='32' r='12' fill='none' stroke='white' stroke-width='6'/%3E%3Cg stroke='white' stroke-width='7' stroke-linecap='round'%3E%3Cpath d='M32 8v8M32 48v8M8 32h8M48 32h8M15 15l6 6M43 43l6 6M49 15l-6 6M21 43l-6 6'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b57d0'/%3E%3Ccircle cx='32' cy='32' r='12' fill='none' stroke='white' stroke-width='6'/%3E%3Cg stroke='white' stroke-width='7' stroke-linecap='round'%3E%3Cpath d='M32 8v8M32 48v8M8 32h8M48 32h8M15 15l6 6M43 43l6 6M49 15l-6 6M21 43l-6 6'/%3E%3C/g%3E%3C/svg%3E">
+<script>
+/* Tema applicato subito, prima del disegno della pagina */
+try { var t = localStorage.getItem('officina_tema'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-tema', t); } catch (e) {}
+</script>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f4f5f7; --card:#ffffff; --text:#14181f; --muted:#464e5c; --line:#b9c0cc;
+  --primary:#0b57d0; --on-primary:#ffffff; --primary-soft:#e3ecfd;
+  --red:#b3261e; --red-bg:#fdeceb; --red-text:#8c1a14;
+  --amber:#8a5a00; --amber-bg:#fff4d6;
+  --ok:#14672b; --ok-bg:#e1f4e6; --bar:#1e8a3e;
+  --s1-bg:#e9ecf1; --s1-fg:#38404d;
+  --s2-bg:#e1ebff; --s2-fg:#174ba8;
+  --s3-bg:#ffefd2; --s3-fg:#8a4b00;
+  --s4-bg:#ebe3ff; --s4-fg:#5528b0;
+  --s5-bg:#dcf2e1; --s5-fg:#14672b;
+  --toast-bg:#14672b; --toast-fg:#ffffff; --toast-err-bg:#b3261e; --toast-err-fg:#ffffff;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-tema="light"]){
+    color-scheme: dark;
+    --bg:#10131a; --card:#1a1f29; --text:#f2f4f8; --muted:#bcc4d2; --line:#444d5e;
+    --primary:#8ab4ff; --on-primary:#0a1220; --primary-soft:#1f2f4f;
+    --red:#ff9a92; --red-bg:#3b1c1a; --red-text:#ffb8b2;
+    --amber:#ffc65c; --amber-bg:#3a2d0e;
+    --ok:#8fe0a6; --ok-bg:#16301f; --bar:#4cc06f;
+    --s1-bg:#2a303b; --s1-fg:#cdd4e0;
+    --s2-bg:#1c3159; --s2-fg:#b0cdff;
+    --s3-bg:#4a3412; --s3-fg:#ffcc84;
+    --s4-bg:#35285f; --s4-fg:#d2c1ff;
+    --s5-bg:#173a24; --s5-fg:#8fe0a6;
+    --toast-bg:#8fe0a6; --toast-fg:#0d2415; --toast-err-bg:#ffb4ab; --toast-err-fg:#410002;
+  }
+}
+:root[data-tema="dark"]{
+  color-scheme: dark;
+  --bg:#10131a; --card:#1a1f29; --text:#f2f4f8; --muted:#bcc4d2; --line:#444d5e;
+  --primary:#8ab4ff; --on-primary:#0a1220; --primary-soft:#1f2f4f;
+  --red:#ff9a92; --red-bg:#3b1c1a; --red-text:#ffb8b2;
+  --amber:#ffc65c; --amber-bg:#3a2d0e;
+  --ok:#8fe0a6; --ok-bg:#16301f; --bar:#4cc06f;
+  --s1-bg:#2a303b; --s1-fg:#cdd4e0;
+  --s2-bg:#1c3159; --s2-fg:#b0cdff;
+  --s3-bg:#4a3412; --s3-fg:#ffcc84;
+  --s4-bg:#35285f; --s4-fg:#d2c1ff;
+  --s5-bg:#173a24; --s5-fg:#8fe0a6;
+  --toast-bg:#8fe0a6; --toast-fg:#0d2415; --toast-err-bg:#ffb4ab; --toast-err-fg:#410002;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:19px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;overflow-x:hidden}
+button,input,textarea{font:inherit;color:inherit}
+h1{font-size:1.55rem;line-height:1.2;margin:0 0 6px}
+h2{font-size:1.25rem;line-height:1.25;margin:0 0 10px}
+p{margin:0 0 10px}
+[hidden]{display:none !important}
+:focus-visible{outline:4px solid var(--primary);outline-offset:2px}
+
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px}
+
+/* Pulsanti */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:10px 20px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);font-weight:700;cursor:pointer;text-align:center;text-decoration:none}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.btn.danger{border-color:var(--red);color:var(--red-text)}
+.btn.piccolo{min-height:48px;padding:8px 16px;font-size:.9rem}
+.btn.blocco{display:flex;width:100%}
+.btn[disabled]{opacity:.6;cursor:default}
+.riga-bottoni{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+.riga-bottoni .btn{flex:1 1 200px}
+
+/* Testata e navigazione */
+.top{background:var(--card);border-bottom:1px solid var(--line)}
+.top-inner{display:grid;grid-template-columns:1fr auto;grid-template-areas:"brand gear" "nuovo nuovo";gap:10px;align-items:center;padding:10px 0 12px}
+.brand{grid-area:brand;font-size:1.5rem;font-weight:800;margin:0}
+.btn-gear{grid-area:gear}
+.btn-nuovo{grid-area:nuovo;min-height:56px;font-size:1.1rem}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--card);border-top:2px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.nav button{flex:1;min-height:64px;border:0;border-top:5px solid transparent;background:transparent;font-weight:700;font-size:.9rem;cursor:pointer;padding:6px 4px}
+.nav button[aria-current="page"]{border-top-color:var(--primary);background:var(--primary-soft);color:var(--text)}
+main{padding:18px 0 120px}
+
+/* Schede e riquadri */
+.lista{display:grid;gap:12px;margin:0 0 18px}
+.card{display:block;width:100%;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;color:var(--text)}
+button.card:hover{border-color:var(--primary)}
+.card .cliente{display:block;font-weight:800;font-size:1.15rem;overflow-wrap:anywhere}
+.card .titolo{display:block;overflow-wrap:anywhere;margin-bottom:6px}
+.card .meta{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:6px 0 10px}
+.ritardo{color:var(--red-text);font-weight:800}
+.box{border-radius:16px;padding:14px;margin:0 0 18px;border:3px solid var(--line)}
+.box h2{margin-bottom:12px}
+.box.rosso{background:var(--red-bg);border-color:var(--red)}
+.box.rosso h2{color:var(--red-text)}
+.box.giallo{background:var(--amber-bg);border-color:var(--amber)}
+.box.giallo h2{color:var(--amber)}
+.box.verde{background:var(--ok-bg);border-color:var(--ok)}
+.box.verde h2,.box.verde p{color:var(--ok);margin:0;font-weight:800}
+.box .lista{margin-bottom:0}
+.box-taglio{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.box-taglio strong{font-size:1.2rem}
+
+.badge{display:inline-block;padding:2px 12px;border-radius:999px;border:2px solid var(--f);background:var(--b);color:var(--f);font-weight:800;font-size:.85rem;white-space:nowrap}
+.st-da_disegnare{--b:var(--s1-bg);--f:var(--s1-fg)}
+.st-disegnato{--b:var(--s2-bg);--f:var(--s2-fg)}
+.st-da_tagliare{--b:var(--s3-bg);--f:var(--s3-fg)}
+.st-tagliato{--b:var(--s4-bg);--f:var(--s4-fg)}
+.st-consegnato{--b:var(--s5-bg);--f:var(--s5-fg)}
+
+.avanz{display:block;font-weight:700;margin-bottom:4px}
+.barra{height:14px;background:var(--line);border-radius:8px;overflow:hidden}
+.barra>span{display:block;height:100%;background:var(--bar)}
+.avviso-testo{color:var(--amber);font-weight:800}
+.muted{color:var(--muted)}
+.vuoto{background:var(--card);border:2px dashed var(--line);border-radius:14px;padding:24px 16px;text-align:center;font-size:1.1rem}
+.errore-rete{background:var(--red-bg);border:3px solid var(--red);border-radius:14px;padding:16px;margin-bottom:16px}
+.errore-rete p{color:var(--red-text);font-weight:800}
+
+/* Filtri */
+.filtri{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.filtri .btn{min-height:48px;padding:6px 14px;font-size:.9rem}
+.filtri .btn[aria-pressed="true"]{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+.barra-ricerca{display:grid;gap:10px;margin-bottom:6px}
+@media (min-width:820px){.barra-ricerca{grid-template-columns:1fr auto}}
+
+/* Moduli */
+.campo{margin:0 0 16px}
+.campo label{display:block;font-weight:800;margin-bottom:6px}
+.campo input,.campo textarea{width:100%;min-height:52px;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
+.campo textarea{min-height:110px;resize:vertical}
+.campo .aiuto{font-size:.8rem;color:var(--muted);margin:4px 0 0}
+.campo .err{color:var(--red-text);font-weight:800;margin:6px 0 0}
+.campo.ha-errore input,.campo.ha-errore textarea{border-color:var(--red);border-width:3px}
+.due-colonne{display:grid;gap:0 14px}
+@media (min-width:600px){.due-colonne{grid-template-columns:1fr 1fr}}
+.form{max-width:640px}
+
+/* Scheda lavoro */
+.indietro{margin-bottom:14px}
+.stati{display:grid;gap:8px;margin:8px 0 18px}
+@media (min-width:820px){.stati{grid-template-columns:repeat(5,1fr)}}
+.stato{min-height:56px;padding:8px 10px;border:3px solid var(--line);border-left:12px solid var(--f);border-radius:12px;background:var(--card);color:var(--text);font-weight:700;cursor:pointer;text-align:left}
+.stato[aria-pressed="true"]{background:var(--b);color:var(--f);border-color:var(--f);font-weight:800}
+.cartella{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:12px;margin:0 0 14px}
+.cartella code{flex:1 1 220px;overflow-wrap:anywhere;font-size:.9rem;user-select:all}
+.note-box{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 14px}
+.pezzi{background:var(--card);border:2px solid var(--line);border-radius:14px;margin:10px 0 14px;overflow:hidden}
+.riga{display:flex;gap:14px;align-items:flex-start;padding:14px;border-bottom:1px solid var(--line)}
+.riga:last-child{border-bottom:0}
+.riga .testo{flex:1;min-width:0;overflow-wrap:anywhere}
+.riga .principale{font-weight:700}
+.riga .piccolo{font-size:.85rem;color:var(--muted)}
+.riga .azioni{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.fatto-tag{color:var(--ok);font-weight:800;font-size:.85rem}
+.spunta{flex:0 0 auto;width:52px;height:52px;min-height:52px;border:3px solid var(--text);border-radius:10px;background:var(--card);color:#fff;font-size:1.9rem;line-height:1;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.spunta[aria-checked="true"]{background:var(--bar);border-color:var(--bar)}
+.gruppo{margin:0 0 22px}
+.gruppo h2{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between;background:var(--primary-soft);padding:10px 14px;border-radius:12px;margin-bottom:8px}
+.gruppo h2 small{font-size:.85rem;font-weight:700;color:var(--muted)}
+.interruttore{min-height:52px;border:2px solid var(--line);border-radius:12px;background:var(--card);padding:8px 16px;font-weight:700;cursor:pointer}
+.interruttore[aria-checked="true"]{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+.impostazioni .btn{margin-bottom:14px}
+.esci-zona{margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}
+
+/* Avvisi a comparsa */
+.toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:80;padding:12px 24px;border-radius:999px;background:var(--toast-bg);color:var(--toast-fg);font-weight:800;max-width:92vw;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.toast.err{background:var(--toast-err-bg);color:var(--toast-err-fg);border-radius:14px}
+.undo{position:fixed;left:12px;right:12px;bottom:84px;margin:0 auto;max-width:560px;z-index:70;display:flex;gap:12px;align-items:center;justify-content:space-between;background:var(--text);color:var(--bg);padding:10px 12px 10px 16px;border-radius:14px;font-weight:700}
+.undo .btn{min-height:48px;background:var(--bg);color:var(--text);border-color:var(--bg)}
+.overlay{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px}
+.dialog{background:var(--card);color:var(--text);border:3px solid var(--line);border-radius:18px;width:100%;max-width:560px;max-height:92vh;overflow:auto;padding:20px}
+.dialog.attenzione{border-color:var(--amber)}
+.dialog h2{font-size:1.4rem}
+.dialog ul{margin:0 0 16px;padding-left:22px;overflow-wrap:anywhere}
+.dialog .btn{width:100%;margin-top:10px}
+
+/* Accesso e codice */
+.centro{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px 16px}
+.pannello{width:100%;max-width:440px;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:22px}
+.pannello h1{text-align:center}
+.msg-accesso{text-align:center;font-weight:800;margin:0 0 14px}
+.msg-accesso.err{color:var(--red-text)}
+.msg-accesso.info{color:var(--amber)}
+.punti{display:flex;justify-content:center;gap:18px;margin:16px 0 8px}
+.punto{width:24px;height:24px;border-radius:50%;border:3px solid var(--text);background:transparent}
+.punto.pieno{background:var(--text)}
+.tastierino{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:330px;margin:16px auto 0}
+.tastierino .btn{min-height:76px;font-size:1.8rem;padding:0}
+.tastierino .btn.testo{font-size:1rem}
+.centro-testo{text-align:center}
+
+/* Telefono / computer */
+@media (min-width:820px){
+  .top-inner{display:flex;gap:18px;padding:12px 0}
+  .brand{margin-right:6px}
+  .nav{position:static;order:2;border:0;background:transparent;padding:0;gap:8px}
+  .nav button{flex:none;min-height:52px;padding:8px 22px;border:2px solid transparent;border-radius:12px;font-size:1rem}
+  .nav button[aria-current="page"]{border-color:var(--primary)}
+  .btn-nuovo{order:3;margin-left:auto;min-height:52px;padding:10px 24px}
+  .btn-gear{order:4}
+  .lista{grid-template-columns:1fr 1fr}
+  main{padding-bottom:60px}
+  .undo{bottom:20px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<div id="undo" class="undo" role="status" hidden></div>
+<noscript><p style="padding:20px">Serve JavaScript per usare Officina.</p></noscript>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+'use strict';
+
+/* ============ Costanti ============ */
+var SUPABASE_URL = 'https://udubhzamghhlkxgepmmc.supabase.co';
+var SUPABASE_KEY = 'sb_publishable__XCdrk4q0UlAEcFtM2SFjA_zlwVTW6G';
+var STATI = [
+  { v: 'da_disegnare', t: 'Da disegnare' },
+  { v: 'disegnato', t: 'Disegnato' },
+  { v: 'da_tagliare', t: 'Da tagliare' },
+  { v: 'tagliato', t: 'Tagliato' },
+  { v: 'consegnato', t: 'Consegnato' }
+];
+var MATERIALI_BASE = ['Ferro', 'Inox', 'Alluminio', 'Zincato', 'Corten'];
+var K_HASH = 'officina_pin_hash', K_SALT = 'officina_pin_salt', K_ERR = 'officina_pin_errori', K_TEMA = 'officina_tema';
+var MAX_ERRORI = 5;
+var DIECI_MINUTI = 10 * 60 * 1000;
+
+/* ============ Memoria del dispositivo (sempre in try/catch) ============ */
+var mem = {};
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return Object.prototype.hasOwnProperty.call(mem, k) ? mem[k] : null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { mem[k] = v; } }
+function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { delete mem[k]; } }
+
+/* ============ Stato ============ */
+var S = {
+  screen: 'boot',      // boot | login | pin | app | fatal
+  view: 'oggi',        // oggi | lavori | taglio | scheda | nuovo | modifica | pezzo | impostazioni
+  lavoroId: null, pezzoId: null, pezzoPrefill: null,
+  lavori: [], pezzi: [], byLavoro: new Map(),
+  loaded: false, loadError: null,
+  filtro: 'tutti', cerca: '', mostraConsegnati: false,
+  busy: false,
+  pinMode: 'unlock', pinBuf: '', pinTmp: '', pinMsg: '', pinMsgTipo: '', pinBusy: false,
+  loginMsg: ''
+};
+var sb = null;
+var hiddenAt = 0;
+
+/* ============ Utilità ============ */
+function h(tag, props, kids) {
+  var e = document.createElement(tag);
+  if (tag === 'button') e.type = 'button';
+  if (props) {
+    Object.keys(props).forEach(function (k) {
+      var v = props[k];
+      if (v == null || v === false) return;
+      if (k === 'class') e.className = v;
+      else if (k === 'text') e.textContent = v;
+      else if (k === 'testid') e.setAttribute('data-testid', v);
+      else if (k.slice(0, 2) === 'on') e.addEventListener(k.slice(2), v);
+      else if (k === 'value') e.value = v;
+      else if (v === true) e.setAttribute(k, '');
+      else e.setAttribute(k, v);
+    });
+  }
+  if (kids != null) [].concat(kids).forEach(function (c) { if (c != null && c !== false) e.append(c); });
+  return e;
+}
+function $(s) { return document.querySelector(s); }
+function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+function plurale(n, uno, molti) { return n === 1 ? uno : molti; }
+
+function parseData(s) { var p = String(s).split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+function oggiLocale() { var n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+function diffGiorni(s) { if (!s) return null; return Math.round((parseData(s) - oggiLocale()) / 86400000); }
+function dataBella(s) { return parseData(s).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'long' }); }
+function testoScadenza(l) {
+  var d = diffGiorni(l.scadenza);
+  if (d === null) return 'Nessuna scadenza';
+  var quando;
+  if (d < 0) quando = 'in ritardo di ' + (-d) + ' ' + plurale(-d, 'giorno', 'giorni');
+  else if (d === 0) quando = 'oggi';
+  else if (d === 1) quando = 'domani';
+  else quando = 'tra ' + d + ' giorni';
+  return 'Scadenza: ' + quando + ' (' + dataBella(l.scadenza) + ')';
+}
+function ritardoDi(l) { var d = diffGiorni(l.scadenza); return d !== null && d < 0 && l.stato !== 'consegnato'; }
+function cmpScadenza(a, b) {
+  if (a.scadenza && b.scadenza) return a.scadenza < b.scadenza ? -1 : a.scadenza > b.scadenza ? 1 : 0;
+  if (a.scadenza) return -1;
+  if (b.scadenza) return 1;
+  return 0;
+}
+function nomeStato(v) { var s = STATI.filter(function (x) { return x.v === v; })[0]; return s ? s.t : v; }
+function fmtNum(n) { return String(Number(n)).replace('.', ','); }
+function errText(e) {
+  var m = String((e && e.message) || e || '');
+  if (!navigator.onLine || /fetch|network|failed|load failed|timeout|abort/i.test(m)) return 'Niente connessione, riprova';
+  return 'Qualcosa non ha funzionato, riprova';
+}
+
+/* ============ Avvisi ============ */
+var toastTimer = null, undoTimer = null;
+function showToast(testo, err) {
+  var t = $('#toast');
+  t.textContent = testo;
+  t.className = 'toast' + (err ? ' err' : '');
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.hidden = true; }, err ? 6000 : 2000);
+}
+function showSaved(testo) { showToast(testo || 'Salvato ✓', false); }
+function showError(testo) { showToast(testo, true); }
+function nascondiUndo() { clearTimeout(undoTimer); var u = $('#undo'); u.hidden = true; u.replaceChildren(); }
+function showUndo(testo, fn) {
+  var u = $('#undo');
+  u.replaceChildren(
+    h('span', { text: testo }),
+    h('button', { class: 'btn', text: 'Annulla', testid: 'annulla', onclick: function () { nascondiUndo(); fn(); } })
+  );
+  u.hidden = false;
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(nascondiUndo, 5000);
+}
+
+/* Finestra di conferma. Il pulsante "no" è quello già selezionato. */
+function conferma(o) {
+  return new Promise(function (resolve) {
+    var prev = document.activeElement;
+    var btnNo = h('button', { class: 'btn primary', text: o.no || 'No, torna indietro', testid: 'conferma-no' });
+    var btnSi = h('button', { class: 'btn danger', text: o.si || 'Sì', testid: 'conferma-si' });
+    var dlg = h('div', { class: 'dialog' + (o.attenzione ? ' attenzione' : ''), role: 'dialog', 'aria-modal': 'true', 'aria-label': o.titolo },
+      [h('h2', { text: o.titolo }), o.corpo || null, btnNo, btnSi]);
+    var ov = h('div', { class: 'overlay' }, dlg);
+    function chiudi(v) {
+      document.removeEventListener('keydown', onKey, true);
+      ov.remove();
+      if (prev && prev.focus) { try { prev.focus(); } catch (e) {} }
+      resolve(v);
+    }
+    function onKey(ev) {
+      if (ev.key === 'Escape') { ev.preventDefault(); chiudi(false); }
+      else if (ev.key === 'Tab') {
+        ev.preventDefault();
+        (document.activeElement === btnNo ? btnSi : btnNo).focus();
+      }
+    }
+    btnNo.addEventListener('click', function () { chiudi(false); });
+    btnSi.addEventListener('click', function () { chiudi(true); });
+    ov.addEventListener('click', function (ev) { if (ev.target === ov) chiudi(false); });
+    document.addEventListener('keydown', onKey, true);
+    document.body.append(ov);
+    btnNo.focus();
+  });
+}
+function chiudiFinestre() { document.querySelectorAll('.overlay').forEach(function (n) { n.remove(); }); }
+
+/* ============ Tema ============ */
+function temaEffettivo() {
+  var t = lsGet(K_TEMA);
+  if (t === 'light' || t === 'dark') return t;
+  try { return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; } catch (e) { return 'light'; }
+}
+function applicaTema() {
+  var t = lsGet(K_TEMA);
+  if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-tema', t);
+  else document.documentElement.removeAttribute('data-tema');
+  var m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.setAttribute('content', temaEffettivo() === 'dark' ? '#10131a' : '#f4f5f7');
+}
+function cambiaTema() {
+  lsSet(K_TEMA, temaEffettivo() === 'dark' ? 'light' : 'dark');
+  applicaTema();
+  render();
+}
+
+/* ============ Codice di 4 cifre ============ */
+function bytesHex(buf) { return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join(''); }
+async function sha256(testo) {
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(testo));
+  return bytesHex(buf);
+}
+function nuovoSale() { var a = new Uint8Array(16); crypto.getRandomValues(a); return bytesHex(a); }
+function haPin() { return !!(lsGet(K_HASH) && lsGet(K_SALT)); }
+function erroriPin() { var n = parseInt(lsGet(K_ERR) || '0', 10); return isNaN(n) ? 0 : n; }
+function pulisciPin() { lsDel(K_HASH); lsDel(K_SALT); lsDel(K_ERR); }
+async function salvaPin(codice) {
+  var sale = nuovoSale();
+  var hash = await sha256(sale + codice);
+  lsSet(K_SALT, sale); lsSet(K_HASH, hash); lsSet(K_ERR, '0');
+}
+async function verificaPin(codice) {
+  var sale = lsGet(K_SALT), hash = lsGet(K_HASH);
+  if (!sale || !hash) return false;
+  return (await sha256(sale + codice)) === hash;
+}
+async function logoutCompleto(messaggio) {
+  S.loginMsg = messaggio || '';
+  pulisciPin();
+  try { await sb.auth.signOut({ scope: 'local' }); } catch (e) {}
+  S.lavori = []; S.pezzi = []; S.byLavoro = new Map(); S.loaded = false;
+  chiudiFinestre(); nascondiUndo();
+  S.screen = 'login';
+  render();
+}
+function bloccaApp() {
+  if (S.screen !== 'app' || !haPin()) return;
+  S.lavori = []; S.pezzi = []; S.byLavoro = new Map(); S.loaded = false;
+  chiudiFinestre(); nascondiUndo();
+  vaiAlPin('unlock', '', '');
+}
+function vaiAlPin(modo, msg, tipo) {
+  S.screen = 'pin'; S.pinMode = modo; S.pinBuf = ''; S.pinTmp = ''; S.pinMsg = msg || ''; S.pinMsgTipo = tipo || ''; S.pinBusy = false;
+  render();
+}
+
+async function pinDigit(d) {
+  if (S.pinBusy || S.pinBuf.length >= 4) return;
+  S.pinBuf += d;
+  pinAggiorna();
+  if (S.pinBuf.length === 4) await pinCompleto();
+}
+function pinCancella() {
+  if (S.pinBusy) return;
+  S.pinBuf = S.pinBuf.slice(0, -1);
+  pinAggiorna();
+}
+function pinAggiorna() {
+  document.querySelectorAll('.punto').forEach(function (p, i) { p.classList.toggle('pieno', i < S.pinBuf.length); });
+  var m = $('#pin-msg');
+  if (m) { m.textContent = S.pinMsg; m.className = 'msg-accesso ' + S.pinMsgTipo; }
+}
+async function pinCompleto() {
+  var codice = S.pinBuf;
+  S.pinBusy = true;
+  await sleep(150);
+  try {
+    if (S.pinMode === 'unlock') {
+      if (await verificaPin(codice)) {
+        lsSet(K_ERR, '0');
+        entraApp();
+      } else {
+        var n = erroriPin() + 1;
+        lsSet(K_ERR, String(n));
+        if (n >= MAX_ERRORI) { await logoutCompleto("Troppi tentativi: serve di nuovo l'accesso completo"); return; }
+        S.pinBuf = '';
+        var resta = MAX_ERRORI - n;
+        S.pinMsg = 'Codice sbagliato. Hai ancora ' + resta + ' ' + plurale(resta, 'tentativo', 'tentativi') + '.';
+        S.pinMsgTipo = 'err';
+        pinAggiorna();
+      }
+    } else if (S.pinMode === 'set1') {
+      S.pinTmp = codice;
+      vaiAlPin('set2', 'Scrivi di nuovo lo stesso codice', 'info');
+      S.pinTmp = codice;
+    } else if (S.pinMode === 'set2') {
+      if (codice === S.pinTmp) {
+        await salvaPin(codice);
+        entraApp();
+      } else {
+        vaiAlPin('set1', 'I due codici sono diversi. Riprova.', 'err');
+      }
+    }
+  } catch (e) {
+    S.pinBuf = '';
+    S.pinMsg = 'Non riesco a controllare il codice. Riprova.'; S.pinMsgTipo = 'err';
+    pinAggiorna();
+  } finally {
+    S.pinBusy = false;
+  }
+}
+
+/* ============ Dati ============ */
+async function fetchAll(tabella) {
+  var out = [], da = 0;
+  for (;;) {
+    var r = await sb.from(tabella).select('*').order('creato', { ascending: true }).order('id', { ascending: true }).range(da, da + 999);
+    if (r.error) throw r.error;
+    out = out.concat(r.data || []);
+    if (!r.data || r.data.length < 1000) break;
+    da += 1000;
+  }
+  return out;
+}
+async function loadAll() {
+  try {
+    var res = await Promise.all([fetchAll('officina_lavori'), fetchAll('officina_pezzi')]);
+    S.lavori = res[0]; S.pezzi = res[1];
+    S.loadError = null; S.loaded = true;
+    reindex();
+  } catch (e) {
+    S.loadError = errText(e);
+  }
+}
+function reindex() {
+  var m = new Map();
+  S.pezzi.forEach(function (p) { if (!m.has(p.lavoro_id)) m.set(p.lavoro_id, []); m.get(p.lavoro_id).push(p); });
+  S.byLavoro = m;
+}
+function pezziDi(id) { return S.byLavoro.get(id) || []; }
+function sommaQ(arr) { return arr.reduce(function (a, p) { return a + (Number(p.quantita) || 0); }, 0); }
+function conteggio(l) {
+  var ps = pezziDi(l.id);
+  var tot = sommaQ(ps), fatti = sommaQ(ps.filter(function (p) { return p.tagliato; }));
+  return { tot: tot, fatti: fatti, righe: ps.length };
+}
+function lavoroAttivo(l) { return l.stato !== 'consegnato'; }
+function lavoroDi(id) { return S.lavori.filter(function (l) { return l.id === id; })[0] || null; }
+function pezziDaTagliare() {
+  var out = [];
+  S.lavori.forEach(function (l) {
+    if (!lavoroAttivo(l)) return;
+    pezziDi(l.id).forEach(function (p) { if (!p.tagliato) out.push({ p: p, l: l }); });
+  });
+  return out;
+}
+
+/* Salva con controllo: esegue, ricarica, ridisegna */
+async function salva(fn, opz) {
+  opz = opz || {};
+  if (S.busy) return false;
+  S.busy = true;
+  try {
+    await fn();
+  } catch (e) {
+    S.busy = false;
+    showError('Non è stato salvato. ' + errText(e));
+    return false;
+  }
+  showSaved();
+  await loadAll();
+  S.busy = false;
+  if (!opz.norender) render();
+  return true;
+}
+
+/* ============ Navigazione ============ */
+function go(view, o) {
+  o = o || {};
+  S.view = view;
+  if ('lavoroId' in o) S.lavoroId = o.lavoroId;
+  S.pezzoId = o.pezzoId || null;
+  if (view !== 'pezzo') S.pezzoPrefill = null;
+  nascondiUndo();
+  render();
+  window.scrollTo(0, 0);
+}
+async function entraApp() {
+  S.screen = 'app'; S.view = 'oggi'; S.loaded = false; S.loadError = null;
+  render();
+  await loadAll();
+  if (S.screen === 'app') render();
+}
+async function riprova() {
+  S.loadError = null; S.loaded = false;
+  render();
+  await loadAll();
+  render();
+}
+
+/* ============ Disegno ============ */
+function render() {
+  var root = $('#app');
+  root.replaceChildren();
+  if (S.screen === 'login') root.append(viewLogin());
+  else if (S.screen === 'pin') root.append(viewPin());
+  else if (S.screen === 'app') root.append(viewShell());
+  else if (S.screen === 'fatal') root.append(viewFatal());
+}
+
+function viewFatal() {
+  return h('div', { class: 'centro' }, h('div', { class: 'pannello centro-testo' }, [
+    h('h1', { text: 'Officina' }),
+    h('p', { text: 'Non riesco ad aprire il programma. Niente connessione, riprova.' }),
+    h('button', { class: 'btn primary blocco', text: 'Riprova', onclick: function () { location.reload(); } })
+  ]));
+}
+
+/* ---- Accesso con email e password ---- */
+function viewLogin() {
+  var msg = h('p', { class: 'msg-accesso ' + (S.loginMsg ? 'err' : ''), id: 'login-msg', role: 'alert', text: S.loginMsg });
+  var email = h('input', { id: 'l-email', type: 'email', autocomplete: 'username', inputmode: 'email', autocapitalize: 'none', spellcheck: 'false', required: true, testid: 'login-email' });
+  var pass = h('input', { id: 'l-pass', type: 'password', autocomplete: 'current-password', required: true, testid: 'login-password' });
+  var mostra = h('button', { class: 'btn piccolo', text: 'Mostra la password', 'aria-pressed': 'false', onclick: function () {
+    var vis = pass.type === 'password';
+    pass.type = vis ? 'text' : 'password';
+    mostra.textContent = vis ? 'Nascondi la password' : 'Mostra la password';
+    mostra.setAttribute('aria-pressed', vis ? 'true' : 'false');
+  } });
+  var invia = h('button', { class: 'btn primary blocco', type: 'submit', text: 'Entra', testid: 'login-invia' });
+  var form = h('form', { novalidate: true, onsubmit: async function (ev) {
+    ev.preventDefault();
+    var em = email.value.trim(), pw = pass.value;
+    msg.className = 'msg-accesso'; msg.textContent = '';
+    if (!em || !pw) { msg.className = 'msg-accesso err'; msg.textContent = 'Scrivi email e password'; return; }
+    invia.disabled = true; invia.textContent = 'Un attimo…';
+    try {
+      var r = await sb.auth.signInWithPassword({ email: em, password: pw });
+      if (r.error) {
+        var m = String(r.error.message || '');
+        var sbagliate = r.error.status === 400 || r.error.status === 401 || /invalid login|invalid credentials/i.test(m);
+        msg.className = 'msg-accesso err';
+        msg.textContent = sbagliate ? 'Email o password sbagliate' : errText(r.error);
+        invia.disabled = false; invia.textContent = 'Entra';
+        return;
+      }
+      S.loginMsg = '';
+      pulisciPin();
+      vaiAlPin('set1', '', '');
+    } catch (e) {
+      msg.className = 'msg-accesso err'; msg.textContent = errText(e);
+      invia.disabled = false; invia.textContent = 'Entra';
+    }
+  } }, [
+    h('div', { class: 'campo' }, [h('label', { for: 'l-email', text: 'Email' }), email]),
+    h('div', { class: 'campo' }, [h('label', { for: 'l-pass', text: 'Password' }), pass, h('div', { style: 'margin-top:8px' }, mostra)]),
+    invia
+  ]);
+  return h('div', { class: 'centro' }, h('div', { class: 'pannello' }, [h('h1', { text: 'Officina' }), h('p', { class: 'centro-testo muted', text: 'Entra con la tua email' }), msg, form]));
+}
+
+/* ---- Codice di 4 cifre ---- */
+function viewPin() {
+  var titoli = { unlock: 'Scrivi il tuo codice', set1: 'Scegli il tuo codice di 4 cifre', set2: 'Scrivi di nuovo il codice' };
+  var sotto = { unlock: '', set1: 'Lo userai ogni volta che apri Officina.', set2: '' };
+  var punti = h('div', { class: 'punti', 'aria-label': 'Cifre scritte' }, [0, 1, 2, 3].map(function (i) { return h('span', { class: 'punto' + (i < S.pinBuf.length ? ' pieno' : '') }); }));
+  var tasti = [];
+  for (var i = 1; i <= 9; i++) tasti.push(pinTasto(i));
+  tasti.push(h('span'));
+  tasti.push(pinTasto(0));
+  tasti.push(h('button', { class: 'btn testo', text: 'Cancella', testid: 'pin-cancella', onclick: pinCancella }));
+  return h('div', { class: 'centro' }, h('div', { class: 'pannello' }, [
+    h('h1', { text: titoli[S.pinMode] }),
+    h('p', { class: 'centro-testo muted', text: sotto[S.pinMode] }),
+    h('p', { class: 'msg-accesso ' + S.pinMsgTipo, id: 'pin-msg', role: 'alert', text: S.pinMsg }),
+    punti,
+    h('div', { class: 'tastierino' }, tasti)
+  ]));
+}
+function pinTasto(n) {
+  return h('button', { class: 'btn', text: String(n), testid: 'pin-tasto-' + n, 'aria-label': String(n), onclick: function () { pinDigit(String(n)); } });
+}
+document.addEventListener('keydown', function (ev) {
+  if (S.screen !== 'pin') return;
+  if (/^[0-9]$/.test(ev.key)) { ev.preventDefault(); pinDigit(ev.key); }
+  else if (ev.key === 'Backspace') { ev.preventDefault(); pinCancella(); }
+});
+
+/* ---- Struttura con testata e barra ---- */
+function viewShell() {
+  var gruppo = { oggi: 'oggi', lavori: 'lavori', scheda: 'lavori', nuovo: 'lavori', modifica: 'lavori', pezzo: 'lavori', taglio: 'taglio' }[S.view] || '';
+  function voce(id, testo, testid) {
+    return h('button', { text: testo, testid: testid, 'aria-current': gruppo === id ? 'page' : null, onclick: function () { go(id); } });
+  }
+  var top = h('header', { class: 'top' }, h('div', { class: 'wrap top-inner' }, [
+    h('p', { class: 'brand', text: 'Officina' }),
+    h('button', { class: 'btn piccolo btn-gear', text: 'Impostazioni', testid: 'impostazioni', onclick: function () { go('impostazioni'); } }),
+    h('button', { class: 'btn primary btn-nuovo', text: '+ Nuovo lavoro', testid: 'nuovo-lavoro', onclick: function () { go('nuovo'); } }),
+    h('nav', { class: 'nav', 'aria-label': 'Menu principale' }, [voce('oggi', 'Oggi', 'nav-oggi'), voce('lavori', 'Lavori', 'nav-lavori'), voce('taglio', 'Da tagliare', 'nav-taglio')])
+  ]));
+  var main = h('main', { class: 'wrap' }, contenutoVista());
+  return h('div', null, [top, main]);
+}
+
+function contenutoVista() {
+  if (S.loadError) {
+    return h('div', { class: 'errore-rete' }, [
+      h('p', { text: S.loadError }),
+      h('button', { class: 'btn primary', text: 'Riprova', testid: 'riprova', onclick: riprova })
+    ]);
+  }
+  if (!S.loaded) return h('p', { class: 'vuoto', text: 'Un attimo, carico i lavori…' });
+  switch (S.view) {
+    case 'oggi': return viewOggi();
+    case 'lavori': return viewLavori();
+    case 'taglio': return viewTaglio();
+    case 'scheda': return viewScheda();
+    case 'nuovo': return viewFormLavoro(null);
+    case 'modifica': return viewFormLavoro(lavoroDi(S.lavoroId));
+    case 'pezzo': return viewFormPezzo();
+    case 'impostazioni': return viewImpostazioni();
+  }
+  return null;
+}
+
+/* ---- Pezzi: pulsanti e righe ---- */
+function barraAvanz(c) {
+  if (c.righe === 0) return h('span', { class: 'avviso-testo', text: 'Nessun pezzo scritto ancora' });
+  var perc = c.tot ? Math.round(c.fatti * 100 / c.tot) : 0;
+  var b = h('span', { class: 'barra', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(perc) }, h('span'));
+  b.firstChild.style.width = perc + '%';
+  return h('span', { style: 'display:block' }, [h('span', { class: 'avanz', text: c.fatti + ' di ' + c.tot + ' ' + plurale(c.tot, 'pezzo tagliato', 'pezzi tagliati') }), b]);
+}
+function cardLavoro(l) {
+  var c = conteggio(l);
+  var scad = h('span', { class: ritardoDi(l) ? 'ritardo' : '', text: testoScadenza(l) });
+  return h('button', { class: 'card', testid: 'lavoro-card', onclick: function () { go('scheda', { lavoroId: l.id }); } }, [
+    h('span', { class: 'cliente', text: l.cliente }),
+    h('span', { class: 'titolo', text: l.titolo }),
+    h('span', { class: 'meta' }, [scad, h('span', { class: 'badge st-' + l.stato, text: nomeStato(l.stato) })]),
+    barraAvanz(c)
+  ]);
+}
+function testoPezzo(p) { return p.quantita + ' × ' + p.descrizione + (p.misure ? ' — ' + p.misure : ''); }
+function spunta(p) {
+  return h('button', {
+    class: 'spunta', role: 'checkbox', 'aria-checked': p.tagliato ? 'true' : 'false', testid: 'spunta-pezzo',
+    'aria-label': (p.tagliato ? 'Già tagliato: ' : 'Segna come tagliato: ') + testoPezzo(p),
+    text: p.tagliato ? '✓' : '',
+    onclick: function () { togglePezzo(p); }
+  });
+}
+async function togglePezzo(p) {
+  var nuovo = !p.tagliato;
+  var ok = await salva(async function () {
+    var r = await sb.from('officina_pezzi').update({ tagliato: nuovo }).eq('id', p.id);
+    if (r.error) throw r.error;
+  });
+  if (ok && nuovo) {
+    showUndo('Segnato come tagliato', function () {
+      salva(async function () {
+        var r = await sb.from('officina_pezzi').update({ tagliato: false }).eq('id', p.id);
+        if (r.error) throw r.error;
+      });
+    });
+  }
+}
+
+/* ---- Oggi ---- */
+function viewOggi() {
+  var out = [];
+  out.push(h('h1', { text: 'Oggi' }));
+  out.push(h('p', { class: 'muted', text: new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }));
+  if (S.lavori.length === 0) {
+    out.push(h('p', { class: 'vuoto', text: 'Nessun lavoro. Tocca + Nuovo lavoro' }));
+    return out;
+  }
+  var attivi = S.lavori.filter(lavoroAttivo);
+  var tardi = attivi.filter(function (l) { var d = diffGiorni(l.scadenza); return d !== null && d < 0; }).sort(cmpScadenza);
+  var presto = attivi.filter(function (l) { var d = diffGiorni(l.scadenza); return d !== null && d >= 0 && d <= 3; }).sort(cmpScadenza);
+  var daTagliare = sommaQ(pezziDaTagliare().map(function (x) { return x.p; }));
+
+  if (tardi.length) out.push(h('section', { class: 'box rosso', testid: 'box-ritardo' }, [h('h2', { text: 'In ritardo' }), h('div', { class: 'lista' }, tardi.map(cardLavoro))]));
+  if (presto.length) out.push(h('section', { class: 'box giallo', testid: 'box-presto' }, [h('h2', { text: 'Scadono entro 3 giorni' }), h('div', { class: 'lista' }, presto.map(cardLavoro))]));
+  if (daTagliare > 0) {
+    out.push(h('section', { class: 'box', testid: 'box-taglio' }, h('div', { class: 'box-taglio' }, [
+      h('strong', { text: 'Pezzi ancora da tagliare: ' + daTagliare }),
+      h('button', { class: 'btn primary', text: 'Vai alla lista da tagliare', onclick: function () { go('taglio'); } })
+    ])));
+  }
+  if (!tardi.length && !presto.length && daTagliare === 0) {
+    out.push(h('section', { class: 'box verde', testid: 'tutto-ok' }, h('p', { text: 'Tutto in ordine ✓' })));
+  } else if (!tardi.length && !presto.length) {
+    out.push(h('section', { class: 'box verde' }, h('p', { text: 'Nessuna scadenza vicina ✓' })));
+  }
+  if (attivi.length === 0) out.push(h('p', { class: 'muted', text: 'Tutti i lavori sono consegnati.' }));
+  return out;
+}
+
+/* ---- Lavori ---- */
+function filtraLavori() {
+  var q = S.cerca.trim().toLowerCase();
+  var a = S.lavori.filter(function (l) { return S.mostraConsegnati || lavoroAttivo(l); });
+  if (S.filtro !== 'tutti') a = a.filter(function (l) { return l.stato === S.filtro; });
+  if (q) a = a.filter(function (l) { return (l.cliente + ' ' + l.titolo).toLowerCase().indexOf(q) !== -1; });
+  return a.sort(cmpScadenza);
+}
+function viewLavori() {
+  if (!S.mostraConsegnati && S.filtro === 'consegnato') S.filtro = 'tutti';
+  var contenitore = h('div', { id: 'elenco-lavori' });
+  function riempi() {
+    var a = filtraLavori();
+    if (S.lavori.length === 0) contenitore.replaceChildren(h('p', { class: 'vuoto', text: 'Nessun lavoro. Tocca + Nuovo lavoro' }));
+    else if (a.length === 0) contenitore.replaceChildren(h('p', { class: 'vuoto', text: 'Nessun lavoro trovato.' }));
+    else contenitore.replaceChildren(h('div', { class: 'lista' }, a.map(cardLavoro)));
+  }
+  var cerca = h('input', { type: 'search', placeholder: 'Cerca cliente o lavoro', 'aria-label': 'Cerca cliente o lavoro', value: S.cerca, testid: 'cerca', autocomplete: 'off', maxlength: '120',
+    style: 'width:100%;min-height:52px;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:var(--card)',
+    oninput: function (ev) { S.cerca = ev.target.value; riempi(); } });
+  var interr = h('button', { class: 'interruttore', role: 'switch', 'aria-checked': S.mostraConsegnati ? 'true' : 'false', testid: 'mostra-consegnati',
+    text: S.mostraConsegnati ? 'Mostra consegnati: SÌ' : 'Mostra consegnati: NO',
+    onclick: function () { S.mostraConsegnati = !S.mostraConsegnati; render(); } });
+  var voci = [{ v: 'tutti', t: 'Tutti' }].concat(STATI.filter(function (s) { return S.mostraConsegnati || s.v !== 'consegnato'; }));
+  var filtri = h('div', { class: 'filtri', role: 'group', 'aria-label': 'Filtra per stato' }, voci.map(function (s) {
+    return h('button', { class: 'btn', text: s.t, 'aria-pressed': S.filtro === s.v ? 'true' : 'false', testid: 'filtro-' + s.v,
+      onclick: function () { S.filtro = s.v; render(); } });
+  }));
+  riempi();
+  return [h('h1', { text: 'Lavori' }), h('div', { class: 'barra-ricerca' }, [cerca, interr]), filtri, contenitore];
+}
+
+/* ---- Da tagliare ---- */
+function viewTaglio() {
+  var righe = pezziDaTagliare();
+  var out = [h('h1', { text: 'Da tagliare' })];
+  if (righe.length === 0) {
+    out.push(h('section', { class: 'box verde' }, h('p', { text: S.lavori.length ? 'Nessun pezzo da tagliare ✓' : 'Nessun lavoro. Tocca + Nuovo lavoro' })));
+    return out;
+  }
+  out.push(h('p', { class: 'muted', text: 'Tocca la casella quando il pezzo è tagliato.' }));
+  var gruppi = new Map();
+  righe.forEach(function (x) {
+    var mat = (x.p.materiale || '').trim();
+    var sp = x.p.spessore != null && x.p.spessore !== '' ? Number(x.p.spessore) : null;
+    var chiave = mat.toLowerCase() + '|' + (sp == null ? '' : sp);
+    if (!gruppi.has(chiave)) {
+      var nome = mat ? mat : 'Materiale non indicato';
+      if (sp != null) nome += ' · ' + fmtNum(sp) + ' mm';
+      else if (mat) nome += ' · spessore non indicato';
+      gruppi.set(chiave, { nome: nome, mat: mat.toLowerCase(), sp: sp, righe: [] });
+    }
+    gruppi.get(chiave).righe.push(x);
+  });
+  var lista = Array.from(gruppi.values()).sort(function (a, b) {
+    if (!a.mat !== !b.mat) return a.mat ? -1 : 1;
+    if (a.mat !== b.mat) return a.mat < b.mat ? -1 : 1;
+    return (a.sp == null ? 1e9 : a.sp) - (b.sp == null ? 1e9 : b.sp);
+  });
+  lista.forEach(function (g) {
+    g.righe.sort(function (a, b) { return cmpScadenza(a.l, b.l); });
+    var tot = sommaQ(g.righe.map(function (x) { return x.p; }));
+    out.push(h('section', { class: 'gruppo', testid: 'gruppo-taglio' }, [
+      h('h2', null, [g.nome, h('small', { text: tot + ' ' + plurale(tot, 'pezzo', 'pezzi') })]),
+      h('div', { class: 'pezzi' }, g.righe.map(function (x) {
+        return h('div', { class: 'riga' }, [
+          spunta(x.p),
+          h('div', { class: 'testo' }, [
+            h('div', { class: 'principale', text: testoPezzo(x.p) }),
+            h('div', { class: 'piccolo', text: x.l.cliente + ' — ' + x.l.titolo }),
+            x.p.note ? h('div', { class: 'piccolo', text: x.p.note }) : null
+          ])
+        ]);
+      }))
+    ]));
+  });
+  return out;
+}
+
+/* ---- Scheda lavoro ---- */
+function viewScheda() {
+  var l = lavoroDi(S.lavoroId);
+  if (!l) {
+    return [h('p', { class: 'vuoto', text: 'Questo lavoro non c\'è più.' }), h('button', { class: 'btn primary', text: 'Torna ai lavori', onclick: function () { go('lavori'); } })];
+  }
+  var ps = pezziDi(l.id);
+  var c = conteggio(l);
+  var out = [];
+  out.push(h('button', { class: 'btn indietro', text: '← Indietro', testid: 'indietro', onclick: function () { go('lavori'); } }));
+  out.push(h('h1', { text: l.cliente, style: 'overflow-wrap:anywhere' }));
+  out.push(h('p', { style: 'font-size:1.15rem;overflow-wrap:anywhere', text: l.titolo }));
+  out.push(h('p', { class: ritardoDi(l) ? 'ritardo' : '', style: 'font-weight:700', text: testoScadenza(l) }));
+  out.push(h('h2', { text: 'Come sta andando' }));
+  out.push(h('div', { class: 'stati', role: 'group', 'aria-label': 'Stato del lavoro' }, STATI.map(function (s, i) {
+    var attivo = l.stato === s.v;
+    return h('button', { class: 'stato st-' + s.v, text: (attivo ? '✓ ' : '') + (i + 1) + '. ' + s.t, 'aria-pressed': attivo ? 'true' : 'false', testid: 'stato-' + s.v,
+      onclick: function () { cambiaStato(l, s.v); } });
+  })));
+  if (l.cartella) {
+    out.push(h('h2', { text: 'Cartella dei file' }));
+    out.push(h('div', { class: 'cartella' }, [
+      h('code', { text: l.cartella }),
+      h('button', { class: 'btn primary', text: 'Copia percorso', testid: 'copia-percorso', onclick: function () { copia(l.cartella); } })
+    ]));
+  }
+  if (l.note) {
+    out.push(h('h2', { text: 'Note' }));
+    out.push(h('div', { class: 'note-box', text: l.note }));
+  }
+  out.push(h('h2', { text: 'Pezzi' }));
+  out.push(h('p', { style: 'font-weight:800', testid: 'contatore-pezzi', text: c.righe === 0 ? 'Nessun pezzo scritto ancora' : c.fatti + ' di ' + c.tot + ' tagliati' }));
+  if (ps.length === 0) out.push(h('p', { class: 'vuoto', text: 'Nessun pezzo. Tocca + Aggiungi pezzo' }));
+  else {
+    out.push(h('div', { class: 'pezzi' }, ps.map(function (p) {
+      var dett = [];
+      if (p.materiale) dett.push(p.materiale);
+      if (p.spessore != null && p.spessore !== '') dett.push(fmtNum(p.spessore) + ' mm');
+      return h('div', { class: 'riga' }, [
+        spunta(p),
+        h('div', { class: 'testo' }, [
+          h('div', { class: 'principale', text: testoPezzo(p) }),
+          dett.length ? h('div', { class: 'piccolo', text: dett.join(' · ') }) : null,
+          p.note ? h('div', { class: 'piccolo', text: p.note }) : null,
+          p.tagliato ? h('div', { class: 'fatto-tag', text: 'Tagliato ✓' }) : null,
+          h('div', { class: 'azioni' }, [
+            h('button', { class: 'btn piccolo', text: 'Modifica', testid: 'modifica-pezzo', onclick: function () { go('pezzo', { lavoroId: l.id, pezzoId: p.id }); } }),
+            h('button', { class: 'btn piccolo danger', text: 'Elimina', testid: 'elimina-pezzo', onclick: function () { eliminaPezzo(p); } })
+          ])
+        ])
+      ]);
+    })));
+  }
+  out.push(h('button', { class: 'btn primary blocco', text: '+ Aggiungi pezzo', testid: 'aggiungi-pezzo', style: 'min-height:60px', onclick: function () { go('pezzo', { lavoroId: l.id }); } }));
+  out.push(h('div', { class: 'riga-bottoni', style: 'margin-top:28px' }, [
+    h('button', { class: 'btn', text: 'Modifica lavoro', testid: 'modifica-lavoro', onclick: function () { go('modifica', { lavoroId: l.id }); } }),
+    h('button', { class: 'btn danger', text: 'Elimina lavoro', testid: 'elimina-lavoro', onclick: function () { eliminaLavoro(l); } })
+  ]));
+  return out;
+}
+
+async function copia(testo) {
+  try { await navigator.clipboard.writeText(testo); showSaved('Copiato ✓'); return; } catch (e) {}
+  try {
+    var t = h('textarea', { value: testo, readonly: true });
+    t.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.append(t); t.select();
+    var ok = document.execCommand('copy');
+    t.remove();
+    if (ok) showSaved('Copiato ✓'); else showError('Non riesco a copiare. Tieni premuto sul testo per copiarlo.');
+  } catch (e2) { showError('Non riesco a copiare. Tieni premuto sul testo per copiarlo.'); }
+}
+
+/* Regola chiave: nessun pezzo dimenticato */
+async function cambiaStato(l, nuovo) {
+  if (l.stato === nuovo || S.busy) return;
+  var spuntaTutti = false;
+  if (nuovo === 'tagliato' || nuovo === 'consegnato') {
+    var mancanti = pezziDi(l.id).filter(function (p) { return !p.tagliato; });
+    if (mancanti.length) {
+      var tot = sommaQ(mancanti);
+      var ok = await conferma({
+        titolo: 'Attenzione: mancano ' + tot + ' ' + plurale(tot, 'pezzo', 'pezzi') + ' da tagliare',
+        attenzione: true,
+        corpo: h('ul', null, mancanti.map(function (p) { return h('li', { text: testoPezzo(p) }); })),
+        no: 'Torna indietro', si: 'Sì, è tutto fatto: spunta tutti'
+      });
+      if (!ok) return;
+      spuntaTutti = true;
+    }
+  }
+  await salva(async function () {
+    if (spuntaTutti) {
+      var r1 = await sb.from('officina_pezzi').update({ tagliato: true }).eq('lavoro_id', l.id).eq('tagliato', false);
+      if (r1.error) throw r1.error;
+    }
+    var r2 = await sb.from('officina_lavori').update({ stato: nuovo }).eq('id', l.id);
+    if (r2.error) throw r2.error;
+  });
+}
+
+async function eliminaLavoro(l) {
+  var n = sommaQ(pezziDi(l.id));
+  var ok = await conferma({
+    titolo: 'Eliminare il lavoro e tutti i suoi ' + n + ' ' + plurale(n, 'pezzo', 'pezzi') + '?',
+    corpo: h('p', { text: l.cliente + ' — ' + l.titolo }),
+    no: 'No, torna indietro', si: 'Sì, elimina'
+  });
+  if (!ok) return;
+  var fatto = await salva(async function () {
+    var r = await sb.from('officina_lavori').delete().eq('id', l.id);
+    if (r.error) throw r.error;
+  }, { norender: true });
+  if (fatto) go('lavori', { lavoroId: null });
+}
+async function eliminaPezzo(p) {
+  var ok = await conferma({
+    titolo: 'Eliminare questo pezzo?',
+    corpo: h('p', { text: testoPezzo(p) }),
+    no: 'No, torna indietro', si: 'Sì, elimina'
+  });
+  if (!ok) return;
+  await salva(async function () {
+    var r = await sb.from('officina_pezzi').delete().eq('id', p.id);
+    if (r.error) throw r.error;
+  });
+}
+
+/* ---- Campi dei moduli ---- */
+function campo(o) {
+  var inp;
+  var attr = { id: o.id, testid: o.testid, maxlength: o.max ? String(o.max) : null, value: o.valore != null ? String(o.valore) : '', autocomplete: 'off', list: o.lista || null, inputmode: o.inputmode || null };
+  if (o.area) inp = h('textarea', attr);
+  else { attr.type = o.tipo || 'text'; if (o.min) attr.min = o.min; inp = h('input', attr); }
+  if (o.area) inp.value = attr.value;
+  var err = h('p', { class: 'err', id: o.id + '-err', role: 'alert', hidden: true });
+  var wrap = h('div', { class: 'campo' }, [h('label', { for: o.id, text: o.etichetta }), inp, o.aiuto ? h('p', { class: 'aiuto', text: o.aiuto }) : null, err]);
+  return {
+    wrap: wrap, input: inp,
+    errore: function (m) {
+      wrap.classList.toggle('ha-errore', !!m);
+      err.hidden = !m; err.textContent = m || '';
+      if (m) inp.setAttribute('aria-describedby', err.id); else inp.removeAttribute('aria-describedby');
+    }
+  };
+}
+var DETTA = 'Puoi dettare col microfono della tastiera';
+
+/* ---- Nuovo lavoro / Modifica lavoro ---- */
+function viewFormLavoro(l) {
+  if (S.view === 'modifica' && !l) return h('p', { class: 'vuoto', text: 'Questo lavoro non c\'è più.' });
+  var f = {
+    cliente: campo({ id: 'f-cliente', etichetta: 'Cliente', max: 120, valore: l ? l.cliente : '', testid: 'campo-cliente' }),
+    titolo: campo({ id: 'f-titolo', etichetta: 'Che lavoro è', max: 200, valore: l ? l.titolo : '', testid: 'campo-titolo', aiuto: DETTA }),
+    scadenza: campo({ id: 'f-scadenza', etichetta: 'Scadenza (si può lasciare vuota)', tipo: 'date', valore: l && l.scadenza ? l.scadenza : '', testid: 'campo-scadenza' }),
+    cartella: campo({ id: 'f-cartella', etichetta: 'Cartella dei file sul computer', max: 400, valore: l ? l.cartella || '' : '', testid: 'campo-cartella', aiuto: 'Per esempio: C:\\Lavori\\Rossi' }),
+    note: campo({ id: 'f-note', etichetta: 'Note', area: true, max: 5000, valore: l ? l.note || '' : '', testid: 'campo-note', aiuto: DETTA })
+  };
+  var salvaBtn = h('button', { class: 'btn primary', type: 'submit', text: l ? 'Salva modifiche' : 'Salva lavoro', testid: 'salva-lavoro' });
+  var form = h('form', { class: 'form', novalidate: true, onsubmit: async function (ev) {
+    ev.preventDefault();
+    var cliente = f.cliente.input.value.trim(), titolo = f.titolo.input.value.trim();
+    var ok = true;
+    f.cliente.errore(cliente ? '' : 'Scrivi il nome del cliente');
+    f.titolo.errore(titolo ? '' : 'Scrivi che lavoro è');
+    if (!cliente) ok = false; if (!titolo) ok = false;
+    var sc = f.scadenza.input.value;
+    if (sc && !/^\d{4}-\d{2}-\d{2}$/.test(sc)) { f.scadenza.errore('Scegli una data valida'); ok = false; } else f.scadenza.errore('');
+    if (!ok) { var primo = form.querySelector('.ha-errore input, .ha-errore textarea'); if (primo) primo.focus(); return; }
+    var dati = {
+      cliente: cliente, titolo: titolo, scadenza: sc || null,
+      cartella: f.cartella.input.value.trim() || null, note: f.note.input.value.trim() || null
+    };
+    var nuovoId = l ? l.id : null;
+    var fatto = await salva(async function () {
+      if (l) {
+        var r = await sb.from('officina_lavori').update(dati).eq('id', l.id);
+        if (r.error) throw r.error;
+      } else {
+        var r2 = await sb.from('officina_lavori').insert(dati).select('id').single();
+        if (r2.error) throw r2.error;
+        nuovoId = r2.data.id;
+      }
+    }, { norender: true });
+    if (fatto) go('scheda', { lavoroId: nuovoId });
+  } }, [
+    f.cliente.wrap, f.titolo.wrap, f.scadenza.wrap, f.cartella.wrap, f.note.wrap,
+    h('div', { class: 'riga-bottoni' }, [
+      salvaBtn,
+      h('button', { class: 'btn', text: 'Annulla', onclick: function () { l ? go('scheda', { lavoroId: l.id }) : go('lavori'); } })
+    ])
+  ]);
+  return [h('h1', { text: l ? 'Modifica lavoro' : 'Nuovo lavoro' }), form];
+}
+
+/* ---- Aggiungi / modifica pezzo ---- */
+function viewFormPezzo() {
+  var l = lavoroDi(S.lavoroId);
+  if (!l) return h('p', { class: 'vuoto', text: 'Questo lavoro non c\'è più.' });
+  var p = S.pezzoId ? pezziDi(l.id).filter(function (x) { return x.id === S.pezzoId; })[0] : null;
+  var pre = S.pezzoPrefill || {};
+  // materiali già usati + base, senza doppioni
+  var visti = {}, materiali = [];
+  S.pezzi.map(function (x) { return (x.materiale || '').trim(); }).concat(MATERIALI_BASE).forEach(function (m) {
+    if (m && !visti[m.toLowerCase()]) { visti[m.toLowerCase()] = 1; materiali.push(m); }
+  });
+  var dl = h('datalist', { id: 'lista-materiali' }, materiali.map(function (m) { return h('option', { value: m }); }));
+  var f = {
+    quantita: campo({ id: 'p-quantita', etichetta: 'Quanti pezzi', tipo: 'number', min: '1', inputmode: 'numeric', valore: p ? p.quantita : 1, testid: 'campo-quantita' }),
+    descrizione: campo({ id: 'p-descrizione', etichetta: 'Che pezzo è', max: 200, valore: p ? p.descrizione : '', testid: 'campo-descrizione', aiuto: DETTA }),
+    materiale: campo({ id: 'p-materiale', etichetta: 'Materiale', max: 60, valore: p ? p.materiale || '' : pre.materiale || '', testid: 'campo-materiale', lista: 'lista-materiali' }),
+    spessore: campo({ id: 'p-spessore', etichetta: 'Spessore in mm', inputmode: 'decimal', valore: p ? (p.spessore != null ? fmtNum(p.spessore) : '') : pre.spessore || '', testid: 'campo-spessore', aiuto: 'Per esempio: 2 oppure 1,5' }),
+    misure: campo({ id: 'p-misure', etichetta: 'Misure', max: 200, valore: p ? p.misure || '' : '', testid: 'campo-misure', aiuto: 'Per esempio: 120×80' }),
+    note: campo({ id: 'p-note', etichetta: 'Note', area: true, max: 2000, valore: p ? p.note || '' : '', testid: 'campo-note-pezzo', aiuto: DETTA })
+  };
+  async function invia(altro) {
+    var ok = true;
+    var q = f.quantita.input.value.trim();
+    var qn = Number(q);
+    if (!q || !Number.isInteger(qn) || qn < 1) { f.quantita.errore('Scrivi quanti pezzi (almeno 1)'); ok = false; } else f.quantita.errore('');
+    var desc = f.descrizione.input.value.trim();
+    if (!desc) { f.descrizione.errore('Scrivi che pezzo è'); ok = false; } else f.descrizione.errore('');
+    var spTxt = f.spessore.input.value.trim().replace(',', '.');
+    var sp = null;
+    if (spTxt) {
+      sp = Number(spTxt);
+      if (!isFinite(sp) || sp <= 0) { f.spessore.errore('Scrivi un numero, per esempio 2 oppure 1,5'); ok = false; } else f.spessore.errore('');
+    } else f.spessore.errore('');
+    if (!ok) { var primo = form.querySelector('.ha-errore input, .ha-errore textarea'); if (primo) primo.focus(); return; }
+    var dati = {
+      quantita: qn, descrizione: desc,
+      materiale: f.materiale.input.value.trim() || null, spessore: sp,
+      misure: f.misure.input.value.trim() || null, note: f.note.input.value.trim() || null
+    };
+    var fatto = await salva(async function () {
+      if (p) {
+        var r = await sb.from('officina_pezzi').update(dati).eq('id', p.id);
+        if (r.error) throw r.error;
+      } else {
+        dati.lavoro_id = l.id;
+        var r2 = await sb.from('officina_pezzi').insert(dati);
+        if (r2.error) throw r2.error;
+      }
+    }, { norender: true });
+    if (!fatto) return;
+    if (altro) { S.pezzoPrefill = { materiale: dati.materiale || '', spessore: sp != null ? fmtNum(sp) : '' }; go('pezzo', { lavoroId: l.id }); }
+    else go('scheda', { lavoroId: l.id });
+  }
+  var form = h('form', { class: 'form', novalidate: true, onsubmit: function (ev) { ev.preventDefault(); invia(false); } }, [
+    dl,
+    h('div', { class: 'due-colonne' }, [f.quantita.wrap, f.spessore.wrap]),
+    f.descrizione.wrap, f.materiale.wrap, f.misure.wrap, f.note.wrap,
+    h('div', { class: 'riga-bottoni' }, [
+      h('button', { class: 'btn primary', type: 'submit', text: 'Salva pezzo', testid: 'salva-pezzo' }),
+      p ? null : h('button', { class: 'btn', text: 'Salva e aggiungi un altro', testid: 'salva-altro', onclick: function () { invia(true); } }),
+      h('button', { class: 'btn', text: 'Annulla', onclick: function () { go('scheda', { lavoroId: l.id }); } })
+    ])
+  ]);
+  return [h('p', { class: 'muted', text: l.cliente + ' — ' + l.titolo }), h('h1', { text: p ? 'Modifica pezzo' : 'Aggiungi pezzo' }), form];
+}
+
+/* ---- Impostazioni ---- */
+function viewImpostazioni() {
+  var scuro = temaEffettivo() === 'dark';
+  return h('div', { class: 'impostazioni' }, [
+    h('h1', { text: 'Impostazioni' }),
+    h('h2', { text: 'Colori' }),
+    h('button', { class: 'btn blocco', testid: 'tema', text: scuro ? '☀ Passa al tema chiaro' : '☾ Passa al tema scuro', onclick: cambiaTema }),
+    h('div', { class: 'esci-zona' }, [
+      h('p', { class: 'muted', text: 'Se esci, la prossima volta servono di nuovo email e password.' }),
+      h('button', { class: 'btn piccolo', text: 'Esci', testid: 'esci', onclick: function () { logoutCompleto(''); } })
+    ])
+  ]);
+}
+
+/* ============ Codice anche dopo 10 minuti in background ============ */
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) { hiddenAt = Date.now(); return; }
+  if (hiddenAt && Date.now() - hiddenAt > DIECI_MINUTI) bloccaApp();
+  hiddenAt = 0;
+});
+
+/* ============ Avvio ============ */
+async function avvio() {
+  applicaTema();
+  if (!window.supabase || !window.supabase.createClient) { S.screen = 'fatal'; render(); return; }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+  sb.auth.onAuthStateChange(function (ev) {
+    if (ev === 'SIGNED_OUT') {
+      setTimeout(function () {
+        if (S.screen === 'login') return;
+        pulisciPin();
+        S.lavori = []; S.pezzi = []; S.byLavoro = new Map(); S.loaded = false;
+        chiudiFinestre(); nascondiUndo();
+        S.screen = 'login'; render();
+      }, 0);
+    }
+  });
+  var sessione = null;
+  try { var r = await sb.auth.getSession(); sessione = r && r.data ? r.data.session : null; } catch (e) { sessione = null; }
+  if (!sessione) { S.screen = 'login'; render(); return; }
+  if (haPin()) {
+    if (erroriPin() >= MAX_ERRORI) { await logoutCompleto("Troppi tentativi: serve di nuovo l'accesso completo"); return; }
+    vaiAlPin('unlock', '', '');
+  } else vaiAlPin('set1', '', '');
+}
+avvio();
+})();
+</script>
+</body>
+</html>
