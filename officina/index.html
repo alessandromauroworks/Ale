@@ -93,7 +93,7 @@ p{margin:0 0 10px}
 :focus-visible{outline:3px solid var(--primary);outline-offset:2px}
 svg{flex:0 0 auto}
 
-.wrap{max-width:1000px;margin:0 auto;padding:0 16px calc(96px + env(safe-area-inset-bottom))}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px}
 
 /* Vetro: solo barre e fogli */
 .vetro{background:var(--glass);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-hi)}
@@ -127,7 +127,8 @@ svg{flex:0 0 auto}
 .nav{position:fixed;left:12px;right:92px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:35;height:68px;border-radius:34px;padding:6px;display:flex;gap:2px}
 .nav button{flex:1;min-height:52px;border:0;border-radius:28px;background:transparent;color:var(--muted);font-weight:600;font-size:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px 2px}
 .nav button[aria-current="page"]{background:var(--primary-soft);color:var(--primary-text);font-weight:700}
-main{padding:10px 0 130px}
+html{scroll-padding-bottom:112px}
+main{padding:10px 0 calc(96px + 16px + env(safe-area-inset-bottom))}
 
 /* Elenchi raggruppati stile Impostazioni di iPhone */
 .sez{margin:0 0 22px}
@@ -266,7 +267,7 @@ main{padding:10px 0 130px}
   .stati .stato[aria-pressed="true"]{background:var(--b)}
   .undo{bottom:24px}
   .toast{bottom:24px}
-  .wrap{padding-bottom:32px}
+  html{scroll-padding-bottom:0}
   main{padding-bottom:60px}
 }
 @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
