@@ -93,7 +93,7 @@ p{margin:0 0 10px}
 :focus-visible{outline:3px solid var(--primary);outline-offset:2px}
 svg{flex:0 0 auto}
 
-.wrap{max-width:1000px;margin:0 auto;padding:0 16px}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px calc(96px + env(safe-area-inset-bottom))}
 
 /* Vetro: solo barre e fogli */
 .vetro{background:var(--glass);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-hi)}
@@ -114,7 +114,10 @@ svg{flex:0 0 auto}
 .link:active{opacity:.6}
 
 /* Testata (vetro) */
-.top{position:sticky;top:0;z-index:40;border-width:0 0 1px 0;box-shadow:none}
+.top{position:sticky;top:0;z-index:40}
+.top::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--glass);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border-bottom:1px solid var(--glass-border)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.top::before{background:var(--glass-solid)}}
+@media (prefers-reduced-transparency: reduce){.top::before{background:var(--glass-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
 .top-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 16px;min-height:56px}
 .brand{font-size:19px;font-weight:700;margin:0}
 .btn-gear{min-height:48px}
@@ -209,7 +212,7 @@ main{padding:10px 0 130px}
 .esci-zona{margin-top:40px;padding-top:18px}
 
 /* Avvisi a comparsa */
-.toast{position:fixed;left:50%;bottom:calc(172px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:80;padding:12px 24px;border-radius:999px;background:var(--toast-bg);color:var(--toast-fg);font-weight:700;max-width:92vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.3);pointer-events:none}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:80;padding:8px 18px;font-size:16px;border-radius:999px;background:var(--toast-bg);color:var(--toast-fg);font-weight:700;max-width:92vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.3);pointer-events:none}
 .toast.err{background:var(--toast-err-bg);color:var(--toast-err-fg);border-radius:16px}
 .undo{position:fixed;left:12px;right:12px;bottom:calc(96px + env(safe-area-inset-bottom));margin:0 auto;max-width:560px;z-index:70;display:flex;gap:12px;align-items:center;justify-content:space-between;background:var(--toast-bg);color:var(--toast-fg);padding:8px 8px 8px 18px;border-radius:18px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.3)}
 .undo .btn{min-height:48px;background:var(--primary);border-color:var(--primary);color:var(--on-primary);font-weight:700}
@@ -262,7 +265,8 @@ main{padding:10px 0 130px}
   .stati .stato{background:var(--card);border-radius:14px;justify-content:center;min-height:60px}
   .stati .stato[aria-pressed="true"]{background:var(--b)}
   .undo{bottom:24px}
-  .toast{bottom:90px}
+  .toast{bottom:24px}
+  .wrap{padding-bottom:32px}
   main{padding-bottom:60px}
 }
 @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
@@ -396,7 +400,7 @@ function showToast(testo, err) {
   t.className = 'toast' + (err ? ' err' : '');
   t.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function () { t.hidden = true; }, err ? 6000 : 2000);
+  toastTimer = setTimeout(function () { t.hidden = true; }, err ? 6000 : 1500);
 }
 function showSaved(testo) { showToast(testo || 'Salvato ✓', false); }
 function showError(testo) { showToast(testo, true); }
@@ -747,7 +751,7 @@ function viewShell() {
   function voce(id, testo, testid) {
     return h('button', { testid: testid, 'aria-current': gruppo === id ? 'page' : null, onclick: function () { go(id); } }, [icona(id, 26), h('span', { text: testo })]);
   }
-  var top = h('header', { class: 'top vetro' }, [
+  var top = h('header', { class: 'top' }, [
     h('div', { class: 'top-inner' }, [
       h('p', { class: 'brand', text: 'Officina' }),
       h('nav', { class: 'nav vetro', 'aria-label': 'Menu principale' }, [voce('oggi', 'Oggi', 'nav-oggi'), voce('lavori', 'Lavori', 'nav-lavori'), voce('taglio', 'Da tagliare', 'nav-taglio')]),
