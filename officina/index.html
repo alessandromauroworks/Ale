@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src https://udubhzamghhlkxgepmmc.supabase.co wss://udubhzamghhlkxgepmmc.supabase.co; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src https://udubhzamghhlkxgepmmc.supabase.co wss://udubhzamghhlkxgepmmc.supabase.co; img-src 'self' data: https://udubhzamghhlkxgepmmc.supabase.co blob:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#f4f5f7">
@@ -272,19 +272,38 @@ button.fase-riga{cursor:pointer}
 .segm .btn{flex:1}
 .cambia{margin:0 0 18px}
 
-/* Accesso e codice */
+/* Foto e visualizzatore */
+.conteggio{font-size:22px;font-weight:700;margin:2px 0 14px}
+.avanz-riga{display:flex;flex-wrap:wrap;gap:0 16px}
+.file-nascosto{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+.foto-azione{display:block;position:relative;margin:0 0 14px}
+.foto-azione .btn{width:100%}
+.foto-griglia{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:0 0 12px}
+@media (min-width:820px){.foto-griglia{grid-template-columns:repeat(4,1fr)}}
+.foto-mini{position:relative;display:block;padding:0;border:0;border-radius:14px;overflow:hidden;background:var(--track);aspect-ratio:4/3;cursor:pointer}
+.foto-mini img{width:100%;height:100%;object-fit:cover;display:block}
+.foto-mini.fermo{cursor:default}
+.mini-wrap{flex:0 0 auto;width:72px;height:72px;border-radius:12px;overflow:hidden;background:var(--track);align-self:flex-start}
+.mini-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.visore{position:fixed;inset:0;z-index:85;background:#000;display:flex;flex-direction:column}
+.visore-barra{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top));border-radius:0;border-width:0 0 1px 0}
+.visore-cont{color:var(--text);font-weight:700}
+.visore-scroll{flex:1;min-height:0;overflow:auto;display:flex;align-items:center;justify-content:center;touch-action:pan-x pan-y pinch-zoom;-webkit-overflow-scrolling:touch}
+.visore-img{max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;display:block}
+.visore-scroll.zoom{display:block}
+.visore-scroll.zoom .visore-img{max-width:none;max-height:none;width:250%;height:auto;cursor:zoom-out}
+.visore-freccia{position:absolute;top:50%;transform:translateY(-50%);width:56px;height:72px;border:0;border-radius:16px;background:rgba(255,255,255,.88);color:#000;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
+.visore-freccia.prec{left:10px}
+.visore-freccia.succ{right:10px}
+
+/* Accesso */
 .centro{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px 16px}
 .pannello{width:100%;max-width:440px;background:var(--card);border-radius:26px;padding:24px}
 .pannello h1{text-align:center;font-size:30px}
 .msg-accesso{text-align:center;font-weight:700;margin:0 0 14px;min-height:1.4em}
 .msg-accesso.err{color:var(--red-text)}
 .msg-accesso.info{color:var(--primary-text)}
-.punti{display:flex;justify-content:center;gap:18px;margin:16px 0 8px}
-.punto{width:22px;height:22px;border-radius:50%;border:2.5px solid var(--text);background:transparent}
-.punto.pieno{background:var(--text)}
-.tastierino{display:grid;grid-template-columns:repeat(3,84px);justify-content:center;gap:14px;margin:18px auto 0}
-.tastierino .btn{width:84px;height:84px;min-height:84px;padding:0;border-radius:50%;border:0;background:var(--key);font-size:32px;font-weight:400}
-.tastierino .btn.testo{font-size:16px;background:transparent;font-weight:600}
+.piccolo-testo{text-align:center;font-size:15px;color:var(--muted);margin:0 0 14px}
 .centro-testo{text-align:center}
 
 /* Computer */
@@ -337,9 +356,9 @@ var FASI = [
 ];
 var FASI_DEFAULT = ['disegno', 'taglio', 'pulizia', 'piegatura', 'saldatura', 'rifinitura', 'consegna'];
 var MATERIALI_BASE = ['Ferro', 'Inox', 'Alluminio', 'Zincato', 'Corten'];
-var K_HASH = 'officina_pin_hash', K_SALT = 'officina_pin_salt', K_ERR = 'officina_pin_errori', K_TEMA = 'officina_tema';
-var MAX_ERRORI = 5;
-var DIECI_MINUTI = 10 * 60 * 1000;
+var K_TEMA = 'officina_tema';
+var K_VECCHI = ['officina_pin_hash', 'officina_pin_salt', 'officina_pin_errori'];
+var BUCKET = 'officina-foto';
 
 /* ============ Memoria del dispositivo (sempre in try/catch) ============ */
 var mem = {};
@@ -349,18 +368,16 @@ function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { delete mem[k
 
 /* ============ Stato ============ */
 var S = {
-  screen: 'boot',      // boot | login | pin | app | fatal
+  screen: 'boot',      // boot | login | app | fatal
   view: 'oggi',        // oggi | lavori | taglio | scheda | nuovo | modifica | pezzo | fasi | impostazioni | clienti | cliente
   lavoroId: null, pezzoId: null, pezzoPrefill: null,
-  lavori: [], pezzi: [], clienti: [], byLavoro: new Map(), clienteId: null, codaTipo: 'taglio', filtroCliente: '',
+  lavori: [], pezzi: [], clienti: [], foto: [], fotoPer: new Map(), nuoveFoto: null, nuoveFotoUrls: null, fotoErrori: null, visoreApi: null, byLavoro: new Map(), clienteId: null, codaTipo: 'taglio', filtroCliente: '',
   loaded: false, loadError: null,
   filtro: 'tutti', cerca: '', mostraConsegnati: false,
   busy: false,
-  pinMode: 'unlock', pinBuf: '', pinTmp: '', pinMsg: '', pinMsgTipo: '', pinBusy: false,
   loginMsg: '', baseView: 'oggi', chiudiFoglio: null
 };
 var sb = null;
-var hiddenAt = 0;
 
 /* ============ Utilità ============ */
 function h(tag, props, kids) {
@@ -497,7 +514,7 @@ function conferma(o) {
     btnNo.focus();
   });
 }
-function chiudiFinestre() { document.querySelectorAll('.overlay').forEach(function (n) { n.remove(); }); }
+function chiudiFinestre() { document.querySelectorAll('.overlay, .visore').forEach(function (n) { n.remove(); }); S.visoreApi = null; }
 
 /* ============ Tema ============ */
 function temaEffettivo() {
@@ -518,100 +535,18 @@ function cambiaTema() {
   render();
 }
 
-/* ============ Codice di 4 cifre ============ */
-function bytesHex(buf) { return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join(''); }
-async function sha256(testo) {
-  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(testo));
-  return bytesHex(buf);
-}
-function nuovoSale() { var a = new Uint8Array(16); crypto.getRandomValues(a); return bytesHex(a); }
-function haPin() { return !!(lsGet(K_HASH) && lsGet(K_SALT)); }
-function erroriPin() { var n = parseInt(lsGet(K_ERR) || '0', 10); return isNaN(n) ? 0 : n; }
-function pulisciPin() { lsDel(K_HASH); lsDel(K_SALT); lsDel(K_ERR); }
-async function salvaPin(codice) {
-  var sale = nuovoSale();
-  var hash = await sha256(sale + codice);
-  lsSet(K_SALT, sale); lsSet(K_HASH, hash); lsSet(K_ERR, '0');
-}
-async function verificaPin(codice) {
-  var sale = lsGet(K_SALT), hash = lsGet(K_HASH);
-  if (!sale || !hash) return false;
-  return (await sha256(sale + codice)) === hash;
-}
+/* ============ Collegamento del dispositivo ============ */
 async function logoutCompleto(messaggio) {
   S.loginMsg = messaggio || '';
-  pulisciPin();
   try { await sb.auth.signOut({ scope: 'local' }); } catch (e) {}
-  S.lavori = []; S.pezzi = []; S.clienti = []; S.byLavoro = new Map(); S.loaded = false;
+  azzeraDati();
   chiudiFinestre(); nascondiUndo();
   S.screen = 'login';
   render();
 }
-function bloccaApp() {
-  if (S.screen !== 'app' || !haPin()) return;
-  S.lavori = []; S.pezzi = []; S.clienti = []; S.byLavoro = new Map(); S.loaded = false;
-  chiudiFinestre(); nascondiUndo();
-  vaiAlPin('unlock', '', '');
-}
-function vaiAlPin(modo, msg, tipo) {
-  S.screen = 'pin'; S.pinMode = modo; S.pinBuf = ''; S.pinTmp = ''; S.pinMsg = msg || ''; S.pinMsgTipo = tipo || ''; S.pinBusy = false;
-  render();
-}
-
-async function pinDigit(d) {
-  if (S.pinBusy || S.pinBuf.length >= 4) return;
-  S.pinBuf += d;
-  pinAggiorna();
-  if (S.pinBuf.length === 4) await pinCompleto();
-}
-function pinCancella() {
-  if (S.pinBusy) return;
-  S.pinBuf = S.pinBuf.slice(0, -1);
-  pinAggiorna();
-}
-function pinAggiorna() {
-  document.querySelectorAll('.punto').forEach(function (p, i) { p.classList.toggle('pieno', i < S.pinBuf.length); });
-  var m = $('#pin-msg');
-  if (m) { m.textContent = S.pinMsg; m.className = 'msg-accesso ' + S.pinMsgTipo; }
-}
-async function pinCompleto() {
-  var codice = S.pinBuf;
-  S.pinBusy = true;
-  await sleep(150);
-  try {
-    if (S.pinMode === 'unlock') {
-      if (await verificaPin(codice)) {
-        lsSet(K_ERR, '0');
-        entraApp();
-      } else {
-        var n = erroriPin() + 1;
-        lsSet(K_ERR, String(n));
-        if (n >= MAX_ERRORI) { await logoutCompleto("Troppi tentativi: serve di nuovo l'accesso completo"); return; }
-        S.pinBuf = '';
-        var resta = MAX_ERRORI - n;
-        S.pinMsg = 'Codice sbagliato. Hai ancora ' + resta + ' ' + plurale(resta, 'tentativo', 'tentativi') + '.';
-        S.pinMsgTipo = 'err';
-        pinAggiorna();
-      }
-    } else if (S.pinMode === 'set1') {
-      S.pinTmp = codice;
-      vaiAlPin('set2', 'Scrivi di nuovo lo stesso codice', 'info');
-      S.pinTmp = codice;
-    } else if (S.pinMode === 'set2') {
-      if (codice === S.pinTmp) {
-        await salvaPin(codice);
-        entraApp();
-      } else {
-        vaiAlPin('set1', 'I due codici sono diversi. Riprova.', 'err');
-      }
-    }
-  } catch (e) {
-    S.pinBuf = '';
-    S.pinMsg = 'Non riesco a controllare il codice. Riprova.'; S.pinMsgTipo = 'err';
-    pinAggiorna();
-  } finally {
-    S.pinBusy = false;
-  }
+function azzeraDati() {
+  S.lavori = []; S.pezzi = []; S.clienti = []; S.foto = []; S.byLavoro = new Map(); S.fotoPer = new Map(); S.loaded = false;
+  S.fotoErrori = null; urlCache = {};
 }
 
 /* ============ Dati ============ */
@@ -628,8 +563,8 @@ async function fetchAll(tabella) {
 }
 async function loadAll() {
   try {
-    var res = await Promise.all([fetchAll('officina_lavori'), fetchAll('officina_pezzi'), fetchAll('officina_clienti')]);
-    S.lavori = res[0]; S.pezzi = res[1]; S.clienti = res[2];
+    var res = await Promise.all([fetchAll('officina_lavori'), fetchAll('officina_pezzi'), fetchAll('officina_clienti'), fetchAll('officina_foto')]);
+    S.lavori = res[0]; S.pezzi = res[1]; S.clienti = res[2]; S.foto = res[3];
     S.loadError = null; S.loaded = true;
     reindex();
   } catch (e) {
@@ -640,6 +575,9 @@ function reindex() {
   var m = new Map();
   S.pezzi.forEach(function (p) { if (!m.has(p.lavoro_id)) m.set(p.lavoro_id, []); m.get(p.lavoro_id).push(p); });
   S.byLavoro = m;
+  var fm = new Map();
+  S.foto.forEach(function (f) { if (!fm.has(f.lavoro_id)) fm.set(f.lavoro_id, []); fm.get(f.lavoro_id).push(f); });
+  S.fotoPer = fm;
 }
 function pezziDi(id) { return S.byLavoro.get(id) || []; }
 function sommaQ(arr) { return arr.reduce(function (a, p) { return a + (Number(p.quantita) || 0); }, 0); }
@@ -681,11 +619,198 @@ async function salva(fn, opz) {
   return true;
 }
 
+/* ============ Foto dei fogli ============ */
+var urlCache = {};   // percorso -> { url, t }
+function fotoDi(id) { return S.fotoPer.get(id) || []; }
+async function firmaUrls(percorsi) {
+  var ora = Date.now(), visti = {}, daFare = [];
+  percorsi.forEach(function (p) {
+    if (visti[p]) return; visti[p] = 1;
+    if (!urlCache[p] || ora - urlCache[p].t > 50 * 60000) daFare.push(p);
+  });
+  for (var i = 0; i < daFare.length; i += 100) {
+    var r = await sb.storage.from(BUCKET).createSignedUrls(daFare.slice(i, i + 100), 3600);
+    if (r.error) throw r.error;
+    (r.data || []).forEach(function (x) { if (x.signedUrl && x.path) urlCache[x.path] = { url: x.signedUrl, t: ora }; });
+  }
+}
+function imgFoto(percorso, cls, alt) {
+  var im = h('img', { class: cls || null, alt: alt || '', loading: 'lazy', decoding: 'async', 'data-perc': percorso });
+  if (urlCache[percorso]) im.src = urlCache[percorso].url;
+  return im;
+}
+async function applicaImmagini() {
+  var imgs = Array.prototype.filter.call(document.querySelectorAll('img[data-perc]'), function (im) { return !im.getAttribute('src'); });
+  if (!imgs.length) return;
+  try { await firmaUrls(imgs.map(function (im) { return im.getAttribute('data-perc'); })); } catch (e) { return; }
+  imgs.forEach(function (im) { var c = urlCache[im.getAttribute('data-perc')]; if (c && im.isConnected) im.src = c.url; });
+}
+
+/* Riduzione prima del caricamento: lato lungo max 2000 px, JPEG qualità 0,8, orientamento rispettato */
+async function riduciFoto(file) {
+  var src = null, w = 0, hh = 0, bmp = null, urlTmp = null;
+  try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch (e) { bmp = null; }
+  if (bmp) { src = bmp; w = bmp.width; hh = bmp.height; }
+  else {
+    urlTmp = URL.createObjectURL(file);
+    src = await new Promise(function (ok, ko) {
+      var im = new Image();
+      im.onload = function () { ok(im); };
+      im.onerror = function () { ko(new Error('foto non leggibile')); };
+      im.src = urlTmp;
+    });
+    w = src.naturalWidth; hh = src.naturalHeight;
+  }
+  var scala = Math.min(1, 2000 / Math.max(w, hh));
+  var cv = document.createElement('canvas');
+  cv.width = Math.max(1, Math.round(w * scala)); cv.height = Math.max(1, Math.round(hh * scala));
+  var cx = cv.getContext('2d');
+  cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+  cx.drawImage(src, 0, 0, cv.width, cv.height);
+  if (bmp && bmp.close) bmp.close();
+  if (urlTmp) URL.revokeObjectURL(urlTmp);
+  var blob = await new Promise(function (ok) { cv.toBlob(ok, 'image/jpeg', 0.8); });
+  if (!blob) throw new Error('foto non riducibile');
+  return blob;
+}
+function uuid4() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  var a = new Uint8Array(16); crypto.getRandomValues(a); a[6] = (a[6] & 15) | 64; a[8] = (a[8] & 63) | 128;
+  var x = bytesHex(a); return x.slice(0, 8) + '-' + x.slice(8, 12) + '-' + x.slice(12, 16) + '-' + x.slice(16, 20) + '-' + x.slice(20);
+}
+function bytesHex(buf) { return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join(''); }
+function mostraProgresso(testo) {
+  var t = $('#toast'); t.textContent = testo; t.className = 'toast'; t.hidden = false; clearTimeout(toastTimer);
+}
+function nascondiProgresso() { var t = $('#toast'); t.hidden = true; clearTimeout(toastTimer); }
+/* Carica le foto una alla volta. Ritorna le foto che non sono riuscite (restano da riprovare). */
+async function inviaFoto(lavoroId, elementi) {
+  var falliti = [];
+  var utente = null;
+  try { var rs = await sb.auth.getSession(); utente = rs.data.session.user.id; } catch (e) { return { falliti: elementi.slice() }; }
+  for (var i = 0; i < elementi.length; i++) {
+    mostraProgresso('Carico foto ' + (i + 1) + ' di ' + elementi.length + '…');
+    var blob = elementi[i], percorso = null;
+    try {
+      blob = await riduciFoto(elementi[i]);
+      percorso = utente + '/' + lavoroId + '/' + uuid4() + '.jpg';
+      var up = await sb.storage.from(BUCKET).upload(percorso, blob, { contentType: 'image/jpeg', upsert: false });
+      if (up.error) throw up.error;
+      var ins = await sb.from('officina_foto').insert({ lavoro_id: lavoroId, percorso: percorso });
+      if (ins.error) { try { await sb.storage.from(BUCKET).remove([percorso]); } catch (e2) {} throw ins.error; }
+    } catch (e) { falliti.push(blob); }
+  }
+  nascondiProgresso();
+  return { falliti: falliti };
+}
+async function caricaESalva(lavoroId, elementi) {
+  if (S.busy) return;
+  S.busy = true;
+  var res = await inviaFoto(lavoroId, elementi);
+  await loadAll();
+  S.busy = false;
+  S.fotoErrori = res.falliti.length ? { lavoroId: lavoroId, blobs: res.falliti } : null;
+  if (S.fotoErrori) showError('Non tutte le foto sono state caricate');
+  else showSaved();
+  render();
+}
+function riprovaFoto() {
+  var e = S.fotoErrori; if (!e) return;
+  caricaESalva(e.lavoroId, e.blobs);
+}
+async function registraCliente(nome, cartella) {
+  var conosciuto = S.clienti.some(function (c) { return c.nome.trim().toLowerCase() === nome.toLowerCase(); });
+  if (conosciuto) return;
+  try { await sb.from('officina_clienti').upsert({ nome: nome, cartella: cartella || null }, { onConflict: 'user_id,nome', ignoreDuplicates: true }); } catch (e) {}
+}
+/* Pulsante con scelta file (sul PC apre la scelta file, sul telefono la fotocamera) */
+function bottoneFoto(testo, testidBtn, testidInput, perFile, cls, conCamera) {
+  var inp = h('input', { type: 'file', accept: 'image/*', multiple: true, class: 'file-nascosto', testid: testidInput, 'aria-hidden': 'true', tabindex: '-1' });
+  if (conCamera) inp.setAttribute('capture', 'environment');
+  inp.addEventListener('change', function () {
+    var files = Array.prototype.slice.call(inp.files || []);
+    inp.value = '';
+    if (files.length) perFile(files);
+  });
+  var b = h('button', { class: cls, testid: testidBtn, text: testo, onclick: function () { inp.click(); } });
+  return h('span', { class: 'foto-azione' }, [b, inp]);
+}
+
+/* ---- Visualizzatore a schermo intero ---- */
+function chiudiVisore() {
+  document.querySelectorAll('.visore').forEach(function (n) { n.remove(); });
+  S.visoreApi = null;
+}
+function apriVisore(lavoroId, idx) {
+  chiudiVisore();
+  var st = { idx: idx, corrente: null };
+  var img = h('img', { class: 'visore-img', alt: 'Foto del foglio', testid: 'visore-img', draggable: 'false' });
+  var scroll = h('div', { class: 'visore-scroll', testid: 'visore-scroll' }, img);
+  var cont = h('span', { class: 'visore-cont', testid: 'visore-contatore' });
+  function elenco() { return fotoDi(lavoroId); }
+  function zoom(v) { scroll.classList.toggle('zoom', v); if (!v) { scroll.scrollLeft = 0; scroll.scrollTop = 0; } }
+  function mostra() {
+    var el = elenco();
+    if (!el.length) { chiudiVisore(); return; }
+    if (st.idx >= el.length) st.idx = el.length - 1;
+    if (st.idx < 0) st.idx = 0;
+    var f = el[st.idx];
+    st.corrente = f.percorso;
+    cont.textContent = (st.idx + 1) + ' di ' + el.length;
+    prec.hidden = st.idx === 0; succ.hidden = st.idx === el.length - 1;
+    zoom(false);
+    img.removeAttribute('src');
+    firmaUrls([f.percorso]).then(function () {
+      var c = urlCache[f.percorso];
+      if (c && st.corrente === f.percorso) img.src = c.url;
+    }).catch(function () { showError('Non riesco a mostrare la foto'); });
+  }
+  function vai(d) { st.idx += d; mostra(); }
+  var prec = h('button', { class: 'visore-freccia prec', testid: 'visore-prec', 'aria-label': 'Foto precedente', onclick: function () { vai(-1); } }, icona('indietro', 30));
+  var succ = h('button', { class: 'visore-freccia succ', testid: 'visore-succ', 'aria-label': 'Foto successiva', onclick: function () { vai(1); } }, icona('chev', 30));
+  img.addEventListener('click', function () { zoom(!scroll.classList.contains('zoom')); });
+  var x0 = null, y0 = null;
+  scroll.addEventListener('touchstart', function (ev) { if (ev.touches.length === 1) { x0 = ev.touches[0].clientX; y0 = ev.touches[0].clientY; } else x0 = null; }, { passive: true });
+  scroll.addEventListener('touchend', function (ev) {
+    if (x0 === null || scroll.classList.contains('zoom') || !ev.changedTouches.length) return;
+    var dx = ev.changedTouches[0].clientX - x0, dy = ev.changedTouches[0].clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) > 60 && Math.abs(dy) < 60) vai(dx < 0 ? 1 : -1);
+  }, { passive: true });
+  var elimina = h('button', { class: 'btn danger piccolo', text: 'Elimina foto', testid: 'foto-elimina', onclick: async function () {
+    var f = elenco()[st.idx]; if (!f) return;
+    var ok = await conferma({ titolo: 'Eliminare questa foto?', corpo: h('p', { text: 'Non si può tornare indietro.' }), no: 'No, torna indietro', si: 'Sì, elimina' });
+    if (!ok) return;
+    var fatto = await salva(async function () {
+      var r0 = await sb.storage.from(BUCKET).remove([f.percorso]);
+      if (r0.error) throw r0.error;
+      var r1 = await sb.from('officina_foto').delete().eq('id', f.id);
+      if (r1.error) throw r1.error;
+      delete urlCache[f.percorso];
+    });
+    if (fatto) mostra();
+  } });
+  var chiudi = h('button', { class: 'btn piccolo', text: 'Chiudi', testid: 'visore-chiudi', onclick: chiudiVisore });
+  var ov = h('div', { class: 'visore', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Foto del foglio', testid: 'visore' }, [
+    h('div', { class: 'visore-barra vetro' }, [chiudi, cont, elimina]), scroll, prec, succ
+  ]);
+  document.body.append(ov);
+  S.visoreApi = { vai: vai, chiudi: chiudiVisore };
+  mostra();
+}
+document.addEventListener('keydown', function (ev) {
+  if (!S.visoreApi || document.querySelector('.dialog')) return;
+  if (ev.key === 'Escape') { ev.preventDefault(); S.visoreApi.chiudi(); }
+  else if (ev.key === 'ArrowRight') { ev.preventDefault(); S.visoreApi.vai(1); }
+  else if (ev.key === 'ArrowLeft') { ev.preventDefault(); S.visoreApi.vai(-1); }
+});
+
 /* ============ Navigazione ============ */
 function go(view, o) {
   o = o || {};
-  if (view === 'nuovo') S.baseView = (S.view === 'oggi' || S.view === 'lavori' || S.view === 'taglio') ? S.view : 'oggi';
+  if (view === 'nuovo' && S.view !== 'nuovo') S.baseView = (S.view === 'oggi' || S.view === 'lavori' || S.view === 'taglio') ? S.view : 'oggi';
   S.view = view;
+  if (view !== 'nuovo') { if (S.nuoveFotoUrls) S.nuoveFotoUrls.forEach(function (u) { URL.revokeObjectURL(u); }); S.nuoveFotoUrls = null; S.nuoveFoto = null; }
   if ('lavoroId' in o) S.lavoroId = o.lavoroId;
   S.pezzoId = o.pezzoId || null;
   if ('clienteId' in o) S.clienteId = o.clienteId || null;
@@ -712,16 +837,17 @@ function render() {
   var root = $('#app');
   root.replaceChildren();
   if (S.screen === 'login') root.append(viewLogin());
-  else if (S.screen === 'pin') root.append(viewPin());
   else if (S.screen === 'app') root.append(viewShell());
   else if (S.screen === 'fatal') root.append(viewFatal());
+  else root.append(h('div', { class: 'centro' }, h('p', { class: 'muted', text: 'Un attimo…' })));
   document.body.classList.toggle('foglio-aperto', !!document.querySelector('.foglio'));
+  applicaImmagini();
 }
 
 function viewFatal() {
   return h('div', { class: 'centro' }, h('div', { class: 'pannello centro-testo' }, [
     h('h1', { text: 'Officina' }),
-    h('p', { text: 'Non riesco ad aprire il programma. Niente connessione, riprova.' }),
+    h('p', { text: 'Niente connessione, riprova' }),
     h('button', { class: 'btn primary blocco', text: 'Riprova', onclick: function () { location.reload(); } })
   ]));
 }
@@ -755,8 +881,7 @@ function viewLogin() {
         return;
       }
       S.loginMsg = '';
-      pulisciPin();
-      vaiAlPin('set1', '', '');
+      entraApp();
     } catch (e) {
       msg.className = 'msg-accesso err'; msg.textContent = errText(e);
       invia.disabled = false; invia.textContent = 'Entra';
@@ -766,35 +891,8 @@ function viewLogin() {
     h('div', { class: 'campo' }, [h('label', { for: 'l-pass', text: 'Password' }), pass, h('div', { style: 'margin-top:8px' }, mostra)]),
     invia
   ]);
-  return h('div', { class: 'centro' }, h('div', { class: 'pannello' }, [h('h1', { text: 'Officina' }), h('p', { class: 'centro-testo muted', text: 'Entra con la tua email' }), msg, form]));
+  return h('div', { class: 'centro' }, h('div', { class: 'pannello' }, [h('h1', { text: 'Primo collegamento di questo dispositivo' }), h('p', { class: 'centro-testo piccolo-testo', text: 'Si fa una volta sola' }), msg, form]));
 }
-
-/* ---- Codice di 4 cifre ---- */
-function viewPin() {
-  var titoli = { unlock: 'Scrivi il tuo codice', set1: 'Scegli il tuo codice di 4 cifre', set2: 'Scrivi di nuovo il codice' };
-  var sotto = { unlock: '', set1: 'Lo userai ogni volta che apri Officina.', set2: '' };
-  var punti = h('div', { class: 'punti', 'aria-label': 'Cifre scritte' }, [0, 1, 2, 3].map(function (i) { return h('span', { class: 'punto' + (i < S.pinBuf.length ? ' pieno' : '') }); }));
-  var tasti = [];
-  for (var i = 1; i <= 9; i++) tasti.push(pinTasto(i));
-  tasti.push(h('span'));
-  tasti.push(pinTasto(0));
-  tasti.push(h('button', { class: 'btn testo', text: 'Cancella', testid: 'pin-cancella', onclick: pinCancella }));
-  return h('div', { class: 'centro' }, h('div', { class: 'pannello' }, [
-    h('h1', { text: titoli[S.pinMode] }),
-    h('p', { class: 'centro-testo muted', text: sotto[S.pinMode] }),
-    h('p', { class: 'msg-accesso ' + S.pinMsgTipo, id: 'pin-msg', role: 'alert', text: S.pinMsg }),
-    punti,
-    h('div', { class: 'tastierino' }, tasti)
-  ]));
-}
-function pinTasto(n) {
-  return h('button', { class: 'btn', text: String(n), testid: 'pin-tasto-' + n, 'aria-label': String(n), onclick: function () { pinDigit(String(n)); } });
-}
-document.addEventListener('keydown', function (ev) {
-  if (S.screen !== 'pin') return;
-  if (/^[0-9]$/.test(ev.key)) { ev.preventDefault(); pinDigit(ev.key); }
-  else if (ev.key === 'Backspace') { ev.preventDefault(); pinCancella(); }
-});
 
 /* ---- Struttura con testata e barra ---- */
 function viewShell() {
@@ -865,15 +963,18 @@ function avanzamento(l, c) {
   var perc = c.tot ? Math.round(c.fatti * 100 / c.tot) : 0;
   var b = h('span', { class: 'barra', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(perc) }, h('span'));
   b.firstChild.style.width = perc + '%';
-  var righe = [h('span', { class: 'avanz', text: 'Tagliati ' + c.fatti + ' di ' + c.tot })];
-  if (haFase(l, 'piegatura')) righe.push(h('span', { class: 'avanz', text: 'Piegati ' + c.piegati + ' di ' + c.tot }));
-  righe.push(b);
+  var righe = [h('span', { class: 'avanz-riga' }, [
+    h('span', { class: 'avanz', text: 'Tagliati ' + c.fatti + ' di ' + c.tot }),
+    haFase(l, 'piegatura') ? h('span', { class: 'avanz', text: 'Piegati ' + c.piegati + ' di ' + c.tot }) : null
+  ]), b];
   return h('span', { style: 'display:block' }, righe);
 }
 function cardLavoro(l) {
   var c = conteggio(l);
   var scad = h('span', { class: ritardoDi(l) ? 'ritardo' : '', text: testoScadenza(l) });
+  var f0 = fotoDi(l.id)[0];
   return h('button', { class: 'voce', testid: 'lavoro-card', onclick: function () { go('scheda', { lavoroId: l.id }); } }, [
+    f0 ? h('span', { class: 'mini-wrap', testid: 'miniatura' }, imgFoto(f0.percorso, null, 'Foto del foglio')) : null,
     h('span', { class: 'corpo' }, [
       h('span', { class: 'cliente', text: l.cliente }),
       h('span', { class: 'titolo', text: l.titolo }),
@@ -933,30 +1034,36 @@ function rigaCoda(testo, testid, modo) {
       h('span', { class: 'chev' }, icona('chev', 22))
     ])));
 }
+function cmpOggi(a, b) {
+  if (a.scadenza && b.scadenza) return cmpScadenza(a, b);
+  if (a.scadenza) return -1;
+  if (b.scadenza) return 1;
+  var x = String(a.creato || ''), y = String(b.creato || '');
+  return x < y ? -1 : x > y ? 1 : 0;
+}
 function viewOggi() {
   var out = [];
+  var attivi = S.lavori.filter(lavoroAttivo);
   out.push(h('h1', { text: 'Oggi' }));
-  out.push(h('p', { class: 'muted', text: new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }));
+  out.push(h('p', { class: 'muted', style: 'margin-bottom:6px', text: new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }));
+  out.push(h('p', { class: 'conteggio', testid: 'conteggio-aperti', text: attivi.length + ' ' + plurale(attivi.length, 'lavoro aperto', 'lavori aperti') }));
+  out.push(bottoneFoto('📷 Nuovo lavoro con foto', 'nuovo-con-foto', 'input-foto-nuovo', function (files) { S.nuoveFoto = files; go('nuovo'); }, 'btn primary blocco grande', true));
   if (S.lavori.length === 0) {
     out.push(h('p', { class: 'vuoto', text: 'Nessun lavoro. Tocca + Nuovo lavoro' }));
     return out;
   }
-  var attivi = S.lavori.filter(lavoroAttivo);
   var tardi = attivi.filter(function (l) { var d = diffGiorni(l.scadenza); return d !== null && d < 0; }).sort(cmpScadenza);
   var presto = attivi.filter(function (l) { var d = diffGiorni(l.scadenza); return d !== null && d >= 0 && d <= 3; }).sort(cmpScadenza);
+  var altri = attivi.filter(function (l) { return tardi.indexOf(l) === -1 && presto.indexOf(l) === -1; }).sort(cmpOggi);
   var daTagliare = sommaQ(pezziInCoda('taglio').map(function (x) { return x.p; }));
   var daPiegare = sommaQ(pezziInCoda('piegatura').map(function (x) { return x.p; }));
 
-  if (tardi.length) out.push(sezione('In ritardo', 'rosso', h('div', { class: 'inset' }, tardi.map(cardLavoro)), 'box-ritardo'));
-  if (presto.length) out.push(sezione('Scadono entro 3 giorni', 'giallo', h('div', { class: 'inset' }, presto.map(cardLavoro)), 'box-presto'));
   if (daTagliare > 0) out.push(rigaCoda('Pezzi ancora da tagliare: ' + daTagliare, 'box-taglio', 'taglio'));
   if (daPiegare > 0) out.push(rigaCoda('Da piegare: ' + daPiegare, 'box-piegatura', 'piegatura'));
-  if (!tardi.length && !presto.length && daTagliare === 0 && daPiegare === 0) {
-    out.push(h('div', { class: 'ok-card', testid: 'tutto-ok', text: 'Tutto in ordine ✓' }));
-  } else if (!tardi.length && !presto.length) {
-    out.push(h('div', { class: 'ok-card', text: 'Nessuna scadenza vicina ✓' }));
-  }
-  if (attivi.length === 0) out.push(h('p', { class: 'muted', text: 'Tutti i lavori sono consegnati.' }));
+  if (tardi.length) out.push(sezione('In ritardo', 'rosso', h('div', { class: 'inset' }, tardi.map(cardLavoro)), 'box-ritardo'));
+  if (presto.length) out.push(sezione('Scadono entro 3 giorni', 'giallo', h('div', { class: 'inset' }, presto.map(cardLavoro)), 'box-presto'));
+  if (altri.length) out.push(sezione('Tutti gli altri aperti', 'altri', h('div', { class: 'inset' }, altri.map(cardLavoro)), 'box-altri'));
+  if (attivi.length === 0) out.push(h('div', { class: 'ok-card', testid: 'tutto-ok', text: 'Nessun lavoro aperto ✓' }));
   return out;
 }
 
@@ -1078,6 +1185,21 @@ function viewScheda() {
   out.push(h('p', { style: 'font-size:20px;overflow-wrap:anywhere;margin-bottom:8px', text: l.titolo }));
   out.push(h('p', { class: 'meta-scheda' }, [pillolaFase(l), lav ? h('span', { class: 'tag-lav', text: 'Lavoretto' }) : null]));
   out.push(h('p', { class: ritardoDi(l) ? 'ritardo' : '', style: 'font-weight:600', text: testoScadenza(l) }));
+
+  var fl = fotoDi(l.id);
+  out.push(h('h2', { class: 'sez-titolo', text: 'Foto' }));
+  if (S.fotoErrori && S.fotoErrori.lavoroId === l.id) {
+    var nf = S.fotoErrori.blobs.length;
+    out.push(h('div', { class: 'errore-rete', testid: 'foto-errore' }, [
+      h('p', { text: 'Non sono riuscito a caricare ' + nf + ' ' + plurale(nf, 'foto', 'foto') + '. Il lavoro è salvato.' }),
+      h('button', { class: 'btn primary', text: 'Riprova', testid: 'foto-riprova', onclick: riprovaFoto })
+    ]));
+  }
+  if (fl.length) out.push(h('div', { class: 'foto-griglia' }, fl.map(function (f, i) {
+    return h('button', { class: 'foto-mini', testid: 'foto-mini', 'aria-label': 'Apri la foto ' + (i + 1), onclick: function () { apriVisore(l.id, i); } }, imgFoto(f.percorso, null, 'Foto del foglio ' + (i + 1)));
+  })));
+  else out.push(h('p', { class: 'muted', style: 'margin:0 0 10px 4px', text: 'Nessuna foto' }));
+  out.push(bottoneFoto('+ Aggiungi foto', 'aggiungi-foto', 'input-foto-aggiungi', function (files) { caricaESalva(l.id, files); }, 'btn blocco', false));
 
   if (lav) {
     if (faseFatta(l, 'consegna')) out.push(h('div', { class: 'ok-card', testid: 'lavoretto-chiuso', text: 'Fatto ✓ Consegnato' }));
@@ -1216,7 +1338,12 @@ async function eliminaLavoro(l) {
     no: 'No, torna indietro', si: 'Sì, elimina'
   });
   if (!ok) return;
+  var percorsi = fotoDi(l.id).map(function (f) { return f.percorso; });
   var fatto = await salva(async function () {
+    if (percorsi.length) {
+      var rf = await sb.storage.from(BUCKET).remove(percorsi);
+      if (rf.error) throw rf.error;
+    }
     var r = await sb.from('officina_lavori').delete().eq('id', l.id);
     if (r.error) throw r.error;
   }, { norender: true });
@@ -1271,6 +1398,7 @@ function fasiScelte(sel) { return ordina(FASI.map(function (f) { return f.v; }).
 /* ---- Nuovo lavoro / Modifica lavoro ---- */
 function viewFormLavoro(l) {
   if (S.view === 'modifica' && !l) return { titolo: 'Lavoro non trovato', corpo: h('p', { class: 'vuoto', text: 'Questo lavoro non c\'è più.' }), chiudi: function () { go('lavori'); } };
+  if (!l && S.view === 'nuovo' && S.nuoveFoto) return viewFormLavoroFoto();
   var tipo = l && eLavoretto(l) ? 'lavoretto' : 'lavoro';
   var sel = {};
   (l ? fasiDi(l) : FASI_DEFAULT).forEach(function (v) { sel[v] = true; });
@@ -1347,7 +1475,9 @@ function viewFormLavoro(l) {
     }, { norender: true });
     if (fatto) go('scheda', { lavoroId: nuovoId });
   } }, [
-    dlClienti, segm,
+    dlClienti,
+    l ? null : bottoneFoto('📷 Nuovo lavoro con foto', 'foglio-con-foto', 'input-foto-foglio', function (files) { S.nuoveFoto = files; render(); }, 'btn primary blocco grande', true),
+    segm,
     f.cliente.wrap, f.titolo.wrap, f.scadenza.wrap, wrapFasi, f.cartella.wrap, f.note.wrap,
     h('div', { class: 'riga-bottoni' }, [
       salvaBtn,
@@ -1356,6 +1486,59 @@ function viewFormLavoro(l) {
   ]);
   applica();
   return { titolo: l ? 'Modifica lavoro' : 'Nuovo lavoro', corpo: form, chiudi: function () { if (l) go('scheda', { lavoroId: l.id }); else go(S.baseView || 'lavori'); } };
+}
+
+/* ---- Nuovo lavoro con foto: foglio minimo ---- */
+function viewFormLavoroFoto() {
+  var files = S.nuoveFoto || [];
+  if (S.nuoveFotoUrls) S.nuoveFotoUrls.forEach(function (u) { URL.revokeObjectURL(u); });
+  S.nuoveFotoUrls = files.map(function (f) { return URL.createObjectURL(f); });
+  var f = {
+    cliente: campo({ id: 'f-cliente', etichetta: 'Cliente', max: 120, valore: '', testid: 'campo-cliente', lista: 'lista-clienti' }),
+    titolo: campo({ id: 'f-titolo', etichetta: 'Cosa è', max: 200, valore: '', testid: 'campo-titolo', aiuto: DETTA }),
+    scadenza: campo({ id: 'f-scadenza', etichetta: 'Scadenza (si può lasciare vuota)', tipo: 'date', valore: '', testid: 'campo-scadenza' })
+  };
+  var dlClienti = h('datalist', { id: 'lista-clienti' }, nomiClienti().map(function (n) { return h('option', { value: n }); }));
+  var anteprime = h('div', { class: 'foto-griglia anteprime' }, S.nuoveFotoUrls.map(function (u, i) {
+    var im = h('img', { alt: 'Foto ' + (i + 1) + ' scelta' }); im.src = u;
+    return h('div', { class: 'foto-mini fermo', testid: 'anteprima-foto' }, im);
+  }));
+  var salvaBtn = h('button', { class: 'btn primary', type: 'submit', text: 'Salva lavoro', testid: 'salva-lavoro' });
+  var form = h('form', { class: 'form', novalidate: true, onsubmit: async function (ev) {
+    ev.preventDefault();
+    if (S.busy) return;
+    var cliente = f.cliente.input.value.trim(), titolo = f.titolo.input.value.trim(), sc = f.scadenza.input.value;
+    var ok = true;
+    f.cliente.errore(cliente ? '' : 'Scrivi il nome del cliente');
+    f.titolo.errore(titolo ? '' : 'Scrivi cosa è');
+    if (!cliente || !titolo) ok = false;
+    if (sc && !/^\d{4}-\d{2}-\d{2}$/.test(sc)) { f.scadenza.errore('Scegli una data valida'); ok = false; } else f.scadenza.errore('');
+    if (!ok) { var primo = form.querySelector('.ha-errore input'); if (primo) primo.focus(); return; }
+    var base = S.clienti.filter(function (c) { return c.nome.trim().toLowerCase() === cliente.toLowerCase(); })[0];
+    var dati = { cliente: cliente, titolo: titolo, scadenza: sc || null, cartella: base && base.cartella ? base.cartella : null, tipo: 'lavoro', fasi: FASI_DEFAULT.slice(), fasi_fatte: [] };
+    S.busy = true; salvaBtn.disabled = true;
+    var id = null;
+    try {
+      var r = await sb.from('officina_lavori').insert(dati).select('id').single();
+      if (r.error) throw r.error;
+      id = r.data.id;
+      await registraCliente(cliente, dati.cartella);
+    } catch (e) { S.busy = false; salvaBtn.disabled = false; showError('Non è stato salvato. ' + errText(e)); return; }
+    var res = await inviaFoto(id, files);
+    await loadAll();
+    S.busy = false;
+    S.fotoErrori = res.falliti.length ? { lavoroId: id, blobs: res.falliti } : null;
+    if (S.fotoErrori) showError('Lavoro salvato, ma non tutte le foto sono state caricate'); else showSaved();
+    go('scheda', { lavoroId: id });
+  } }, [
+    dlClienti, anteprime, f.cliente.wrap, f.titolo.wrap, f.scadenza.wrap,
+    h('div', { class: 'riga-bottoni' }, [
+      salvaBtn,
+      h('button', { class: 'btn', text: 'Nuovo lavoro senza foto', testid: 'senza-foto', onclick: function () { S.nuoveFoto = null; render(); } }),
+      h('button', { class: 'btn', text: 'Annulla', onclick: function () { go(S.baseView || 'oggi'); } })
+    ])
+  ]);
+  return { titolo: 'Nuovo lavoro con foto', corpo: form, chiudi: function () { go(S.baseView || 'oggi'); } };
 }
 
 /* ---- Cambia fasi ---- */
@@ -1466,8 +1649,11 @@ function viewImpostazioni() {
     h('h2', { class: 'sez-titolo', text: 'Colori' }),
     h('div', { class: 'inset' }, h('button', { class: 'voce', testid: 'tema', onclick: cambiaTema }, h('span', { class: 'corpo', text: scuro ? '☀ Passa al tema chiaro' : '☾ Passa al tema scuro' }))),
     h('div', { class: 'esci-zona' }, [
-      h('p', { class: 'muted', text: 'Se esci, la prossima volta servono di nuovo email e password.' }),
-      h('button', { class: 'btn piccolo', text: 'Esci', testid: 'esci', onclick: function () { logoutCompleto(''); } })
+      h('p', { class: 'muted', text: 'Se scolleghi questo dispositivo, per rientrare servono di nuovo email e password.' }),
+      h('button', { class: 'btn piccolo', text: 'Esci', testid: 'esci', onclick: async function () {
+        var ok = await conferma({ titolo: 'Vuoi scollegare questo dispositivo?', corpo: h('p', { text: 'Per rientrare serviranno email e password' }), no: 'No, resta collegato', si: 'Sì, scollega' });
+        if (ok) logoutCompleto('');
+      } })
     ])
   ]);
 }
@@ -1537,36 +1723,35 @@ function viewFormCliente() {
   return { titolo: c ? 'Modifica cliente' : 'Nuovo cliente', corpo: form, chiudi: function () { go('clienti'); } };
 }
 
-/* ============ Codice anche dopo 10 minuti in background ============ */
-document.addEventListener('visibilitychange', function () {
-  if (document.hidden) { hiddenAt = Date.now(); return; }
-  if (hiddenAt && Date.now() - hiddenAt > DIECI_MINUTI) bloccaApp();
-  hiddenAt = 0;
-});
-
 /* ============ Avvio ============ */
 async function avvio() {
   applicaTema();
+  render();
+  K_VECCHI.forEach(lsDel);
   if (!window.supabase || !window.supabase.createClient) { S.screen = 'fatal'; render(); return; }
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
   sb.auth.onAuthStateChange(function (ev) {
     if (ev === 'SIGNED_OUT') {
       setTimeout(function () {
-        if (S.screen === 'login') return;
-        pulisciPin();
-        S.lavori = []; S.pezzi = []; S.clienti = []; S.byLavoro = new Map(); S.loaded = false;
+        if (S.screen === 'login' || S.screen === 'fatal') return;
+        azzeraDati();
         chiudiFinestre(); nascondiUndo();
         S.screen = 'login'; render();
       }, 0);
     }
   });
-  var sessione = null;
-  try { var r = await sb.auth.getSession(); sessione = r && r.data ? r.data.session : null; } catch (e) { sessione = null; }
-  if (!sessione) { S.screen = 'login'; render(); return; }
-  if (haPin()) {
-    if (erroriPin() >= MAX_ERRORI) { await logoutCompleto("Troppi tentativi: serve di nuovo l'accesso completo"); return; }
-    vaiAlPin('unlock', '', '');
-  } else vaiAlPin('set1', '', '');
+  var sessione = null, senzaRete = false;
+  try {
+    var r = await sb.auth.getSession();
+    sessione = r && r.data ? r.data.session : null;
+    if (!sessione && r && r.error) {
+      var m = String(r.error.name || '') + ' ' + String(r.error.message || '');
+      if (/retryable|fetch|network|failed|timeout|abort/i.test(m) || !navigator.onLine) senzaRete = true;
+    }
+  } catch (e) { senzaRete = !navigator.onLine || /fetch|network|failed|timeout|abort/i.test(String(e && e.message)); }
+  if (sessione) { entraApp(); return; }
+  if (senzaRete) { S.screen = 'fatal'; render(); return; }
+  S.screen = 'login'; render();
 }
 avvio();
 })();
