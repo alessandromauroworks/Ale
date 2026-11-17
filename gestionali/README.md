@@ -1,6 +1,6 @@
 # Archivio dei gestionali di Alessandro Mauro
 
-Un solo gestionale base, una versione per ogni tipo di attività. Regola completa: skill `.claude/skills/gestionale-per-settore/SKILL.md`.
+Un solo gestionale base, una versione per ogni tipo di attività. Regola completa: skill `.claude/skills/gestionale-universale/SKILL.md`.
 
 ## Struttura (piano)
 Attenzione: questa è la struttura prevista, non quella attuale. Per ora nel repo c'è solo questo README: nessuna cartella o file elencato qui sotto esiste ancora. La base comune va presa dal gestionale del Patronato di Carapelle, che non è ancora caricato qui: va aggiunto in `gestionali/base/` quando Alessandro lo porta.
