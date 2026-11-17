@@ -1371,14 +1371,13 @@ function campo(o) {
   if (o.area) inp.value = attr.value;
   var err = h('p', { class: 'err', id: o.id + '-err', role: 'alert', hidden: true });
   var wrap = h('div', { class: 'campo' }, [h('label', { for: o.id, text: o.etichetta }), inp, o.aiuto ? h('p', { class: 'aiuto', text: o.aiuto }) : null, err]);
-  return {
-    wrap: wrap, input: inp,
-    errore: function (m) {
-      wrap.classList.toggle('ha-errore', !!m);
-      err.hidden = !m; err.textContent = m || '';
-      if (m) inp.setAttribute('aria-describedby', err.id); else inp.removeAttribute('aria-describedby');
-    }
-  };
+  function mostraErrore(m) {
+    wrap.classList.toggle('ha-errore', !!m);
+    err.hidden = !m; err.textContent = m || '';
+    if (m) inp.setAttribute('aria-describedby', err.id); else inp.removeAttribute('aria-describedby');
+  }
+  inp.addEventListener('input', function () { if (wrap.classList.contains('ha-errore') && inp.value.trim()) mostraErrore(''); });
+  return { wrap: wrap, input: inp, errore: mostraErrore };
 }
 var DETTA = 'Puoi dettare col microfono della tastiera';
 
