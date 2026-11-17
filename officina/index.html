@@ -32,7 +32,7 @@ try { var t = localStorage.getItem('officina_tema'); if (t === 'light' || t === 
   --s2-bg:#D6E8FF; --s2-fg:#004FB3;
   --s3-bg:#FFE6C2; --s3-fg:#8A4200;
   --s4-bg:#E9DDFB; --s4-fg:#5B2BA0;
-  --s5-bg:#D1F0D9; --s5-fg:#0F6B27;
+  --s5-bg:#D1F0D9; --s5-fg:#0F6B27; --pb:91%; --pf:22%;
   --glass:rgba(255,255,255,.80); --glass-solid:rgba(250,250,252,.98); --glass-border:rgba(255,255,255,.85);
   --glass-hi:rgba(255,255,255,.95); --glass-shadow:0 10px 32px rgba(0,0,0,.14),0 1px 3px rgba(0,0,0,.10);
   --scrim:rgba(0,0,0,.38);
@@ -54,7 +54,7 @@ try { var t = localStorage.getItem('officina_tema'); if (t === 'light' || t === 
     --s2-bg:#0A2E5C; --s2-fg:#9CC8FF;
     --s3-bg:#4A2E08; --s3-fg:#FFC47A;
     --s4-bg:#3A2766; --s4-fg:#D4BFFF;
-    --s5-bg:#123D20; --s5-fg:#8FE3A6;
+    --s5-bg:#123D20; --s5-fg:#8FE3A6; --pb:24%; --pf:86%;
     --glass:rgba(28,28,30,.80); --glass-solid:rgba(28,28,30,.98); --glass-border:rgba(255,255,255,.14);
     --glass-hi:rgba(255,255,255,.08); --glass-shadow:0 10px 32px rgba(0,0,0,.55),0 1px 3px rgba(0,0,0,.4);
     --scrim:rgba(0,0,0,.6);
@@ -74,7 +74,7 @@ try { var t = localStorage.getItem('officina_tema'); if (t === 'light' || t === 
   --s2-bg:#0A2E5C; --s2-fg:#9CC8FF;
   --s3-bg:#4A2E08; --s3-fg:#FFC47A;
   --s4-bg:#3A2766; --s4-fg:#D4BFFF;
-  --s5-bg:#123D20; --s5-fg:#8FE3A6;
+  --s5-bg:#123D20; --s5-fg:#8FE3A6; --pb:24%; --pf:86%;
   --glass:rgba(28,28,30,.80); --glass-solid:rgba(28,28,30,.98); --glass-border:rgba(255,255,255,.14);
   --glass-hi:rgba(255,255,255,.08); --glass-shadow:0 10px 32px rgba(0,0,0,.55),0 1px 3px rgba(0,0,0,.4);
   --scrim:rgba(0,0,0,.6);
@@ -82,6 +82,7 @@ try { var t = localStorage.getItem('officina_tema'); if (t === 'light' || t === 
 }
 
 *{box-sizing:border-box}
+[hidden]{display:none !important}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--text);font:18px/1.4 var(--font);letter-spacing:-.01em;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 body.foglio-aperto{overflow:hidden}
@@ -155,11 +156,15 @@ main{padding:10px 0 calc(96px + 16px + env(safe-area-inset-bottom))}
 .muted{color:var(--muted)}
 
 .badge{display:inline-block;padding:2px 12px;border-radius:999px;background:var(--b);color:var(--f);font-weight:700;font-size:15px;white-space:nowrap}
-.st-da_disegnare{--b:var(--s1-bg);--f:var(--s1-fg)}
-.st-disegnato{--b:var(--s2-bg);--f:var(--s2-fg)}
-.st-da_tagliare{--b:var(--s3-bg);--f:var(--s3-fg)}
-.st-tagliato{--b:var(--s4-bg);--f:var(--s4-fg)}
-.st-consegnato{--b:var(--s5-bg);--f:var(--s5-fg)}
+.fs-disegno{--b:hsl(225 75% var(--pb));--f:hsl(225 85% var(--pf))}
+.fs-taglio{--b:hsl(28 75% var(--pb));--f:hsl(28 85% var(--pf))}
+.fs-pulizia{--b:hsl(175 75% var(--pb));--f:hsl(175 85% var(--pf))}
+.fs-piegatura{--b:hsl(265 75% var(--pb));--f:hsl(265 85% var(--pf))}
+.fs-calandratura{--b:hsl(320 75% var(--pb));--f:hsl(320 85% var(--pf))}
+.fs-saldatura{--b:hsl(355 75% var(--pb));--f:hsl(355 85% var(--pf))}
+.fs-rifinitura{--b:hsl(50 75% var(--pb));--f:hsl(50 85% var(--pf))}
+.fs-consegna{--b:hsl(200 75% var(--pb));--f:hsl(200 85% var(--pf))}
+.fs-fine{--b:hsl(130 75% var(--pb));--f:hsl(130 85% var(--pf))}
 
 .avanz{display:block;font-weight:600;font-size:16px;margin-bottom:4px}
 .barra{display:block;height:10px;background:var(--track);border-radius:6px;overflow:hidden}
@@ -171,7 +176,7 @@ main{padding:10px 0 calc(96px + 16px + env(safe-area-inset-bottom))}
 .filtri .btn{min-height:48px;padding:6px 16px;font-size:17px;border-radius:999px;border-color:transparent}
 .filtri .btn[aria-pressed="true"]{background:var(--primary);color:var(--on-primary);font-weight:700}
 .barra-ricerca{display:grid;gap:10px;margin-bottom:6px}
-@media (min-width:820px){.barra-ricerca{grid-template-columns:1fr auto}}
+@media (min-width:820px){.barra-ricerca{grid-template-columns:1fr 260px auto}}
 .interruttore{min-height:52px;border:0;border-radius:14px;background:var(--card);padding:8px 18px;font-weight:600;cursor:pointer}
 .interruttore[aria-checked="true"]{background:var(--primary);color:var(--on-primary);font-weight:700}
 .cerca-input{width:100%;min-height:52px;padding:10px 16px;border:0;border-radius:14px;background:var(--card)}
@@ -235,6 +240,38 @@ main{padding:10px 0 calc(96px + 16px + env(safe-area-inset-bottom))}
 @keyframes dissolvi{from{opacity:0}to{opacity:1}}
 @keyframes appare{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
 
+/* Fasi, interruttori, lavoretti, clienti */
+.btn.grande{min-height:64px;font-size:22px;margin:0 0 14px}
+.meta-scheda{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 6px}
+.tag-lav{display:inline-block;padding:1px 10px;border-radius:8px;border:2px solid var(--muted);color:var(--muted);font-size:14px;font-weight:700;white-space:nowrap}
+.fase-riga{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:10px 16px;border:0;background:transparent;color:var(--text);font-size:18px;text-align:left}
+button.fase-riga{cursor:pointer}
+.fase-riga .fp{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--muted);display:flex;align-items:center;justify-content:center;flex:0 0 auto;color:#fff}
+.fase-riga.fatta .fp{background:var(--bar);border-color:var(--bar)}
+.fase-riga.attuale{background:var(--primary-soft);font-weight:700}
+.fase-riga.attuale .fp{border-color:var(--primary);border-width:4px}
+.fase-riga .et{flex:1}
+.fase-riga .st{font-size:15px;color:var(--muted);font-weight:600}
+.fase-riga.attuale .st{color:var(--primary-text);font-weight:700}
+.spunte{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.tog{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:6px 16px 6px 8px;border:2px solid var(--line);border-radius:999px;background:transparent;color:var(--text);font-weight:600;font-size:17px;cursor:pointer}
+.tog-c{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--muted);display:flex;align-items:center;justify-content:center;color:#fff;flex:0 0 auto}
+.tog[aria-checked="true"]{border-color:var(--bar)}
+.tog[aria-checked="true"] .tog-c{background:var(--bar);border-color:var(--bar)}
+.sw-riga{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:56px;padding:10px 16px;border:0;background:transparent;color:var(--text);font-size:18px;font-weight:500;text-align:left;cursor:pointer}
+.sw-testo{flex:1}
+.sw-knob{position:relative;width:52px;height:32px;border-radius:16px;background:var(--track);flex:0 0 auto;transition:background .2s}
+.sw-knob span{position:absolute;top:2px;left:2px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:transform .2s var(--ease)}
+.sw-riga[aria-checked="true"] .sw-knob{background:var(--bar)}
+.sw-riga[aria-checked="true"] .sw-knob span{transform:translateX(20px)}
+.err-solo{color:var(--red-text);font-weight:700;margin:6px 0 12px}
+.aiuto-fasi{font-size:15px;color:var(--muted);margin:0 0 8px}
+.blocco-fasi .sez-titolo{margin-top:4px}
+.sel-cliente{width:100%;min-height:52px;padding:10px 16px;border:0;border-radius:14px;background:var(--card);color:var(--text);font-weight:600;font-size:18px}
+@media (max-width:819px){.filtri:not(.segm){flex-wrap:nowrap;overflow-x:auto;margin-left:-16px;margin-right:-16px;padding:0 16px 4px;scroll-padding:0 16px;-webkit-overflow-scrolling:touch}.filtri:not(.segm) .btn{flex:0 0 auto}}
+.segm .btn{flex:1}
+.cambia{margin:0 0 18px}
+
 /* Accesso e codice */
 .centro{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px 16px}
 .pannello{width:100%;max-width:440px;background:var(--card);border-radius:26px;padding:24px}
@@ -288,13 +325,17 @@ main{padding:10px 0 calc(96px + 16px + env(safe-area-inset-bottom))}
 /* ============ Costanti ============ */
 var SUPABASE_URL = 'https://udubhzamghhlkxgepmmc.supabase.co';
 var SUPABASE_KEY = 'sb_publishable__XCdrk4q0UlAEcFtM2SFjA_zlwVTW6G';
-var STATI = [
-  { v: 'da_disegnare', t: 'Da disegnare' },
-  { v: 'disegnato', t: 'Disegnato' },
-  { v: 'da_tagliare', t: 'Da tagliare' },
-  { v: 'tagliato', t: 'Tagliato' },
-  { v: 'consegnato', t: 'Consegnato' }
+var FASI = [
+  { v: 'disegno', t: 'Disegno' },
+  { v: 'taglio', t: 'Taglio laser' },
+  { v: 'pulizia', t: 'Pulizia' },
+  { v: 'piegatura', t: 'Piegatura' },
+  { v: 'calandratura', t: 'Calandratura' },
+  { v: 'saldatura', t: 'Saldatura' },
+  { v: 'rifinitura', t: 'Rifinitura' },
+  { v: 'consegna', t: 'Consegna' }
 ];
+var FASI_DEFAULT = ['disegno', 'taglio', 'pulizia', 'piegatura', 'saldatura', 'rifinitura', 'consegna'];
 var MATERIALI_BASE = ['Ferro', 'Inox', 'Alluminio', 'Zincato', 'Corten'];
 var K_HASH = 'officina_pin_hash', K_SALT = 'officina_pin_salt', K_ERR = 'officina_pin_errori', K_TEMA = 'officina_tema';
 var MAX_ERRORI = 5;
@@ -309,9 +350,9 @@ function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { delete mem[k
 /* ============ Stato ============ */
 var S = {
   screen: 'boot',      // boot | login | pin | app | fatal
-  view: 'oggi',        // oggi | lavori | taglio | scheda | nuovo | modifica | pezzo | impostazioni
+  view: 'oggi',        // oggi | lavori | taglio | scheda | nuovo | modifica | pezzo | fasi | impostazioni | clienti | cliente
   lavoroId: null, pezzoId: null, pezzoPrefill: null,
-  lavori: [], pezzi: [], byLavoro: new Map(),
+  lavori: [], pezzi: [], clienti: [], byLavoro: new Map(), clienteId: null, codaTipo: 'taglio', filtroCliente: '',
   loaded: false, loadError: null,
   filtro: 'tutti', cerca: '', mostraConsegnati: false,
   busy: false,
@@ -379,14 +420,22 @@ function testoScadenza(l) {
   else quando = 'tra ' + d + ' giorni';
   return 'Scadenza: ' + quando + ' (' + dataBella(l.scadenza) + ')';
 }
-function ritardoDi(l) { var d = diffGiorni(l.scadenza); return d !== null && d < 0 && l.stato !== 'consegnato'; }
+function ritardoDi(l) { var d = diffGiorni(l.scadenza); return d !== null && d < 0 && lavoroAttivo(l); }
 function cmpScadenza(a, b) {
   if (a.scadenza && b.scadenza) return a.scadenza < b.scadenza ? -1 : a.scadenza > b.scadenza ? 1 : 0;
   if (a.scadenza) return -1;
   if (b.scadenza) return 1;
   return 0;
 }
-function nomeStato(v) { var s = STATI.filter(function (x) { return x.v === v; })[0]; return s ? s.t : v; }
+function nomeFase(v) { var s = FASI.filter(function (x) { return x.v === v; })[0]; return s ? s.t : v; }
+function ordina(fasi) { return FASI.map(function (f) { return f.v; }).filter(function (v) { return fasi.indexOf(v) !== -1; }); }
+function fasiDi(l) { return ordina(Array.isArray(l.fasi) && l.fasi.length ? l.fasi : FASI_DEFAULT); }
+function fattiDi(l) { return Array.isArray(l.fasi_fatte) ? l.fasi_fatte : []; }
+function faseAttuale(l) { var f = fattiDi(l); return fasiDi(l).filter(function (x) { return f.indexOf(x) === -1; })[0] || null; }
+function haFase(l, v) { return fasiDi(l).indexOf(v) !== -1; }
+function faseFatta(l, v) { return fattiDi(l).indexOf(v) !== -1; }
+function eLavoretto(l) { return l.tipo === 'lavoretto'; }
+function pillolaFase(l) { var f = faseAttuale(l); return h('span', { class: 'badge fs-' + (f || 'fine'), text: f ? nomeFase(f) : 'Consegnato', testid: 'pillola-fase' }); }
 function fmtNum(n) { return String(Number(n)).replace('.', ','); }
 function errText(e) {
   var m = String((e && e.message) || e || '');
@@ -493,14 +542,14 @@ async function logoutCompleto(messaggio) {
   S.loginMsg = messaggio || '';
   pulisciPin();
   try { await sb.auth.signOut({ scope: 'local' }); } catch (e) {}
-  S.lavori = []; S.pezzi = []; S.byLavoro = new Map(); S.loaded = false;
+  S.lavori = []; S.pezzi = []; S.clienti = []; S.byLavoro = new Map(); S.loaded = false;
   chiudiFinestre(); nascondiUndo();
   S.screen = 'login';
   render();
 }
 function bloccaApp() {
   if (S.screen !== 'app' || !haPin()) return;
-  S.lavori = []; S.pezzi = []; S.byLavoro = new Map(); S.loaded = false;
+  S.lavori = []; S.pezzi = []; S.clienti = []; S.byLavoro = new Map(); S.loaded = false;
   chiudiFinestre(); nascondiUndo();
   vaiAlPin('unlock', '', '');
 }
@@ -579,8 +628,8 @@ async function fetchAll(tabella) {
 }
 async function loadAll() {
   try {
-    var res = await Promise.all([fetchAll('officina_lavori'), fetchAll('officina_pezzi')]);
-    S.lavori = res[0]; S.pezzi = res[1];
+    var res = await Promise.all([fetchAll('officina_lavori'), fetchAll('officina_pezzi'), fetchAll('officina_clienti')]);
+    S.lavori = res[0]; S.pezzi = res[1]; S.clienti = res[2];
     S.loadError = null; S.loaded = true;
     reindex();
   } catch (e) {
@@ -596,16 +645,19 @@ function pezziDi(id) { return S.byLavoro.get(id) || []; }
 function sommaQ(arr) { return arr.reduce(function (a, p) { return a + (Number(p.quantita) || 0); }, 0); }
 function conteggio(l) {
   var ps = pezziDi(l.id);
-  var tot = sommaQ(ps), fatti = sommaQ(ps.filter(function (p) { return p.tagliato; }));
-  return { tot: tot, fatti: fatti, righe: ps.length };
+  return { tot: sommaQ(ps), fatti: sommaQ(ps.filter(function (p) { return p.tagliato; })), piegati: sommaQ(ps.filter(function (p) { return p.piegato; })), righe: ps.length };
 }
-function lavoroAttivo(l) { return l.stato !== 'consegnato'; }
+function lavoroAttivo(l) { return faseAttuale(l) !== null; }
 function lavoroDi(id) { return S.lavori.filter(function (l) { return l.id === id; })[0] || null; }
-function pezziDaTagliare() {
+/* Pezzi in coda: modo 'taglio' = non ancora tagliati; 'piegatura' = tagliati ma non piegati.
+   Contano solo i lavori che hanno quella fase e non l'hanno ancora segnata fatta. */
+function pezziInCoda(modo) {
   var out = [];
   S.lavori.forEach(function (l) {
-    if (!lavoroAttivo(l)) return;
-    pezziDi(l.id).forEach(function (p) { if (!p.tagliato) out.push({ p: p, l: l }); });
+    if (eLavoretto(l) || !haFase(l, modo) || faseFatta(l, modo)) return;
+    pezziDi(l.id).forEach(function (p) {
+      if (modo === 'taglio' ? !p.tagliato : (p.tagliato && !p.piegato)) out.push({ p: p, l: l });
+    });
   });
   return out;
 }
@@ -636,6 +688,7 @@ function go(view, o) {
   S.view = view;
   if ('lavoroId' in o) S.lavoroId = o.lavoroId;
   S.pezzoId = o.pezzoId || null;
+  if ('clienteId' in o) S.clienteId = o.clienteId || null;
   if (view !== 'pezzo') S.pezzoPrefill = null;
   nascondiUndo();
   render();
@@ -745,11 +798,10 @@ document.addEventListener('keydown', function (ev) {
 
 /* ---- Struttura con testata e barra ---- */
 function viewShell() {
-  var foglioAperto = S.loaded && !S.loadError && (S.view === 'nuovo' || S.view === 'modifica' || S.view === 'pezzo');
+  var foglioAperto = S.loaded && !S.loadError && (S.view === 'nuovo' || S.view === 'modifica' || S.view === 'pezzo' || S.view === 'fasi' || S.view === 'cliente');
   var base = S.view;
-  if (foglioAperto) base = S.view === 'nuovo' ? S.baseView : 'scheda';
+  if (foglioAperto) base = S.view === 'nuovo' ? S.baseView : S.view === 'cliente' ? 'clienti' : 'scheda';
   var gruppo = { oggi: 'oggi', lavori: 'lavori', scheda: 'lavori', taglio: 'taglio' }[base] || '';
-  if (S.view === 'nuovo' || S.view === 'modifica' || S.view === 'pezzo') gruppo = { oggi: 'oggi', lavori: 'lavori', taglio: 'taglio' }[base] || 'lavori';
   function voce(id, testo, testid) {
     return h('button', { testid: testid, 'aria-current': gruppo === id ? 'page' : null, onclick: function () { go(id); } }, [icona(id, 26), h('span', { text: testo })]);
   }
@@ -767,7 +819,7 @@ function viewShell() {
   S.chiudiFoglio = null;
   if (foglioAperto) {
     top.setAttribute('inert', ''); main.setAttribute('inert', '');
-    var f = S.view === 'nuovo' ? viewFormLavoro(null) : S.view === 'modifica' ? viewFormLavoro(lavoroDi(S.lavoroId)) : viewFormPezzo();
+    var f = S.view === 'nuovo' ? viewFormLavoro(null) : S.view === 'modifica' ? viewFormLavoro(lavoroDi(S.lavoroId)) : S.view === 'fasi' ? viewFormFasi() : S.view === 'cliente' ? viewFormCliente() : viewFormPezzo();
     S.chiudiFoglio = f.chiudi;
     var pannello = h('div', { class: 'foglio vetro', role: 'dialog', 'aria-modal': 'true', 'aria-label': f.titolo }, [
       h('div', { class: 'foglio-testa' }, [
@@ -801,17 +853,22 @@ function contenutoVista(vista) {
     case 'taglio': return viewTaglio();
     case 'scheda': return viewScheda();
     case 'impostazioni': return viewImpostazioni();
+    case 'clienti': return viewClienti();
   }
   return null;
 }
 
 /* ---- Pezzi: pulsanti e righe ---- */
-function barraAvanz(c) {
+function avanzamento(l, c) {
+  if (eLavoretto(l)) return null;
   if (c.righe === 0) return h('span', { class: 'avviso-testo', text: 'Nessun pezzo scritto ancora' });
   var perc = c.tot ? Math.round(c.fatti * 100 / c.tot) : 0;
   var b = h('span', { class: 'barra', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(perc) }, h('span'));
   b.firstChild.style.width = perc + '%';
-  return h('span', { style: 'display:block' }, [h('span', { class: 'avanz', text: c.fatti + ' di ' + c.tot + ' ' + plurale(c.tot, 'pezzo tagliato', 'pezzi tagliati') }), b]);
+  var righe = [h('span', { class: 'avanz', text: 'Tagliati ' + c.fatti + ' di ' + c.tot })];
+  if (haFase(l, 'piegatura')) righe.push(h('span', { class: 'avanz', text: 'Piegati ' + c.piegati + ' di ' + c.tot }));
+  righe.push(b);
+  return h('span', { style: 'display:block' }, righe);
 }
 function cardLavoro(l) {
   var c = conteggio(l);
@@ -820,30 +877,42 @@ function cardLavoro(l) {
     h('span', { class: 'corpo' }, [
       h('span', { class: 'cliente', text: l.cliente }),
       h('span', { class: 'titolo', text: l.titolo }),
-      h('span', { class: 'meta' }, [scad, h('span', { class: 'badge st-' + l.stato, text: nomeStato(l.stato) })]),
-      barraAvanz(c)
+      h('span', { class: 'meta' }, [scad, pillolaFase(l), eLavoretto(l) ? h('span', { class: 'tag-lav', text: 'Lavoretto' }) : null]),
+      avanzamento(l, c)
     ]),
     h('span', { class: 'chev' }, icona('chev', 22))
   ]);
 }
 function testoPezzo(p) { return p.quantita + ' × ' + p.descrizione + (p.misure ? ' — ' + p.misure : ''); }
-function spunta(p) {
+function spunta(p, campo) {
+  campo = campo || 'tagliato';
+  var fatto = !!p[campo], verbo = campo === 'piegato' ? 'piegato' : 'tagliato';
   return h('button', {
-    class: 'spunta', role: 'checkbox', 'aria-checked': p.tagliato ? 'true' : 'false', testid: 'spunta-pezzo',
-    'aria-label': (p.tagliato ? 'Già tagliato: ' : 'Segna come tagliato: ') + testoPezzo(p),
-    onclick: function () { togglePezzo(p); }
-  }, p.tagliato ? icona('spunta', 28) : null);
+    class: 'spunta', role: 'checkbox', 'aria-checked': fatto ? 'true' : 'false', testid: 'spunta-pezzo',
+    'aria-label': (fatto ? 'Già ' + verbo + ': ' : 'Segna come ' + verbo + ': ') + testoPezzo(p),
+    onclick: function () { togglePezzo(p, campo); }
+  }, fatto ? icona('spunta', 28) : null);
 }
-async function togglePezzo(p) {
-  var nuovo = !p.tagliato;
+function interruttorePezzo(p, campo, testo, testid) {
+  var fatto = !!p[campo];
+  return h('button', {
+    class: 'tog', role: 'checkbox', 'aria-checked': fatto ? 'true' : 'false', testid: testid,
+    'aria-label': testo + ': ' + testoPezzo(p),
+    onclick: function () { togglePezzo(p, campo); }
+  }, [h('span', { class: 'tog-c' }, fatto ? icona('spunta', 20) : null), h('span', { text: testo })]);
+}
+async function togglePezzo(p, campo) {
+  var nuovo = !p[campo];
+  var su = {}; su[campo] = nuovo;
   var ok = await salva(async function () {
-    var r = await sb.from('officina_pezzi').update({ tagliato: nuovo }).eq('id', p.id);
+    var r = await sb.from('officina_pezzi').update(su).eq('id', p.id);
     if (r.error) throw r.error;
   });
   if (ok && nuovo) {
-    showUndo('Segnato come tagliato', function () {
+    showUndo(campo === 'piegato' ? 'Segnato come piegato' : 'Segnato come tagliato', function () {
+      var giu = {}; giu[campo] = false;
       salva(async function () {
-        var r = await sb.from('officina_pezzi').update({ tagliato: false }).eq('id', p.id);
+        var r = await sb.from('officina_pezzi').update(giu).eq('id', p.id);
         if (r.error) throw r.error;
       });
     });
@@ -853,6 +922,16 @@ async function togglePezzo(p) {
 /* ---- Oggi ---- */
 function sezione(titolo, cls, figli, testid) {
   return h('section', { class: 'sez ' + cls, testid: testid }, [h('h2', { class: 'sez-titolo' }, [cls === 'rosso' ? icona('avviso', 22) : null, titolo]), figli]);
+}
+function rigaCoda(testo, testid, modo) {
+  return h('section', { class: 'sez', testid: testid }, h('div', { class: 'inset' },
+    h('button', { class: 'voce', onclick: function () { S.codaTipo = modo; go('taglio'); } }, [
+      h('span', { class: 'corpo' }, [
+        h('span', { class: 'cliente', text: testo }),
+        h('span', { class: 'titolo muted', text: 'Tocca per aprire la lista' })
+      ]),
+      h('span', { class: 'chev' }, icona('chev', 22))
+    ])));
 }
 function viewOggi() {
   var out = [];
@@ -865,21 +944,14 @@ function viewOggi() {
   var attivi = S.lavori.filter(lavoroAttivo);
   var tardi = attivi.filter(function (l) { var d = diffGiorni(l.scadenza); return d !== null && d < 0; }).sort(cmpScadenza);
   var presto = attivi.filter(function (l) { var d = diffGiorni(l.scadenza); return d !== null && d >= 0 && d <= 3; }).sort(cmpScadenza);
-  var daTagliare = sommaQ(pezziDaTagliare().map(function (x) { return x.p; }));
+  var daTagliare = sommaQ(pezziInCoda('taglio').map(function (x) { return x.p; }));
+  var daPiegare = sommaQ(pezziInCoda('piegatura').map(function (x) { return x.p; }));
 
   if (tardi.length) out.push(sezione('In ritardo', 'rosso', h('div', { class: 'inset' }, tardi.map(cardLavoro)), 'box-ritardo'));
   if (presto.length) out.push(sezione('Scadono entro 3 giorni', 'giallo', h('div', { class: 'inset' }, presto.map(cardLavoro)), 'box-presto'));
-  if (daTagliare > 0) {
-    out.push(h('section', { class: 'sez', testid: 'box-taglio' }, h('div', { class: 'inset' },
-      h('button', { class: 'voce', onclick: function () { go('taglio'); } }, [
-        h('span', { class: 'corpo' }, [
-          h('span', { class: 'cliente', text: 'Pezzi ancora da tagliare: ' + daTagliare }),
-          h('span', { class: 'titolo muted', text: 'Tocca per aprire la lista' })
-        ]),
-        h('span', { class: 'chev' }, icona('chev', 22))
-      ]))));
-  }
-  if (!tardi.length && !presto.length && daTagliare === 0) {
+  if (daTagliare > 0) out.push(rigaCoda('Pezzi ancora da tagliare: ' + daTagliare, 'box-taglio', 'taglio'));
+  if (daPiegare > 0) out.push(rigaCoda('Da piegare: ' + daPiegare, 'box-piegatura', 'piegatura'));
+  if (!tardi.length && !presto.length && daTagliare === 0 && daPiegare === 0) {
     out.push(h('div', { class: 'ok-card', testid: 'tutto-ok', text: 'Tutto in ordine ✓' }));
   } else if (!tardi.length && !presto.length) {
     out.push(h('div', { class: 'ok-card', text: 'Nessuna scadenza vicina ✓' }));
@@ -889,15 +961,24 @@ function viewOggi() {
 }
 
 /* ---- Lavori ---- */
+function nomiClienti() {
+  var visti = {}, out = [];
+  S.clienti.map(function (c) { return c.nome; }).concat(S.lavori.map(function (l) { return l.cliente; })).forEach(function (n) {
+    var k = String(n || '').trim().toLowerCase();
+    if (k && !visti[k]) { visti[k] = 1; out.push(String(n).trim()); }
+  });
+  return out.sort(function (a, b) { return a.localeCompare(b, 'it'); });
+}
 function filtraLavori() {
   var q = S.cerca.trim().toLowerCase();
   var a = S.lavori.filter(function (l) { return S.mostraConsegnati || lavoroAttivo(l); });
-  if (S.filtro !== 'tutti') a = a.filter(function (l) { return l.stato === S.filtro; });
+  if (S.filtro !== 'tutti') a = a.filter(function (l) { return (faseAttuale(l) || 'fine') === S.filtro; });
+  if (S.filtroCliente) a = a.filter(function (l) { return l.cliente.trim().toLowerCase() === S.filtroCliente.toLowerCase(); });
   if (q) a = a.filter(function (l) { return (l.cliente + ' ' + l.titolo).toLowerCase().indexOf(q) !== -1; });
   return a.sort(cmpScadenza);
 }
 function viewLavori() {
-  if (!S.mostraConsegnati && S.filtro === 'consegnato') S.filtro = 'tutti';
+  if (!S.mostraConsegnati && S.filtro === 'fine') S.filtro = 'tutti';
   var contenitore = h('div', { id: 'elenco-lavori' });
   function riempi() {
     var a = filtraLavori();
@@ -911,24 +992,38 @@ function viewLavori() {
   var interr = h('button', { class: 'interruttore', role: 'switch', 'aria-checked': S.mostraConsegnati ? 'true' : 'false', testid: 'mostra-consegnati',
     text: S.mostraConsegnati ? 'Mostra consegnati: SÌ' : 'Mostra consegnati: NO',
     onclick: function () { S.mostraConsegnati = !S.mostraConsegnati; render(); } });
-  var voci = [{ v: 'tutti', t: 'Tutti' }].concat(STATI.filter(function (s) { return S.mostraConsegnati || s.v !== 'consegnato'; }));
-  var filtri = h('div', { class: 'filtri', role: 'group', 'aria-label': 'Filtra per stato' }, voci.map(function (s) {
+  var nomi = nomiClienti();
+  if (S.filtroCliente && nomi.map(function (n) { return n.toLowerCase(); }).indexOf(S.filtroCliente.toLowerCase()) === -1) S.filtroCliente = '';
+  var selCliente = h('select', { class: 'sel-cliente', 'aria-label': 'Filtra per cliente', testid: 'filtro-cliente',
+    onchange: function (ev) { S.filtroCliente = ev.target.value; render(); } },
+    [h('option', { value: '' }, 'Tutti i clienti')].concat(nomi.map(function (n) { return h('option', { value: n }, n); })));
+  selCliente.value = S.filtroCliente;
+  var voci = [{ v: 'tutti', t: 'Tutti' }].concat(FASI.map(function (f) { return { v: f.v, t: f.t }; }));
+  if (S.mostraConsegnati) voci.push({ v: 'fine', t: 'Consegnato' });
+  var filtri = h('div', { class: 'filtri', role: 'group', 'aria-label': 'Filtra per fase' }, voci.map(function (s) {
     return h('button', { class: 'btn', text: s.t, 'aria-pressed': S.filtro === s.v ? 'true' : 'false', testid: 'filtro-' + s.v,
       onclick: function () { S.filtro = s.v; render(); } });
   }));
   riempi();
-  return [h('h1', { text: 'Lavori' }), h('div', { class: 'barra-ricerca' }, [cerca, interr]), filtri, contenitore];
+  return [h('h1', { text: 'Lavori' }), h('div', { class: 'barra-ricerca' }, [cerca, selCliente, interr]), filtri, contenitore];
 }
 
-/* ---- Da tagliare ---- */
+/* ---- Da tagliare / Da piegare ---- */
 function viewTaglio() {
-  var righe = pezziDaTagliare();
-  var out = [h('h1', { text: 'Da tagliare' })];
+  var modo = S.codaTipo === 'piegatura' ? 'piegatura' : 'taglio';
+  var campo = modo === 'piegatura' ? 'piegato' : 'tagliato';
+  var verbo = modo === 'piegatura' ? 'piegare' : 'tagliare';
+  var righe = pezziInCoda(modo);
+  var out = [h('h1', { text: modo === 'piegatura' ? 'Da piegare' : 'Da tagliare' })];
+  out.push(h('div', { class: 'filtri segm', role: 'group', 'aria-label': 'Quale lista' }, [
+    h('button', { class: 'btn', text: 'Da tagliare', 'aria-pressed': modo === 'taglio' ? 'true' : 'false', testid: 'coda-taglio', onclick: function () { S.codaTipo = 'taglio'; render(); } }),
+    h('button', { class: 'btn', text: 'Da piegare', 'aria-pressed': modo === 'piegatura' ? 'true' : 'false', testid: 'coda-piegatura', onclick: function () { S.codaTipo = 'piegatura'; render(); } })
+  ]));
   if (righe.length === 0) {
-    out.push(S.lavori.length ? h('div', { class: 'ok-card', text: 'Nessun pezzo da tagliare ✓' }) : h('p', { class: 'vuoto', text: 'Nessun lavoro. Tocca + Nuovo lavoro' }));
+    out.push(S.lavori.length ? h('div', { class: 'ok-card', text: 'Nessun pezzo da ' + verbo + ' ✓' }) : h('p', { class: 'vuoto', text: 'Nessun lavoro. Tocca + Nuovo lavoro' }));
     return out;
   }
-  out.push(h('p', { class: 'muted', text: 'Tocca la casella quando il pezzo è tagliato.' }));
+  out.push(h('p', { class: 'muted', text: 'Tocca la casella quando il pezzo è ' + (modo === 'piegatura' ? 'piegato' : 'tagliato') + '.' }));
   var gruppi = new Map();
   righe.forEach(function (x) {
     var mat = (x.p.materiale || '').trim();
@@ -954,7 +1049,7 @@ function viewTaglio() {
       h('h2', { class: 'gruppo-titolo' }, [g.nome, h('span', { class: 'pill-tot', text: tot + ' ' + plurale(tot, 'pezzo', 'pezzi') })]),
       h('div', { class: 'inset' }, g.righe.map(function (x) {
         return h('div', { class: 'riga' }, [
-          spunta(x.p),
+          spunta(x.p, campo),
           h('div', { class: 'testo' }, [
             h('div', { class: 'principale', text: testoPezzo(x.p) }),
             h('div', { class: 'piccolo', text: x.l.cliente + ' — ' + x.l.titolo }),
@@ -973,20 +1068,39 @@ function viewScheda() {
   if (!l) {
     return [h('p', { class: 'vuoto', text: 'Questo lavoro non c\'è più.' }), h('button', { class: 'btn primary', text: 'Torna ai lavori', onclick: function () { go('lavori'); } })];
   }
+  var lav = eLavoretto(l);
   var ps = pezziDi(l.id);
   var c = conteggio(l);
+  var piega = haFase(l, 'piegatura');
   var out = [];
   out.push(h('button', { class: 'link indietro', testid: 'indietro', onclick: function () { go('lavori'); } }, [icona('indietro', 22), 'Lavori']));
   out.push(h('h1', { text: l.cliente, style: 'overflow-wrap:anywhere' }));
-  out.push(h('p', { style: 'font-size:20px;overflow-wrap:anywhere', text: l.titolo }));
+  out.push(h('p', { style: 'font-size:20px;overflow-wrap:anywhere;margin-bottom:8px', text: l.titolo }));
+  out.push(h('p', { class: 'meta-scheda' }, [pillolaFase(l), lav ? h('span', { class: 'tag-lav', text: 'Lavoretto' }) : null]));
   out.push(h('p', { class: ritardoDi(l) ? 'ritardo' : '', style: 'font-weight:600', text: testoScadenza(l) }));
-  out.push(h('h2', { class: 'sez-titolo', text: 'Come sta andando' }));
-  out.push(h('div', { class: 'inset stati', role: 'group', 'aria-label': 'Stato del lavoro' }, STATI.map(function (s) {
-    var attivo = l.stato === s.v;
-    return h('button', { class: 'stato st-' + s.v, 'aria-pressed': attivo ? 'true' : 'false', testid: 'stato-' + s.v,
-      onclick: function () { cambiaStato(l, s.v); } },
-      [h('span', { class: 'pallino' }), h('span', { class: 'etichetta', text: s.t }), attivo ? icona('spunta', 24) : null]);
-  })));
+
+  if (lav) {
+    if (faseFatta(l, 'consegna')) out.push(h('div', { class: 'ok-card', testid: 'lavoretto-chiuso', text: 'Fatto ✓ Consegnato' }));
+    else out.push(h('button', { class: 'btn primary blocco grande', testid: 'lavoretto-fatto', text: 'Fatto ✓', onclick: function () { lavorettoFatto(l); } }));
+  } else {
+    var att = faseAttuale(l);
+    out.push(h('h2', { class: 'sez-titolo', text: 'Fasi del lavoro' }));
+    if (att) out.push(h('button', { class: 'btn primary blocco grande', testid: 'fatto-fase', text: 'Fatto: ' + nomeFase(att) + ' →', onclick: function () { fattoFase(l, att); } }));
+    else out.push(h('div', { class: 'ok-card', testid: 'lavoro-consegnato', text: 'Consegnato ✓' }));
+    out.push(h('div', { class: 'inset', role: 'list', 'aria-label': 'Fasi previste' }, fasiDi(l).map(function (v) {
+      var fatta = faseFatta(l, v), corrente = v === att;
+      var cont = [
+        h('span', { class: 'fp' }, fatta ? icona('spunta', 18) : null),
+        h('span', { class: 'et', text: nomeFase(v) }),
+        h('span', { class: 'st', text: fatta ? 'Fatto' : corrente ? 'Adesso' : 'Da fare' })
+      ];
+      var cls = 'fase-riga' + (fatta ? ' fatta' : '') + (corrente ? ' attuale' : '');
+      if (fatta) return h('button', { class: cls, testid: 'fase-' + v, 'aria-label': nomeFase(v) + ': fatto. Tocca per rimettere da fare', onclick: function () { rimettiDaFare(l, v); } }, cont);
+      return h('div', { class: cls, testid: 'fase-' + v, role: 'listitem', 'aria-current': corrente ? 'step' : null }, cont);
+    })));
+    out.push(h('button', { class: 'btn blocco cambia', testid: 'cambia-fasi', text: 'Cambia fasi', onclick: function () { go('fasi', { lavoroId: l.id }); } }));
+  }
+
   if (l.cartella) {
     out.push(h('h2', { class: 'sez-titolo', text: 'Cartella dei file' }));
     out.push(h('div', { class: 'inset' }, h('div', { class: 'cartella' }, [
@@ -998,30 +1112,32 @@ function viewScheda() {
     out.push(h('h2', { class: 'sez-titolo', text: 'Note' }));
     out.push(h('div', { class: 'inset' }, h('div', { class: 'note-box', text: l.note })));
   }
-  out.push(h('h2', { class: 'sez-titolo', text: 'Pezzi' }));
-  out.push(h('p', { style: 'font-weight:700;margin-left:4px', testid: 'contatore-pezzi', text: c.righe === 0 ? 'Nessun pezzo scritto ancora' : c.fatti + ' di ' + c.tot + ' tagliati' }));
-  if (ps.length === 0) out.push(h('p', { class: 'vuoto', text: 'Nessun pezzo. Tocca + Aggiungi pezzo' }));
-  else {
-    out.push(h('div', { class: 'inset' }, ps.map(function (p) {
-      var dett = [];
-      if (p.materiale) dett.push(p.materiale);
-      if (p.spessore != null && p.spessore !== '') dett.push(fmtNum(p.spessore) + ' mm');
-      return h('div', { class: 'riga' }, [
-        spunta(p),
-        h('div', { class: 'testo' }, [
-          h('div', { class: 'principale', text: testoPezzo(p) }),
-          dett.length ? h('div', { class: 'piccolo', text: dett.join(' · ') }) : null,
-          p.note ? h('div', { class: 'piccolo', text: p.note }) : null,
-          p.tagliato ? h('div', { class: 'fatto-tag', text: 'Tagliato ✓' }) : null,
-          h('div', { class: 'azioni' }, [
-            h('button', { class: 'btn piccolo', text: 'Modifica', testid: 'modifica-pezzo', onclick: function () { go('pezzo', { lavoroId: l.id, pezzoId: p.id }); } }),
-            h('button', { class: 'btn piccolo danger', text: 'Elimina', testid: 'elimina-pezzo', onclick: function () { eliminaPezzo(p); } })
+  if (!lav) {
+    out.push(h('h2', { class: 'sez-titolo', text: 'Pezzi' }));
+    out.push(h('p', { style: 'font-weight:700;margin:0 0 4px 4px', testid: 'contatore-pezzi', text: c.righe === 0 ? 'Nessun pezzo scritto ancora' : 'Tagliati ' + c.fatti + ' di ' + c.tot }));
+    if (piega && c.righe > 0) out.push(h('p', { style: 'font-weight:700;margin:0 0 10px 4px', testid: 'contatore-piegati', text: 'Piegati ' + c.piegati + ' di ' + c.tot }));
+    if (ps.length === 0) out.push(h('p', { class: 'vuoto', text: 'Nessun pezzo. Tocca + Aggiungi pezzo' }));
+    else {
+      out.push(h('div', { class: 'inset' }, ps.map(function (p) {
+        var dett = [];
+        if (p.materiale) dett.push(p.materiale);
+        if (p.spessore != null && p.spessore !== '') dett.push(fmtNum(p.spessore) + ' mm');
+        return h('div', { class: 'riga' }, [
+          h('div', { class: 'testo' }, [
+            h('div', { class: 'principale', text: testoPezzo(p) }),
+            dett.length ? h('div', { class: 'piccolo', text: dett.join(' · ') }) : null,
+            p.note ? h('div', { class: 'piccolo', text: p.note }) : null,
+            h('div', { class: 'spunte' }, [interruttorePezzo(p, 'tagliato', 'Tagliato', 'spunta-pezzo'), piega ? interruttorePezzo(p, 'piegato', 'Piegato', 'spunta-piegato') : null]),
+            h('div', { class: 'azioni' }, [
+              h('button', { class: 'btn piccolo', text: 'Modifica', testid: 'modifica-pezzo', onclick: function () { go('pezzo', { lavoroId: l.id, pezzoId: p.id }); } }),
+              h('button', { class: 'btn piccolo danger', text: 'Elimina', testid: 'elimina-pezzo', onclick: function () { eliminaPezzo(p); } })
+            ])
           ])
-        ])
-      ]);
-    })));
+        ]);
+      })));
+    }
+    out.push(h('button', { class: 'btn primary blocco', testid: 'aggiungi-pezzo', style: 'min-height:60px', onclick: function () { go('pezzo', { lavoroId: l.id }); } }, [icona('piu', 22), 'Aggiungi pezzo']));
   }
-  out.push(h('button', { class: 'btn primary blocco', testid: 'aggiungi-pezzo', style: 'min-height:60px', onclick: function () { go('pezzo', { lavoroId: l.id }); } }, [icona('piu', 22), 'Aggiungi pezzo']));
   out.push(h('div', { class: 'riga-bottoni', style: 'margin-top:28px' }, [
     h('button', { class: 'btn', text: 'Modifica lavoro', testid: 'modifica-lavoro', onclick: function () { go('modifica', { lavoroId: l.id }); } }),
     h('button', { class: 'btn danger', text: 'Elimina lavoro', testid: 'elimina-lavoro', onclick: function () { eliminaLavoro(l); } })
@@ -1041,16 +1157,17 @@ async function copia(testo) {
   } catch (e2) { showError('Non riesco a copiare. Tieni premuto sul testo per copiarlo.'); }
 }
 
-/* Regola chiave: nessun pezzo dimenticato */
-async function cambiaStato(l, nuovo) {
-  if (l.stato === nuovo || S.busy) return;
+/* Regola chiave: nessun pezzo dimenticato (taglio e piegatura) */
+async function fattoFase(l, fase) {
+  if (S.busy) return;
+  var campo = fase === 'taglio' ? 'tagliato' : fase === 'piegatura' ? 'piegato' : null;
   var spuntaTutti = false;
-  if (nuovo === 'tagliato' || nuovo === 'consegnato') {
-    var mancanti = pezziDi(l.id).filter(function (p) { return !p.tagliato; });
+  if (campo) {
+    var mancanti = pezziDi(l.id).filter(function (p) { return !p[campo]; });
     if (mancanti.length) {
       var tot = sommaQ(mancanti);
       var ok = await conferma({
-        titolo: 'Attenzione: mancano ' + tot + ' ' + plurale(tot, 'pezzo', 'pezzi') + ' da tagliare',
+        titolo: 'Attenzione: mancano ' + tot + ' ' + plurale(tot, 'pezzo', 'pezzi') + ' da ' + (campo === 'piegato' ? 'piegare' : 'tagliare'),
         attenzione: true,
         corpo: h('ul', null, mancanti.map(function (p) { return h('li', { text: testoPezzo(p) }); })),
         no: 'Torna indietro', si: 'Sì, è tutto fatto: spunta tutti'
@@ -1061,11 +1178,33 @@ async function cambiaStato(l, nuovo) {
   }
   await salva(async function () {
     if (spuntaTutti) {
-      var r1 = await sb.from('officina_pezzi').update({ tagliato: true }).eq('lavoro_id', l.id).eq('tagliato', false);
+      var su = {}; su[campo] = true;
+      var r1 = await sb.from('officina_pezzi').update(su).eq('lavoro_id', l.id).eq(campo, false);
       if (r1.error) throw r1.error;
     }
-    var r2 = await sb.from('officina_lavori').update({ stato: nuovo }).eq('id', l.id);
+    var r2 = await sb.from('officina_lavori').update({ fasi_fatte: ordina(fattiDi(l).concat([fase])) }).eq('id', l.id);
     if (r2.error) throw r2.error;
+  });
+}
+async function rimettiDaFare(l, fase) {
+  if (S.busy) return;
+  var ok = await conferma({
+    titolo: 'Rimettere «' + nomeFase(fase) + '» da fare?',
+    corpo: h('p', { text: 'Anche le fasi dopo questa tornano da fare.' }),
+    no: 'No, torna indietro', si: 'Sì, rimetti da fare'
+  });
+  if (!ok) return;
+  var fasi = fasiDi(l), idx = fasi.indexOf(fase);
+  var resta = fattiDi(l).filter(function (x) { return fasi.indexOf(x) < idx; });
+  await salva(async function () {
+    var r = await sb.from('officina_lavori').update({ fasi_fatte: ordina(resta) }).eq('id', l.id);
+    if (r.error) throw r.error;
+  });
+}
+async function lavorettoFatto(l) {
+  await salva(async function () {
+    var r = await sb.from('officina_lavori').update({ fasi_fatte: ['consegna'] }).eq('id', l.id);
+    if (r.error) throw r.error;
   });
 }
 
@@ -1099,7 +1238,7 @@ async function eliminaPezzo(p) {
 /* ---- Campi dei moduli ---- */
 function campo(o) {
   var inp;
-  var attr = { id: o.id, testid: o.testid, maxlength: o.max ? String(o.max) : null, value: o.valore != null ? String(o.valore) : '', autocomplete: 'off', list: o.lista || null, inputmode: o.inputmode || null };
+  var attr = { id: o.id, testid: o.testid, maxlength: o.max ? String(o.max) : null, value: o.valore != null ? String(o.valore) : '', autocomplete: 'off', list: o.lista || null, inputmode: o.inputmode || null, placeholder: o.placeholder || null };
   if (o.area) inp = h('textarea', attr);
   else { attr.type = o.tipo || 'text'; if (o.min) attr.min = o.min; inp = h('input', attr); }
   if (o.area) inp.value = attr.value;
@@ -1116,31 +1255,81 @@ function campo(o) {
 }
 var DETTA = 'Puoi dettare col microfono della tastiera';
 
+/* ---- Interruttori delle fasi (nuovo lavoro e "Cambia fasi") ---- */
+function interruttoriFasi(sel) {
+  var box = h('div', { class: 'inset fasi-sw', role: 'group', 'aria-label': 'Fasi previste' });
+  FASI.forEach(function (f) {
+    var b = h('button', { class: 'sw-riga', role: 'switch', 'aria-checked': sel[f.v] ? 'true' : 'false', testid: 'fase-switch-' + f.v,
+      onclick: function () { sel[f.v] = !sel[f.v]; b.setAttribute('aria-checked', sel[f.v] ? 'true' : 'false'); } },
+      [h('span', { class: 'sw-testo', text: f.t }), h('span', { class: 'sw-knob' }, h('span'))]);
+    box.append(b);
+  });
+  return box;
+}
+function fasiScelte(sel) { return ordina(FASI.map(function (f) { return f.v; }).filter(function (v) { return sel[v]; })); }
+
 /* ---- Nuovo lavoro / Modifica lavoro ---- */
 function viewFormLavoro(l) {
   if (S.view === 'modifica' && !l) return { titolo: 'Lavoro non trovato', corpo: h('p', { class: 'vuoto', text: 'Questo lavoro non c\'è più.' }), chiudi: function () { go('lavori'); } };
+  var tipo = l && eLavoretto(l) ? 'lavoretto' : 'lavoro';
+  var sel = {};
+  (l ? fasiDi(l) : FASI_DEFAULT).forEach(function (v) { sel[v] = true; });
   var f = {
-    cliente: campo({ id: 'f-cliente', etichetta: 'Cliente', max: 120, valore: l ? l.cliente : '', testid: 'campo-cliente' }),
+    cliente: campo({ id: 'f-cliente', etichetta: 'Cliente', max: 120, valore: l ? l.cliente : '', testid: 'campo-cliente', lista: 'lista-clienti' }),
     titolo: campo({ id: 'f-titolo', etichetta: 'Che lavoro è', max: 200, valore: l ? l.titolo : '', testid: 'campo-titolo', aiuto: DETTA }),
     scadenza: campo({ id: 'f-scadenza', etichetta: 'Scadenza (si può lasciare vuota)', tipo: 'date', valore: l && l.scadenza ? l.scadenza : '', testid: 'campo-scadenza' }),
-    cartella: campo({ id: 'f-cartella', etichetta: 'Cartella dei file sul computer', max: 400, valore: l ? l.cartella || '' : '', testid: 'campo-cartella', aiuto: 'Per esempio: C:\\Lavori\\Rossi' }),
+    cartella: campo({ id: 'f-cartella', etichetta: 'Cartella dei file', max: 400, valore: l ? l.cartella || '' : '', testid: 'campo-cartella', aiuto: 'Copia il percorso e incollalo in Esplora file', placeholder: '\\\\SERVER\\Officina\\Cliente' }),
     note: campo({ id: 'f-note', etichetta: 'Note', area: true, max: 5000, valore: l ? l.note || '' : '', testid: 'campo-note', aiuto: DETTA })
   };
+  var dlClienti = h('datalist', { id: 'lista-clienti' }, nomiClienti().map(function (n) { return h('option', { value: n }); }));
+  var ultimoAuto = '';
+  function precompila() {
+    if (l) return;
+    var nome = f.cliente.input.value.trim().toLowerCase();
+    var c = S.clienti.filter(function (x) { return x.nome.trim().toLowerCase() === nome; })[0];
+    var modificabile = f.cartella.input.value === '' || f.cartella.input.value === ultimoAuto;
+    if (!modificabile) return;
+    var nuova = c && c.cartella ? c.cartella : '';
+    f.cartella.input.value = nuova; ultimoAuto = nuova;
+  }
+  f.cliente.input.addEventListener('input', precompila);
+  f.cliente.input.addEventListener('change', precompila);
+
+  var boxFasi = interruttoriFasi(sel);
+  var errFasi = h('p', { class: 'err-solo', role: 'alert', hidden: true, testid: 'errore-fasi', text: 'Scegli almeno una fase' });
+  var wrapFasi = h('div', { class: 'blocco-fasi' }, [h('h2', { class: 'sez-titolo', text: 'Fasi di questo lavoro' }), h('p', { class: 'aiuto-fasi', text: 'Accendi solo le fasi che servono.' }), boxFasi, errFasi]);
+  var btnTipo = {};
+  function applica() {
+    var lav = tipo === 'lavoretto';
+    f.cartella.wrap.hidden = lav;
+    wrapFasi.hidden = lav || !!l;
+    f.titolo.wrap.querySelector('label').textContent = lav ? 'Cosa fare' : 'Che lavoro è';
+    Object.keys(btnTipo).forEach(function (k) { btnTipo[k].setAttribute('aria-pressed', k === tipo ? 'true' : 'false'); });
+  }
+  function bt(v, t, id) {
+    btnTipo[v] = h('button', { class: 'btn', text: t, testid: id, 'aria-pressed': 'false', onclick: function () { tipo = v; applica(); } });
+    return btnTipo[v];
+  }
+  var segm = l ? null : h('div', { class: 'filtri segm', role: 'group', 'aria-label': 'Che cosa devi scrivere' }, [bt('lavoro', 'Lavoro', 'tipo-lavoro'), bt('lavoretto', 'Lavoretto', 'tipo-lavoretto')]);
   var salvaBtn = h('button', { class: 'btn primary', type: 'submit', text: l ? 'Salva modifiche' : 'Salva lavoro', testid: 'salva-lavoro' });
   var form = h('form', { class: 'form', novalidate: true, onsubmit: async function (ev) {
     ev.preventDefault();
+    var lav = tipo === 'lavoretto';
     var cliente = f.cliente.input.value.trim(), titolo = f.titolo.input.value.trim();
     var ok = true;
     f.cliente.errore(cliente ? '' : 'Scrivi il nome del cliente');
-    f.titolo.errore(titolo ? '' : 'Scrivi che lavoro è');
+    f.titolo.errore(titolo ? '' : (lav ? 'Scrivi cosa fare' : 'Scrivi che lavoro è'));
     if (!cliente) ok = false; if (!titolo) ok = false;
     var sc = f.scadenza.input.value;
     if (sc && !/^\d{4}-\d{2}-\d{2}$/.test(sc)) { f.scadenza.errore('Scegli una data valida'); ok = false; } else f.scadenza.errore('');
-    if (!ok) { var primo = form.querySelector('.ha-errore input, .ha-errore textarea'); if (primo) primo.focus(); return; }
+    var fasi = fasiScelte(sel);
+    if (!l && !lav && fasi.length === 0) { errFasi.hidden = false; ok = false; } else errFasi.hidden = true;
+    if (!ok) { var primo = form.querySelector('.ha-errore input, .ha-errore textarea'); if (primo) primo.focus(); else if (!errFasi.hidden) errFasi.scrollIntoView({ block: 'center' }); return; }
     var dati = {
       cliente: cliente, titolo: titolo, scadenza: sc || null,
-      cartella: f.cartella.input.value.trim() || null, note: f.note.input.value.trim() || null
+      cartella: lav ? null : (f.cartella.input.value.trim() || null), note: f.note.input.value.trim() || null
     };
+    if (!l) { dati.tipo = tipo; dati.fasi = lav ? ['consegna'] : fasi; dati.fasi_fatte = []; }
     var nuovoId = l ? l.id : null;
     var fatto = await salva(async function () {
       if (l) {
@@ -1151,16 +1340,51 @@ function viewFormLavoro(l) {
         if (r2.error) throw r2.error;
         nuovoId = r2.data.id;
       }
+      var conosciuto = S.clienti.some(function (c) { return c.nome.trim().toLowerCase() === cliente.toLowerCase(); });
+      if (!conosciuto) {
+        try { await sb.from('officina_clienti').upsert({ nome: cliente, cartella: dati.cartella }, { onConflict: 'user_id,nome', ignoreDuplicates: true }); } catch (e) {}
+      }
     }, { norender: true });
     if (fatto) go('scheda', { lavoroId: nuovoId });
   } }, [
-    f.cliente.wrap, f.titolo.wrap, f.scadenza.wrap, f.cartella.wrap, f.note.wrap,
+    dlClienti, segm,
+    f.cliente.wrap, f.titolo.wrap, f.scadenza.wrap, wrapFasi, f.cartella.wrap, f.note.wrap,
     h('div', { class: 'riga-bottoni' }, [
       salvaBtn,
       h('button', { class: 'btn', text: 'Annulla', onclick: function () { l ? go('scheda', { lavoroId: l.id }) : go(S.baseView || 'lavori'); } })
     ])
   ]);
+  applica();
   return { titolo: l ? 'Modifica lavoro' : 'Nuovo lavoro', corpo: form, chiudi: function () { if (l) go('scheda', { lavoroId: l.id }); else go(S.baseView || 'lavori'); } };
+}
+
+/* ---- Cambia fasi ---- */
+function viewFormFasi() {
+  var l = lavoroDi(S.lavoroId);
+  if (!l || eLavoretto(l)) return { titolo: 'Lavoro non trovato', corpo: h('p', { class: 'vuoto', text: 'Questo lavoro non c\'è più.' }), chiudi: function () { go('lavori'); } };
+  var sel = {};
+  fasiDi(l).forEach(function (v) { sel[v] = true; });
+  var err = h('p', { class: 'err-solo', role: 'alert', hidden: true, testid: 'errore-fasi', text: 'Scegli almeno una fase' });
+  var form = h('form', { class: 'form', novalidate: true, onsubmit: async function (ev) {
+    ev.preventDefault();
+    var fasi = fasiScelte(sel);
+    if (fasi.length === 0) { err.hidden = false; return; }
+    err.hidden = true;
+    var fatte = fattiDi(l).filter(function (x) { return fasi.indexOf(x) !== -1; });
+    var fatto = await salva(async function () {
+      var r = await sb.from('officina_lavori').update({ fasi: fasi, fasi_fatte: ordina(fatte) }).eq('id', l.id);
+      if (r.error) throw r.error;
+    }, { norender: true });
+    if (fatto) go('scheda', { lavoroId: l.id });
+  } }, [
+    h('p', { class: 'aiuto-fasi', text: 'Accendi solo le fasi che servono a questo lavoro.' }),
+    interruttoriFasi(sel), err,
+    h('div', { class: 'riga-bottoni' }, [
+      h('button', { class: 'btn primary', type: 'submit', text: 'Salva fasi', testid: 'salva-fasi' }),
+      h('button', { class: 'btn', text: 'Annulla', onclick: function () { go('scheda', { lavoroId: l.id }); } })
+    ])
+  ]);
+  return { titolo: 'Cambia fasi', corpo: h('div', null, [h('p', { class: 'muted', text: l.cliente + ' — ' + l.titolo }), form]), chiudi: function () { go('scheda', { lavoroId: l.id }); } };
 }
 
 /* ---- Aggiungi / modifica pezzo ---- */
@@ -1234,6 +1458,11 @@ function viewImpostazioni() {
   var scuro = temaEffettivo() === 'dark';
   return h('div', { class: 'impostazioni' }, [
     h('h1', { text: 'Impostazioni' }),
+    h('h2', { class: 'sez-titolo', text: 'Clienti' }),
+    h('div', { class: 'inset' }, h('button', { class: 'voce', testid: 'impostazioni-clienti', onclick: function () { go('clienti'); } }, [
+      h('span', { class: 'corpo' }, [h('span', { class: 'cliente', text: 'Clienti' }), h('span', { class: 'titolo muted', text: 'Nomi e cartelle base dei clienti' })]),
+      h('span', { class: 'chev' }, icona('chev', 22))
+    ])),
     h('h2', { class: 'sez-titolo', text: 'Colori' }),
     h('div', { class: 'inset' }, h('button', { class: 'voce', testid: 'tema', onclick: cambiaTema }, h('span', { class: 'corpo', text: scuro ? '☀ Passa al tema chiaro' : '☾ Passa al tema scuro' }))),
     h('div', { class: 'esci-zona' }, [
@@ -1241,6 +1470,71 @@ function viewImpostazioni() {
       h('button', { class: 'btn piccolo', text: 'Esci', testid: 'esci', onclick: function () { logoutCompleto(''); } })
     ])
   ]);
+}
+
+/* ---- Impostazioni › Clienti ---- */
+function viewClienti() {
+  var lista = S.clienti.slice().sort(function (a, b) { return a.nome.localeCompare(b.nome, 'it'); });
+  var out = [
+    h('button', { class: 'link indietro', testid: 'indietro-impostazioni', onclick: function () { go('impostazioni'); } }, [icona('indietro', 22), 'Impostazioni']),
+    h('h1', { text: 'Clienti' }),
+    h('p', { class: 'muted', text: 'La cartella base si scrive da sola nei lavori nuovi di quel cliente.' })
+  ];
+  if (lista.length === 0) out.push(h('p', { class: 'vuoto', text: 'Nessun cliente salvato. I clienti si salvano da soli coi lavori.' }));
+  else {
+    out.push(h('div', { class: 'inset' }, lista.map(function (c) {
+      return h('div', { class: 'riga', testid: 'cliente-riga' }, h('div', { class: 'testo' }, [
+        h('div', { class: 'principale', text: c.nome }),
+        h('div', { class: 'piccolo', text: c.cartella || 'Nessuna cartella base' }),
+        h('div', { class: 'azioni' }, [
+          h('button', { class: 'btn piccolo', text: 'Modifica', testid: 'modifica-cliente', 'aria-label': 'Modifica ' + c.nome, onclick: function () { go('cliente', { clienteId: c.id }); } }),
+          h('button', { class: 'btn piccolo danger', text: 'Elimina', testid: 'elimina-cliente', 'aria-label': 'Elimina ' + c.nome, onclick: function () { eliminaCliente(c); } })
+        ])
+      ]));
+    })));
+  }
+  out.push(h('button', { class: 'btn primary blocco', testid: 'aggiungi-cliente', style: 'min-height:60px', onclick: function () { go('cliente', { clienteId: null }); } }, [icona('piu', 22), 'Aggiungi cliente']));
+  return out;
+}
+async function eliminaCliente(c) {
+  var ok = await conferma({
+    titolo: 'Eliminare il cliente «' + c.nome + '»?',
+    corpo: h('p', { text: 'I lavori già scritti restano come sono.' }),
+    no: 'No, torna indietro', si: 'Sì, elimina'
+  });
+  if (!ok) return;
+  await salva(async function () {
+    var r = await sb.from('officina_clienti').delete().eq('id', c.id);
+    if (r.error) throw r.error;
+  });
+}
+function viewFormCliente() {
+  var c = S.clienteId ? S.clienti.filter(function (x) { return x.id === S.clienteId; })[0] : null;
+  if (S.clienteId && !c) return { titolo: 'Cliente non trovato', corpo: h('p', { class: 'vuoto', text: 'Questo cliente non c\'è più.' }), chiudi: function () { go('clienti'); } };
+  var f = {
+    nome: campo({ id: 'c-nome', etichetta: 'Nome del cliente', max: 120, valore: c ? c.nome : '', testid: 'campo-nome-cliente' }),
+    cartella: campo({ id: 'c-cartella', etichetta: 'Cartella base', max: 400, valore: c ? c.cartella || '' : '', testid: 'campo-cartella-cliente', aiuto: 'Per esempio: \\\\SERVER\\Officina\\Barilla', placeholder: '\\\\SERVER\\Officina\\Cliente' })
+  };
+  var form = h('form', { class: 'form', novalidate: true, onsubmit: async function (ev) {
+    ev.preventDefault();
+    var nome = f.nome.input.value.trim();
+    var doppio = S.clienti.some(function (x) { return (!c || x.id !== c.id) && x.nome.trim().toLowerCase() === nome.toLowerCase(); });
+    f.nome.errore(!nome ? 'Scrivi il nome del cliente' : doppio ? 'Questo cliente c\'è già' : '');
+    if (!nome || doppio) { f.nome.input.focus(); return; }
+    var dati = { nome: nome, cartella: f.cartella.input.value.trim() || null };
+    var fatto = await salva(async function () {
+      var r = c ? await sb.from('officina_clienti').update(dati).eq('id', c.id) : await sb.from('officina_clienti').insert(dati);
+      if (r.error) throw r.error;
+    }, { norender: true });
+    if (fatto) go('clienti');
+  } }, [
+    f.nome.wrap, f.cartella.wrap,
+    h('div', { class: 'riga-bottoni' }, [
+      h('button', { class: 'btn primary', type: 'submit', text: 'Salva cliente', testid: 'salva-cliente' }),
+      h('button', { class: 'btn', text: 'Annulla', onclick: function () { go('clienti'); } })
+    ])
+  ]);
+  return { titolo: c ? 'Modifica cliente' : 'Nuovo cliente', corpo: form, chiudi: function () { go('clienti'); } };
 }
 
 /* ============ Codice anche dopo 10 minuti in background ============ */
@@ -1260,7 +1554,7 @@ async function avvio() {
       setTimeout(function () {
         if (S.screen === 'login') return;
         pulisciPin();
-        S.lavori = []; S.pezzi = []; S.byLavoro = new Map(); S.loaded = false;
+        S.lavori = []; S.pezzi = []; S.clienti = []; S.byLavoro = new Map(); S.loaded = false;
         chiudiFinestre(); nascondiUndo();
         S.screen = 'login'; render();
       }, 0);
