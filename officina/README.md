@@ -20,3 +20,10 @@ Link: https://alessandromauroworks.github.io/Ale/officina/
 1. In Supabase › SQL: `insert into public.officina_utenti(email) values ('email-di-antonio');`
 2. Supabase › Authentication › Users › Add user › email e password (spunta «Auto confirm»).
 3. Sul PC e sul telefono di Antonio: apri il link, inserisci email e password, scegli il codice di 4 cifre insieme a lui.
+
+## Clienti da caricare nell'account di Antonio
+Sono le sottocartelle della cartella Laser sul server. Si caricano in `officina_clienti` appena esiste il suo account, con la cartella base `<percorso Laser>\<nome>` (percorso Laser da chiedere).
+
+Princes · Officina (lavori interni) · Leonardo · Privati · Giblas (ingegnere, lavori con privati) · Acquedotto Pugliese · Barilla · Ceflatech · Progetto Ambiente (rifiuti) · Pasta Armando · Nonno (lavori dei privati principali) · Fiat · IPZS · Sisecam · Ferrovie FS · Simpro · Enterra · Renzullo (lavori personali del titolare) · Bisiac
+
+Da confermare la scrittura: Simpro, Enterra, Bisiac. Possono essercene altri.
