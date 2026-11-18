@@ -31,7 +31,7 @@ Due prodotti diversi. Ogni voce di base e sicurezza vale in uno, nell'altro o in
 
 ## 3. Dove stanno i dati
 - **Demo**: mai un progetto Supabase gratuito per ogni demo. Il piano gratuito mette in pausa un progetto dopo 1 settimana senza attività e permette al massimo 2 progetti gratuiti attivi; non ha backup giornalieri (fonte: supabase.com/pricing, controllato il 18/11/2026: ricontrollare se passano più di 6 mesi). Due strade: dati nel browser (`localStorage`), oppure un unico progetto Supabase per tutte le demo, tenuto sveglio, in sola lettura per i visitatori, che si azzera da solo.
-- **Stato attuale**: in `gestionali/` c'è solo il README. `base/` e `settori/` non esistono ancora e nel repo non c'è nessuna demo di gestionale, quindi non c'è un metodo di salvataggio già in uso. Per le demo si parte da `localStorage`; quando arriva la base del Patronato, verificare cosa usa e allinearsi.
+- **Stato attuale**: la base comune esiste in `gestionali/base/` (`base.css`, `base.js`), ricavata dal Patronato di Carapelle; primo settore `gestionali/settori/patronato.js` (pagina `gestionali/patronato.html`). Le demo salvano in `localStorage` del browser, con «Ripristina dati demo»: i nuovi settori si allineano a questo metodo.
 - **Pubblicazione**: le demo vanno su GitHub Pages con la skill `pubblica-demo-github`. Il link pubblico si apre davvero prima di dire «pronto». Mai `localhost`.
 - **Versione vera**: un progetto Supabase separato per ogni cliente, server in UE (es. Francoforte), mai condiviso tra clienti. Le automazioni del cliente stanno nello stesso progetto (vedi CLAUDE.md).
 
