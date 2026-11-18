@@ -30,7 +30,7 @@ Due prodotti diversi. Ogni voce di base e sicurezza vale in uno, nell'altro o in
 | Prova finale da telefono senza account né app | sì | sì (con login) |
 
 ## 3. Dove stanno i dati
-- **Demo**: mai un progetto Supabase gratuito per ogni demo. Il piano gratuito mette in pausa un progetto dopo circa 7 giorni senza uso e permette circa 2 progetti gratuiti attivi (da verificare sul sito Supabase prima di decidere). Due strade: dati nel browser (`localStorage`), oppure un unico progetto Supabase per tutte le demo, tenuto sveglio, in sola lettura per i visitatori, che si azzera da solo.
+- **Demo**: mai un progetto Supabase gratuito per ogni demo. Il piano gratuito mette in pausa un progetto dopo 1 settimana senza attività e permette al massimo 2 progetti gratuiti attivi; non ha backup giornalieri (fonte: supabase.com/pricing, controllato il 18/11/2026: ricontrollare se passano più di 6 mesi). Due strade: dati nel browser (`localStorage`), oppure un unico progetto Supabase per tutte le demo, tenuto sveglio, in sola lettura per i visitatori, che si azzera da solo.
 - **Stato attuale**: in `gestionali/` c'è solo il README. `base/` e `settori/` non esistono ancora e nel repo non c'è nessuna demo di gestionale, quindi non c'è un metodo di salvataggio già in uso. Per le demo si parte da `localStorage`; quando arriva la base del Patronato, verificare cosa usa e allinearsi.
 - **Pubblicazione**: le demo vanno su GitHub Pages con la skill `pubblica-demo-github`. Il link pubblico si apre davvero prima di dire «pronto». Mai `localhost`.
 - **Versione vera**: un progetto Supabase separato per ogni cliente, server in UE (es. Francoforte), mai condiviso tra clienti. Le automazioni del cliente stanno nello stesso progetto (vedi CLAUDE.md).
@@ -103,13 +103,13 @@ Scrivi le risposte in 5-10 righe nel README del settore prima di scrivere codice
 
 ## 9. Proprietà e uscita (da scrivere prima di vendere)
 - Di chi è l'account Supabase.
-- Chi paga i costi fissi: Supabase Pro per i backup giornalieri (circa 25 $ al mese, da verificare), intermediario SDI, API WhatsApp.
+- Chi paga i costi fissi: Supabase Pro per i backup giornalieri (25 $ al mese di base, backup giornalieri conservati 7 giorni, nessuna pausa per inattività; supabase.com/pricing, 18/11/2026), intermediario SDI, API WhatsApp.
 - Come il cliente si porta via tutti i dati (export completo) se smette.
 Nessun vincolo per il cliente: è anche un argomento di vendita.
 
 ## 10. Moduli opzionali
 Si attivano solo quando servono.
-- **Fatturazione e pagamenti.** Preventivi, fatture, scadenze di incasso, tramite intermediario accreditato SDI. Specifiche FatturaPA in vigore indicate come 1.9.1: verificare la versione sul sito dell'Agenzia delle Entrate prima di costruire. Per professioni sanitarie con pazienti privati (medici, dentisti, psicologi e altre: verificare caso per caso con `ufficio-legale`) il modulo giusto è il Sistema Tessera Sanitaria, non la fattura SDI.
+- **Fatturazione e pagamenti.** Preventivi, fatture, scadenze di incasso, tramite intermediario accreditato SDI. Specifiche tecniche FatturaPA versione 1.9.1, utilizzabili dal 15/05/2026 (pagina «Specifiche tecniche versione 1.9.1» dell'Agenzia delle Entrate, controllata il 18/11/2026). Prima di costruire il modulo ricontrolla che non sia uscita una versione nuova. Per professioni sanitarie con pazienti privati (medici, dentisti, psicologi e altre: verificare caso per caso con `ufficio-legale`) il modulo giusto è il Sistema Tessera Sanitaria, non la fattura SDI.
 - **Vendita al banco.** Lo scontrino lo fa il registratore telematico. Il gestionale non lo sostituisce e non deve sembrarlo.
 - **Comunicazione.** Email e calendario dalla scheda cliente (skill `invio-email-sicuro`). WhatsApp solo con l'API ufficiale WhatsApp Business (Cloud API), messaggi modello e consenso; mai automatizzare un numero WhatsApp normale (rischio blocco). Vedi `whatsapp-agent`. Le automazioni sono Edge Function Supabase (skill `automazioni-supabase-edge`), mai N8N.
 - **Magazzino.** Con codici a barre attivabili, per chi vende prodotti.
