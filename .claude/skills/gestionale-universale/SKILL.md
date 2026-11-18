@@ -91,7 +91,7 @@ Scrivi le risposte in 5-10 righe nel README del settore prima di scrivere codice
 - Meta `Content-Security-Policy` restrittiva e `referrer` `no-referrer`.
 - Export CSV con le formule neutralizzate (celle che iniziano con `=`, `+`, `-`, `@` precedute da un apostrofo), così Excel non esegue niente.
 - Documenti allegati: si scaricano, non si aprono dentro la pagina.
-- Meno librerie possibile: animazioni con CSS e Web Animations del browser, niente GSAP se non serve davvero.
+- Meno librerie possibile: animazioni con CSS e Web Animations del browser, niente GSAP se non serve davvero. Le librerie che servono stanno nel repo (`base/vendor/`, versione esatta, licenza, impronta controllata), così la CSP resta `script-src 'self'` e niente dipende da un sito esterno. Niente librerie che usano `eval` (es. jsPDF): il PDF vero lo fa `base/pdf.js`.
 - Demo: solo dati inventati, banner «Progetto dimostrativo · dati inventati», mai dati reali di clienti o pazienti.
 
 **Versione vera:**
@@ -125,6 +125,8 @@ Con Playwright (`require('playwright')`, `chromium.launch()`), a 390x844 e 1440x
 - ogni collegamento va provato davvero (una vendita scala il magazzino e compare nei report);
 - il bilancio del mese torna al centesimo con la somma dei movimenti, e la chiusura del mese passa nello storico;
 - prova la rete che cade mentre si compila: bozza salvata e avviso;
+- telefono vecchio simulato: 320x568, CPU rallentata x6 (`Emulation.setCPUThrottlingRate`), rete Fast 3G, user agent Android vecchio. Apertura sotto 3 s, cambio sezione sotto 300 ms, Liquid Glass spento da solo, niente blocchi. Su Slow 3G basta un messaggio di caricamento immediato;
+- «Esporta PDF» scarica un vero file .pdf (inizia con `%PDF`) con totali uguali allo schermo;
 - nessun errore in console, nessuno scroll orizzontale, testi leggibili in chiaro e scuro, anche col vetro;
 - salva gli screenshot.
 
@@ -132,7 +134,8 @@ Poi:
 1. Un agent prova a rompere il gestionale: `squadra-collaudo`, più `collaudo-gestionale`.
 2. Versioni con login o dati di clienti: `attacco-di-prova`, fino a zero vulnerabilità.
 3. Controllo critico finale nei panni del professionista di quel settore: cerca buchi e mancanze e sistemali.
-4. Prova finale da telefono, anche vecchio, senza account né app (demo).
+4. Prova finale da telefono, anche vecchio, senza account né app (demo): sul link pubblico, dopo la pubblicazione.
+5. Moduli pubblici nella demo: niente invio a server (sarebbero dati veri senza informativa); scritta chiara che è una prova, che i dati restano sul dispositivo e di non inserire dati veri.
 
 Correggi e ripeti finché passa tutto. Se qualcosa non si può collaudare, scrivilo.
 
