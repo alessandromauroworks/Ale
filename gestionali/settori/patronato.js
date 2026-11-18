@@ -542,12 +542,15 @@
   function richieste() { return S().richieste || (S().richieste = []); }
   function linkPubblico() { return location.href.split('#')[0] + '#richiesta'; }
   function qr(el) {
+    if (!window.QRCode) { // la libreria sta nel repo e si carica solo qui
+      B.carica('vendor/qrcode.min.js').then(function () { if (document.contains(el)) qr(el); }, function () { el.textContent = ''; el.appendChild(h('div', { class: 'hint', style: { padding: '12px', textAlign: 'center', maxWidth: '150px' } }, 'Il codice QR non si è caricato. Il link qui accanto funziona sempre.')); });
+      return;
+    }
     el.textContent = '';
     try {
-      if (!window.QRCode) throw new Error('libreria assente');
       new window.QRCode(el, { text: linkPubblico(), width: 148, height: 148, colorDark: '#1d1d1f', colorLight: '#ffffff', correctLevel: window.QRCode.CorrectLevel.M });
       el.setAttribute('role', 'img'); el.setAttribute('aria-label', 'Codice QR del modulo per chiedere un appuntamento');
-    } catch (e) { el.appendChild(h('div', { class: 'hint', style: { padding: '12px', textAlign: 'center', maxWidth: '150px' } }, 'Il codice QR compare quando la pagina è collegata a internet. Il link qui accanto funziona sempre.')); }
+    } catch (e) { el.appendChild(h('div', { class: 'hint', style: { padding: '12px', textAlign: 'center', maxWidth: '150px' } }, 'Il codice QR non si è disegnato. Il link qui accanto funziona sempre.')); }
   }
   function vRichieste() {
     var tutte = richieste().slice().sort(function (a, b) { return a.q < b.q ? 1 : -1; });
@@ -555,16 +558,18 @@
     var box = h('div', { class: 'qr', style: { background: '#fff', padding: '10px', borderRadius: '12px', border: '1px solid var(--line)', width: 'fit-content', minWidth: '168px', minHeight: '168px', display: 'grid', placeItems: 'center' } });
     setTimeout(function () { qr(box); }, 0);
     var link = h('input', { type: 'text', readOnly: true, value: linkPubblico(), 'aria-label': 'Link del modulo pubblico' });
+    var appena = B.stato.f.richNuova;
     return [
+      appena && nuove.some(function (r) { return r.id === appena; }) ? h('div', { class: 'ibox', 'data-test': 'richiesta-arrivata' }, 'La richiesta che hai appena inviato è arrivata qui sotto, su questo stesso dispositivo. È una prova: non è partita verso nessuno sportello.') : null,
       UI.intestazione('Richieste online', 'I cittadini chiedono un appuntamento dal telefono, con il QR allo sportello o il link. La titolare le conferma a mano: diventano appuntamenti in agenda.'),
       h('div', { class: 'card mb' }, h('h2', 'Modulo per i cittadini'),
         h('div', { class: 'row', style: { alignItems: 'flex-start', marginBottom: '0' } }, box,
           h('div', { class: 'grow' }, h('div', { class: 'f' }, link),
             h('div', { class: 'row' }, UI.btn('Copia il link', function () { link.select(); var ok = function () { B.toast('Link copiato'); }; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link.value).then(ok, function () { B.toast('Copia non riuscita: seleziona il link a mano.', true); }); else B.toast('Seleziona il link e copialo.'); }, 'sec'), UI.btn('Apri il modulo', function () { location.hash = 'richiesta'; }, 'sec')),
-            h('p', { class: 'hint' }, 'Nella demo la richiesta resta in questo browser. Nella versione vera arriva allo sportello e il cittadino riceve la conferma.')))),
+            h('p', { class: 'hint' }, 'Nella demo la richiesta resta in questo browser e non va su internet. Nella versione vera arriverebbe allo sportello, con l\'informativa privacy approvata.')))),
       h('h2', 'Da confermare (' + nuove.length + ')'),
       nuove.length ? h('div', { class: 'grid g2 mb' }, nuove.map(function (r) {
-        return h('div', { class: 'card' }, h('h3', r.nome), h('p', { class: 'hint' }, r.tel + ' · ' + r.tipo + ' · ' + U.fmt(r.giorno) + ', ' + r.fascia.toLowerCase()), r.msg ? h('p', null, '«' + r.msg + '»') : null, h('p', { class: 'hint' }, 'Arrivata il ' + U.fmtDT(r.q)),
+        return h('div', { class: 'card', 'data-rich': r.id }, h('h3', r.nome), r.id === appena ? UI.pill('Appena arrivata', 'acc') : null, h('p', { class: 'hint' }, r.tel + ' · ' + r.tipo + ' · ' + U.fmt(r.giorno) + ', ' + r.fascia.toLowerCase()), r.msg ? h('p', null, '«' + r.msg + '»') : null, h('p', { class: 'hint' }, 'Arrivata il ' + U.fmtDT(r.q)),
           h('div', { class: 'row', style: { marginBottom: '0' } }, UI.btn('Conferma e fissa', function () { conferma(r); }, 'sm'), UI.btn('Rifiuta', function () {
             B.conferma('Rifiutare la richiesta?', r.nome + ' · ' + r.tipo + '. Ricordati di avvisare la persona al ' + r.tel + '.', 'Rifiuta', function () { r.stato = 'rifiutata'; B.registra('Richiesta online rifiutata', r.nome, r.tipo); B.salva(); B.render(); }, true);
           }, 'no sm')));
@@ -598,11 +603,11 @@
       campo('giorno', 'Giorno preferito', h('select', gl.map(function (g) { return h('option', { value: g[0] }, g[1]); }))),
       campo('fascia', 'Momento della giornata', h('select', ['Mattina', 'Pomeriggio'].map(function (t) { return h('option', { value: t }, t); }))),
       campo('msg', 'Vuoi aggiungere qualcosa? (facoltativo)', h('textarea', { maxlength: '500' })),
-      h('details', { class: 'hint', style: { marginBottom: '10px' } }, h('summary', 'Informativa privacy in breve'),
-        h('p', null, 'Titolare: lo sportello. Usiamo nome, telefono e messaggio solo per richiamarti e fissare l\'appuntamento; li cancelliamo se l\'appuntamento non si fa. Non li diamo a nessuno. Puoi chiedere di vederli o cancellarli in qualsiasi momento. In questa demo i dati restano solo nel tuo browser.')),
+      h('details', { class: 'hint', style: { marginBottom: '10px' } }, h('summary', 'Informativa privacy (esempio)'),
+        h('p', null, 'Esempio di informativa per la versione vera: lo sportello userebbe nome, telefono e messaggio solo per richiamarti e fissare l\'appuntamento, li cancellerebbe se l\'appuntamento non si fa e non li darebbe a nessuno. In questa prova non si raccoglie niente: i dati restano solo nel browser di questo dispositivo e non vengono inviati.')),
       h('label', { class: 'check', for: 'r-privacy', style: { borderBottom: '0' } }, privacy, h('span', 'Ho letto l\'informativa e accetto di essere ricontattato *')),
       h('div', { class: 'err', id: 'r-privacy-e', 'aria-live': 'polite' }),
-      h('div', { class: 'actions' }, h('button', { class: 'btn', type: 'submit' }, 'Invia la richiesta')),
+      h('div', { class: 'actions' }, h('button', { class: 'btn', type: 'submit' }, 'Invia la richiesta di prova')),
       esito);
     form.addEventListener('input', function () { var v = {}; Object.keys(f).forEach(function (k) { v[k] = f[k].type === 'checkbox' ? f[k].checked : f[k].value; }); try { localStorage.setItem(KEY_PUB, JSON.stringify(v)); } catch (e) { } });
     form.addEventListener('submit', function (e) {
@@ -620,12 +625,15 @@
       B.registra('Richiesta online ricevuta', nm, f.tipo.value + ' · ' + U.fmt(f.giorno.value));
       B.salva();
       try { localStorage.removeItem(KEY_PUB); } catch (x) { }
-      form.replaceWith(h('div', { 'data-test': 'richiesta-ok' }, h('h2', 'Richiesta inviata'), h('p', { class: 'sub' }, 'Grazie ' + nm + '. Lo sportello ti richiama al ' + tl + ' per confermare il giorno.'),
-        h('a', { class: 'btn sec', href: '#/richieste' }, 'Vedi la richiesta nel gestionale (demo)')));
+      /* niente server: la richiesta resta qui e si vede subito nel gestionale dello stesso dispositivo */
+      B.stato.f.richNuova = richieste()[richieste().length - 1].id;
+      B.toast('Richiesta di prova arrivata nel gestionale, solo su questo dispositivo.');
+      location.hash = '#/richieste';
     });
     return h('div', { class: 'pubblico' }, h('div', { class: 'card' },
       h('div', { class: 'row', style: { justifyContent: 'space-between', flexWrap: 'nowrap' } }, h('h1', { style: { fontSize: '24px', margin: 0 } }, 'Prenota allo sportello'), h('div', { 'data-tasti-pref': '', style: { display: 'flex', gap: '6px' } }, UI.tastiPref())),
-      h('p', { class: 'sub', style: { marginTop: '8px' } }, 'Patronato e CAF · ' + 'Lun–Ven 9:00–13:00 e 15:30–18:30. Scegli il giorno: ti richiamiamo per confermare.'),
+      h('div', { class: 'wbox', role: 'note', 'data-test': 'avviso-prova', style: { margin: '12px 0' } }, h('b', 'Prova dimostrativa. '), 'Questa richiesta resta solo su questo dispositivo e non arriva a nessuno sportello. Non inserire dati veri: usa un nome e un numero inventati.'),
+      h('p', { class: 'sub', style: { marginTop: '8px' } }, 'Patronato e CAF · Lun–Ven 9:00–13:00 e 15:30–18:30. Scegli il giorno: lo sportello richiama per confermare.'),
       form));
   }
 

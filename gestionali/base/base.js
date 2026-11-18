@@ -7,11 +7,25 @@
 (function () {
   'use strict';
   var DE = document.documentElement;
+  /* cartella di base.js: da qui si caricano i pezzi usati solo ogni tanto (PDF, QR) */
+  var BASE_DIR = ((document.currentScript && document.currentScript.src) || '').replace(/[^\/]*$/, '');
+  var caricati = {};
+  function caricaScript(nome) {
+    if (caricati[nome]) return caricati[nome];
+    caricati[nome] = new Promise(function (ok, no) {
+      var sc = document.createElement('script');
+      sc.src = BASE_DIR + nome; sc.async = true;
+      sc.onload = function () { ok(); };
+      sc.onerror = function () { delete caricati[nome]; sc.remove(); no(new Error('Non caricato: ' + nome)); };
+      document.head.appendChild(sc);
+    });
+    return caricati[nome];
+  }
 
   /* =========================================================
      1. Preferenze: giorno/notte e Liquid Glass (subito, prima del disegno)
      ========================================================= */
-  var PREF_TEMA = 'gestionali-tema', PREF_VETRO = 'gestionali-vetro';
+  var PREF_TEMA = 'gestionali-tema', PREF_VETRO = 'gestionali-vetro', PREF_VETRO_AUTO = 'gestionali-vetro-auto';
   var tastiPref = []; // i due tasti rapidi (giorno/notte e vetro) presenti nella pagina
   function leggi(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }
   function scrivi(k, v) {
@@ -31,6 +45,7 @@
     if (p === '1') return { on: true, motivo: dispositivoDebole() ? 'Acceso a mano su un dispositivo poco potente: se scatta, spegnilo.' : '' };
     if (p === '0') return { on: false, motivo: '' };
     if (dispositivoDebole()) return { on: false, motivo: 'Dispositivo poco potente: il vetro si è spento da solo. Puoi riaccenderlo.' };
+    if (leggi(PREF_VETRO_AUTO) === 'lento') return { on: false, motivo: 'Il dispositivo andava a scatti: il vetro si è spento da solo. Puoi riaccenderlo.' };
     return { on: true, motivo: '' };
   }
   function temaScelto() { var t = leggi(PREF_TEMA); return (t === 'scuro' || t === 'chiaro') ? t : ''; }
@@ -50,9 +65,21 @@
   function impostaTema(t) { cambioMorbido(); scrivi(PREF_TEMA, t || null); applicaPreferenze(); }
   function impostaVetro(on) {
     if (menoTrasparenza()) { toast('Il sistema chiede meno trasparenza: il vetro resta spento.', true); return; }
-    cambioMorbido(); scrivi(PREF_VETRO, on ? '1' : '0'); applicaPreferenze();
+    cambioMorbido(); scrivi(PREF_VETRO, on ? '1' : '0'); scrivi(PREF_VETRO_AUTO, null); applicaPreferenze();
   }
   applicaPreferenze();
+  /* misura la fluidità dopo l'apertura: se va sotto i 25 fotogrammi al secondo, spegne il vetro da solo (solo se la scelta è automatica) */
+  function controllaFluidita(dopo) {
+    if (leggi(PREF_VETRO) || !DE.classList.contains('lg') || !window.requestAnimationFrame) return;
+    var t = [], prima = 0;
+    function passo(ts) {
+      if (prima) t.push(ts - prima); prima = ts;
+      if (t.length < 24) { requestAnimationFrame(passo); return; }
+      t.sort(function (a, b) { return a - b; });
+      if (t[12] > 40) { scrivi(PREF_VETRO_AUTO, 'lento'); applicaPreferenze(); if (dopo) dopo(); }
+    }
+    setTimeout(function () { requestAnimationFrame(passo); }, 700);
+  }
   if (window.matchMedia) {
     ['(prefers-color-scheme: dark)', '(prefers-reduced-transparency: reduce)'].forEach(function (q) {
       var m = window.matchMedia(q);
@@ -264,7 +291,13 @@
     });
     return { entrate: e, uscite: u, margine: e - u, n: n };
   }
-  function totaliMese(k) { return totali(function (m) { return m.data.slice(0, 7) === k; }); }
+  var memo = null; // calcoli riusati dentro un solo disegno della pagina
+  function totaliMese(k) {
+    if (memo) { memo.mesi = memo.mesi || {}; if (memo.mesi[k]) return memo.mesi[k]; }
+    var t = totali(function (m) { return m.data.slice(0, 7) === k; });
+    if (memo) memo.mesi[k] = t;
+    return t;
+  }
   function totaliTra(a, b) { var x = iso(a), y = iso(b); return totali(function (m) { return m.data >= x && m.data <= y; }); }
   function primoMese() {
     var k = chiaveMese(OGGI);
@@ -673,10 +706,10 @@
     } catch (e) { toast('Scaricamento non riuscito in questo browser.', true); return false; }
   }
   /* per il margine conta la differenza in euro: la percentuale inganna se prima era vicino a zero o negativo */
-  function deltaEuro(cur, prev) {
+  function deltaEuro(cur, prev, inverti) {
     if (prev == null) return h('div', { class: 'd par' }, 'nessun dato per il confronto');
     var x = cur - prev;
-    return h('div', { class: 'd ' + (x === 0 ? 'par' : (x > 0 ? 'su' : 'giu')) }, (x > 0 ? '+' : (x < 0 ? '−' : '')) + eur(Math.abs(x)));
+    return h('div', { class: 'd ' + (x === 0 ? 'par' : ((x > 0) !== !!inverti ? 'su' : 'giu')) }, (x > 0 ? '+' : (x < 0 ? '−' : '')) + eur(Math.abs(x)));
   }
   function delta(cur, prev, inverti) {
     if (prev == null) return h('div', { class: 'd par' }, 'nessun dato per il confronto');
@@ -690,6 +723,7 @@
      9. Scadenze e notifiche (base + settore)
      ========================================================= */
   function scadenze() {
+    if (memo && memo.scad) return memo.scad;
     var out = [];
     D.azioni.forEach(function (a) { if (!a.fatto && a.data) out.push({ data: a.data, tipo: 'Prossima azione', titolo: a.testo, sotto: nomeCliente(a.cliente), vai: function () { vai('clienti', a.cliente); } }); });
     D.movimenti.forEach(function (m) {
@@ -698,7 +732,9 @@
       out.push({ data: d, tipo: m.tipo === 'entrata' ? 'Da incassare' : 'Da pagare', titolo: (m.descrizione || m.categoria) + ' · ' + eur(m.importo), sotto: m.cliente ? nomeCliente(m.cliente) : m.categoria, vai: function () { stato.f.bilTab = 'mov'; vai('bilancio'); } });
     });
     if (CFG.scadenze) out = out.concat(CFG.scadenze(D) || []);
-    return out.filter(function (x) { return pIso(x.data); }).sort(function (a, b) { return a.data < b.data ? -1 : (a.data > b.data ? 1 : 0); });
+    out = out.filter(function (x) { return pIso(x.data); }).sort(function (a, b) { return a.data < b.data ? -1 : (a.data > b.data ? 1 : 0); });
+    if (memo) memo.scad = out;
+    return out;
   }
   function notifiche() {
     var n = [], og = iso(OGGI), dom = iso(giorni(1));
@@ -919,12 +955,14 @@
     var cambio = forza === true || hs.vista + '/' + hs.param !== ultimaVista;
     stato.vista = hs.vista; stato.param = hs.param;
     ultimaVista = hs.vista + '/' + hs.param;
+    memo = {};
     disegnaNav();
     aggiornaOffline();
     var sx = window.scrollY;
     var contenuto;
     try { contenuto = disegnaVista(hs.vista, hs.param); }
     catch (e) { console.error(e); contenuto = h('div', { class: 'card' }, h('h2', 'Qualcosa non ha funzionato'), h('p', { class: 'sub' }, 'Questa sezione non si è aperta. Ricarica la pagina; se capita di nuovo, ripristina i dati demo da Impostazioni.')); }
+    memo = null;
     G.main.textContent = '';
     G.main.appendChild(contenuto);
     if (cambio) {
@@ -933,6 +971,7 @@
       window.scrollTo(0, 0);
     } else window.scrollTo(0, sx);
     requestAnimationFrame(function () { posaIndicatore(cambio); });
+    if (!render.pronto && window.performance && performance.mark) { render.pronto = true; performance.mark('gestionale-pronto'); }
   }
   function renderPubblica(id) {
     G = {};
@@ -1039,7 +1078,11 @@
     };
     return h('div', { class: 'card' }, h('h2', 'Confronto tra periodi'),
       h('div', { class: 'row' }, seg([['mese', 'Mese'], ['trim', 'Trimestre'], ['anno', 'Anno']], tipo, function (v) { stato.f.confr = v; render(); }, 'Periodo da confrontare')),
-      h('div', { class: 'tablewrap' }, h('table', { style: { minWidth: '520px' } },
+      h('div', { class: 'confronto-schede solo-stretto' }, [['Entrate', 'entrate'], ['Uscite', 'uscite'], ['Margine', 'margine']].map(function (v) {
+        var k = v[1], riga2 = function (l, x) { return h('div', { class: 'item' }, h('div', { class: 't' }, h('b', l), h('span', x ? eur(x[k]) : 'nessun dato')), x ? deltaEuro(a[k], x[k], k === 'uscite') : null); };
+        return h('div', { class: 'cfs' }, h('div', { class: 'cfs-t' }, h('b', v[0]), h('b', eur(a[k]))), riga2('Periodo prima', b), riga2('Anno prima', c));
+      })),
+      h('div', { class: 'tablewrap solo-largo' }, h('table', { style: { minWidth: '520px' } },
         h('thead', h('tr', h('th', ''), h('th', { class: 'num' }, 'Adesso'), h('th', { class: 'num' }, 'Periodo prima'), h('th', { class: 'num' }, 'Diff.'), h('th', { class: 'num' }, 'Anno prima'), h('th', { class: 'num' }, 'Diff.'))),
         h('tbody', riga('Entrate', 'entrate'), riga('Uscite', 'uscite', true), riga('Margine', 'margine')))),
       h('p', { class: 'hint', style: { margin: '8px 0 0' } }, 'Adesso: ' + fmt(p.ini) + ' – ' + fmt(p.fine) + '. Periodo prima: ' + fmt(p.pIni) + ' – ' + fmt(p.pFine) + '. Anno prima: ' + fmt(p.aIni) + ' – ' + fmt(p.aFine) + '. Contano solo i movimenti pagati.'));
@@ -1576,7 +1619,8 @@
     return h('div', { id: 'bilancio-mese' },
       h('div', { class: 'solo-stampa' }, h('h2', CFG.nome + ' · Bilancio di gestione di ' + meseLabel(k)), h('p', 'Bilancio di gestione, non documento fiscale. Progetto dimostrativo · dati inventati. Stampato il ' + fmt(OGGI) + '.')),
       h('div', { class: 'row no-stampa' }, selettore(disp.map(function (x) { return [x, cap(meseLabel(x))]; }), k, function (v) { stato.f.bilMese = v; render(); }, 'Scegli il mese', 'bil-mese'),
-        btn('Esporta CSV', function () { esportaMese(k, a); }, 'sec'), btn('Esporta PDF', function () { registra('Esportazione PDF', 'Bilancio ' + meseLabel(k), ''); salva(); window.print(); }, 'sec', { title: 'Si apre la stampa: scegli «Salva come PDF»' })),
+        btn('Esporta CSV', function () { esportaMese(k, a); }, 'sec'), btn('Esporta PDF', function () { scaricaPdf('bilancio-' + k + '.pdf', pdfMese(k, a), 'Bilancio ' + meseLabel(k)); }, 'sec'),
+        btn('Stampa', function () { registra('Stampa', 'Bilancio ' + meseLabel(k), ''); salva(); window.print(); }, 'sec', { title: 'Seconda scelta: la stampa del browser, anche «Salva come PDF»' })),
       h('p', null, stato1), vuotoMese,
       h('div', { class: 'grid g3 mb' },
         h('div', { class: 'card stat' }, h('div', { class: 'n', 'data-test': 'entrate' }, eur(a.e)), h('div', { class: 'l' }, 'Entrate'), h('div', { class: 'hint' }, 'Mese prima: ', tp ? eur(tp.entrate) : 'nessun dato'), delta(a.e, tp ? tp.entrate : null), h('div', { class: 'hint' }, 'Stesso mese anno prima: ', ta ? eur(ta.entrate) : 'nessun dato'), delta(a.e, ta ? ta.entrate : null)),
@@ -1601,6 +1645,68 @@
           h('div', h('div', { class: 'stat' }, h('div', { class: 'n' }, String(a.nuovi.length)), h('div', { class: 'l' }, 'Nuovi')), elencoNomi(a.nuovi, 'Nessuno')),
           h('div', h('div', { class: 'stat' }, h('div', { class: 'n' }, String(a.tornati.length)), h('div', { class: 'l' }, 'Tornati (già in archivio, attivi nel mese)')), elencoNomi(a.tornati, 'Nessuno')),
           h('div', h('div', { class: 'stat' }, h('div', { class: 'n', style: { color: a.persi.length ? 'var(--bad)' : '' } }, String(a.persi.length)), h('div', { class: 'l' }, 'Persi nel mese (nessun contatto da ' + Math.round((CFG.sogliaPersiGiorni || 365) / 30) + ' mesi)')), elencoNomi(a.persi, 'Nessuno')))));
+  }
+  /* ---------- PDF veri (generatore minimo in pdf.js, caricato solo qui) ---------- */
+  var PIEDE_PDF = 'Bilancio di gestione, non documento fiscale';
+  var DICITURA = 'Bilancio di gestione, non documento fiscale: serve a capire come va l\'attività. Non è il bilancio d\'esercizio. I numeri nascono solo dai movimenti registrati e contano solo quelli pagati.';
+  function scaricaPdf(nome, def, oggetto) {
+    toast('Preparo il PDF…');
+    caricaScript('pdf.js').then(function () {
+      var b = window.MiniPdf.report(def);
+      if (scarica(nome, new Blob([b], { type: 'application/pdf' }))) { registra('Esportazione PDF', oggetto, nome); salva(); toast('PDF pronto: ' + nome); }
+    }).catch(function () { toast('Il PDF non si è preparato (rete?). Usa «Stampa» e scegli «Salva come PDF».', true); });
+  }
+  function difEur(x, y) { return y == null ? 'nessun dato' : (x - y > 0 ? '+' : (x - y < 0 ? '−' : '')) + eur(Math.abs(x - y)); }
+  function righeCat(cat, tot) {
+    return Object.keys(cat).map(function (c) { return { c: c, v: cat[c].v, n: cat[c].n }; }).sort(function (x, y) { return y.v - x.v; })
+      .map(function (x) { return [x.c, String(x.n), eur(x.v), tot ? (x.v / tot * 100).toLocaleString('it-IT', { maximumFractionDigits: 1 }) + '%' : '—']; });
+  }
+  function pdfMese(k, a) {
+    var cur = chiaveMese(OGGI), pm = primoMese(), kp = spostaMese(k, -1), ka = spostaMese(k, -12);
+    var tp = kp >= pm ? totaliMese(kp) : null, ta = ka >= pm ? totaliMese(ka) : null, e = a.e, u = a.u;
+    var stato1 = k === cur ? 'Mese in corso: numeri parziali fino al ' + fmt(OGGI) + '.' : (D.chiusure[k] ? 'Mese chiuso in automatico il ' + fmt(D.chiusure[k].chiusoIl) + (D.chiusure[k].aggiornata ? ', aggiornato il ' + fmt(D.chiusure[k].aggiornata.slice(0, 10)) : '') + '.' : 'Mese passato.');
+    var colCat = [{ t: 'Voce', w: 3 }, { t: 'Movimenti', w: 1, num: true }, { t: 'Importo', w: 1.4, num: true }, { t: 'Quota', w: 1, num: true }];
+    var colAp = [{ t: 'Voce', w: 3 }, { t: CFG.etichette.cliente, w: 2 }, { t: 'Scadenza', w: 1.3 }, { t: 'Importo', w: 1.3, num: true }];
+    var somma = function (l) { return l.reduce(function (x, m) { return x + m.importo; }, 0); };
+    var ap = function (l) { return l.map(function (m) { return [m.descrizione || m.categoria, m.cliente ? nomeCliente(m.cliente) : '', fmt(m.scadenza || m.data), eur(m.importo)]; }); };
+    var ob = D.obiettivi[k];
+    var mov = a.mov.slice().sort(function (x, y) { return x.data < y.data ? -1 : (x.data > y.data ? 1 : 0); });
+    return {
+      titolo: 'Bilancio di gestione di ' + meseLabel(k), intestazione: CFG.nome + ' · Bilancio di gestione di ' + meseLabel(k), data: 'Creato il ' + fmt(new Date()),
+      piede: PIEDE_PDF + ' · Progetto dimostrativo · dati inventati',
+      blocchi: [
+        { h1: CFG.nome }, { h2: 'Bilancio di gestione di ' + meseLabel(k) }, { p: DICITURA, grassetto: true }, { p: stato1 + (a.mov.length ? '' : ' Nessun movimento pagato registrato: i numeri sono a zero.') },
+        { riquadri: [['Entrate', eur(e)], ['Uscite', eur(u)], ['Margine', eur(e - u), null, e - u < 0 ? [196, 43, 43] : null]] },
+        { h2: 'Confronto' },
+        { tabella: { colonne: [{ t: 'Voce', w: 1.2 }, { t: 'Questo mese', w: 1.3, num: true }, { t: 'Mese prima', w: 1.3, num: true }, { t: 'Differenza', w: 1.3, num: true }, { t: 'Anno prima', w: 1.3, num: true }, { t: 'Differenza', w: 1.3, num: true }],
+          righe: [['Entrate', 'entrate', e], ['Uscite', 'uscite', u], ['Margine', 'margine', e - u]].map(function (r) { return [r[0], eur(r[2]), tp ? eur(tp[r[1]]) : 'nessun dato', difEur(r[2], tp ? tp[r[1]] : null), ta ? eur(ta[r[1]]) : 'nessun dato', difEur(r[2], ta ? ta[r[1]] : null)]; }) } },
+        { h2: 'Entrate per servizio' }, { tabella: { colonne: colCat, righe: righeCat(a.catE, e), totale: ['Totale entrate', String(Object.keys(a.catE).reduce(function (x, c) { return x + a.catE[c].n; }, 0)), eur(e), e ? '100%' : '—'], vuoto: 'Nessuna entrata' } },
+        { h2: 'Uscite per categoria' }, { tabella: { colonne: colCat, righe: righeCat(a.catU, u), totale: ['Totale uscite', String(Object.keys(a.catU).reduce(function (x, c) { return x + a.catU[c].n; }, 0)), eur(u), u ? '100%' : '—'], vuoto: 'Nessuna uscita' } },
+        { p: 'Controllo: somma di ' + pl(a.mov.length, 'movimento pagato', 'movimenti pagati') + ' = entrate ' + eur(e) + ' − uscite ' + eur(u) + ' = margine ' + eur(e - u) + '.' },
+        ob ? { p: 'Obiettivo di entrate del mese: ' + eur(ob) + ' · raggiunto ' + Math.round(e / ob * 100) + '%' + (k === cur ? ' (mese in corso).' : '.') } : null,
+        { h2: 'Incassi da riscuotere (aperti oggi)' }, { tabella: { colonne: colAp, righe: ap(a.daInc), totale: a.daInc.length ? ['Totale da riscuotere', '', '', eur(somma(a.daInc))] : null, vuoto: 'Niente da riscuotere' } },
+        { h2: 'Pagamenti in scadenza (aperti oggi)' }, { tabella: { colonne: colAp, righe: ap(a.daPag), totale: a.daPag.length ? ['Totale da pagare', '', '', eur(somma(a.daPag))] : null, vuoto: 'Nessun pagamento in sospeso' } },
+        { h2: CFG.etichette.clienti + ' del mese' },
+        { p: 'Nuovi: ' + a.nuovi.length + '. Tornati (già in archivio, attivi nel mese): ' + a.tornati.length + '. Persi nel mese (nessun contatto da ' + Math.round((CFG.sogliaPersiGiorni || 365) / 30) + ' mesi): ' + a.persi.length + '.' },
+        { h2: 'Movimenti pagati del mese' },
+        { tabella: { colonne: [{ t: 'Data', w: 1.1 }, { t: 'Tipo', w: 0.9 }, { t: 'Categoria', w: 2 }, { t: 'Descrizione', w: 3 }, { t: 'Importo', w: 1.3, num: true }],
+          righe: mov.map(function (m) { return [fmt(m.data), m.tipo === 'entrata' ? 'Entrata' : 'Uscita', m.categoria, (m.descrizione || '') + (m.cliente ? ' · ' + nomeCliente(m.cliente) : ''), (m.tipo === 'entrata' ? '+' : '−') + eur(m.importo)]; }),
+          totale: ['', '', '', 'Margine', eur(e - u)], vuoto: 'Nessun movimento' } }
+      ].filter(Boolean)
+    };
+  }
+  function pdfAnno(y, righe, tot, totP, daMese) {
+    return {
+      titolo: 'Bilancio di gestione ' + y, intestazione: CFG.nome + ' · Bilancio di gestione ' + y, data: 'Creato il ' + fmt(new Date()), piede: PIEDE_PDF + ' · Progetto dimostrativo · dati inventati',
+      blocchi: [
+        { h1: CFG.nome }, { h2: 'Bilancio di gestione dell\'anno ' + y }, { p: DICITURA, grassetto: true },
+        daMese ? { p: 'Anno incompleto: i movimenti partono da ' + meseLabel(daMese) + '. I mesi prima non hanno dati.' } : null,
+        { riquadri: [['Entrate ' + y, eur(tot.e), totP.ok ? 'anno prima: ' + eur(totP.e) : ''], ['Uscite ' + y, eur(tot.u), totP.ok ? 'anno prima: ' + eur(totP.u) : ''], ['Margine ' + y, eur(tot.e - tot.u), totP.ok ? 'anno prima: ' + eur(totP.e - totP.u) : '']] },
+        { tabella: { colonne: [{ t: 'Mese', w: 2 }, { t: 'Entrate', w: 1.4, num: true }, { t: 'Uscite', w: 1.4, num: true }, { t: 'Margine', w: 1.4, num: true }, { t: 'Stato', w: 1.2 }],
+          righe: righe.map(function (r) { var nd = r.st === 'futuro' || r.st === 'nessun dato'; return [cap(meseLabel(r.k)), nd ? '—' : eur(r.t.entrate), nd ? '—' : eur(r.t.uscite), nd ? '—' : eur(r.t.margine), r.st]; }),
+          totale: ['Totale ' + y + (y === String(OGGI.getFullYear()) ? ' (fino a oggi)' : ''), eur(tot.e), eur(tot.u), eur(tot.e - tot.u), ''] } }
+      ].filter(Boolean)
+    };
   }
   function esportaMese(k, a) {
     var righe = a.mov.slice().sort(function (x, y) { return x.data < y.data ? -1 : 1; }).map(function (m) { return [m.data, m.tipo === 'entrata' ? 'Entrata' : 'Uscita', m.categoria, m.descrizione || '', m.cliente ? nomeCliente(m.cliente) : '', importoTesto(m.tipo === 'entrata' ? m.importo : -m.importo)]; });
@@ -1630,7 +1736,8 @@
     var parziale = mesi[0] < pm;
     return h('div',
       h('div', { class: 'row' }, selettore(anni.map(function (a) { return [a, a]; }), y, function (v) { stato.f.bilAnno = v; render(); }, 'Scegli l\'anno'),
-        btn('Esporta CSV', function () { esportaCsv('Bilancio ' + y, ['Mese', 'Entrate (€)', 'Uscite (€)', 'Margine (€)', 'Stato'], righe.map(function (r) { return [r.k, importoTesto(r.t.entrate), importoTesto(r.t.uscite), importoTesto(r.t.margine), r.st]; }).concat([['Totale', importoTesto(tot.e), importoTesto(tot.u), importoTesto(tot.e - tot.u), '']])); }, 'sec')),
+        btn('Esporta CSV', function () { esportaCsv('Bilancio ' + y, ['Mese', 'Entrate (€)', 'Uscite (€)', 'Margine (€)', 'Stato'], righe.map(function (r) { return [r.k, importoTesto(r.t.entrate), importoTesto(r.t.uscite), importoTesto(r.t.margine), r.st]; }).concat([['Totale', importoTesto(tot.e), importoTesto(tot.u), importoTesto(tot.e - tot.u), '']])); }, 'sec'),
+        btn('Esporta PDF', function () { scaricaPdf('bilancio-' + y + '.pdf', pdfAnno(y, righe, tot, totP, parziale ? pm : null), 'Bilancio ' + y); }, 'sec')),
       parziale ? h('div', { class: 'wbox' }, 'Anno incompleto: i movimenti partono da ' + meseLabel(pm) + '. I mesi prima non hanno dati.') : null,
       h('div', { class: 'grid g3 mb' }, kpi({ n: tot.e, l: 'Entrate ' + y, soldi: true, delta: delta(tot.e, totP.ok ? totP.e : null) }), kpi({ n: tot.u, l: 'Uscite ' + y, soldi: true, delta: delta(tot.u, totP.ok ? totP.u : null, true) }), kpi({ n: tot.e - tot.u, l: 'Margine ' + y, soldi: true, delta: deltaEuro(tot.e - tot.u, totP.ok ? totP.e - totP.u : null) })),
       totP.ok ? h('p', { class: 'hint' }, 'Percentuali: confronto con gli stessi mesi dell\'anno prima, dove ci sono dati.') : null,
@@ -1926,10 +2033,11 @@
     window.addEventListener('storage', function (e) { if (e.key === KEY && e.newValue) { try { D = completa(JSON.parse(e.newValue)); render(); } catch (x) { } } });
     render(true);
     if (inRete()) svuotaCoda();
+    controllaFluidita(function () { toast('Il dispositivo andava a scatti: Liquid Glass spento da solo.'); if (G.main) render(); });
   }
 
   var Base = {
-    avvia: avvia, preparaPagina: preparaPagina, h: h, s: s, icona: icona,
+    avvia: avvia, preparaPagina: preparaPagina, h: h, s: s, icona: icona, carica: caricaScript,
     u: { iso: iso, pIso: pIso, oggi: function () { return OGGI; }, giorni: giorni, piuGiorni: piuGiorni, piuMesi: piuMesi, fmt: fmt, fmtL: fmtL, fmtDT: fmtDT, diff: diff, pad: pad, norm: norm, pl: pl, cap: cap, eur: eur, leggiImporto: leggiImporto, importoTesto: importoTesto, telOk: telOk, emailOk: emailOk, nuovoId: nuovoId, chiaveMese: chiaveMese, meseLabel: meseLabel, festivo: festivo, quando: quando, minuti: minuti, hm: hm, giornoChiuso: giornoChiuso },
     dati: function () { return D; }, salva: salva, registra: registra, chi: chi, render: render, vai: vai, stato: stato,
     toast: toast, modale: modale, conferma: conferma, modulo: modulo, azione: azione, chiudiTutte: chiudiTutte, inRete: inRete,

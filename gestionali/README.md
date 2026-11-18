@@ -4,6 +4,7 @@ Un solo gestionale base, una versione per ogni tipo di attività. Regola complet
 
 ## Struttura
 - `base/` — parte comune a tutti: `base.css`, `base.js`. Dentro: impianto e navigazione, tasti giorno/notte e Liquid Glass (scelta ricordata, vetro che si spegne da solo con «meno trasparenza» o su dispositivi deboli), salvataggio in `localStorage` con «Ripristina dati demo», CRM con scheda, storico e prossime azioni, agenda giorno/settimana, scadenze e notifiche, bilancio e storico del mese con chiusura automatica, dashboard con confronto tra periodi, ricerca globale, registro modifiche, documenti per cliente, importa/esporta CSV, bozze se la rete cade, ruoli mostrati. Partita dal gestionale del Patronato di Carapelle.
+- `base/pdf.js` — generatore PDF minimo per i report (caricato solo quando serve). `base/vendor/` — librerie esterne copiate nel repo con versione, licenza e impronta (oggi solo qrcodejs 1.0.0): nessuno script da internet.
 - `settori/<settore>.js` — solo ciò che è del settore: sezioni, campi, stati, moduli in più, dati demo inventati. Si aggancia con `Base.avvia({...})`.
 - `settori/<settore>.md` — le 5 domande sul settore, la scelta sulla cifratura ed esito del collaudo.
 - `<settore>.html` — la pagina del gestionale: carica `base/` + `settori/<settore>.js`, con banner «Progetto dimostrativo · dati inventati» e CSP restrittiva.
@@ -21,7 +22,7 @@ Se serve una funzione utile a tutti, va in `base/`, mai copiata dentro un settor
 ## Stato dei settori
 | Settore | Stato | Collaudo | Sicurezza |
 |---|---|---|---|
-| Patronato / sportello servizi | pronto (demo) · `patronato.html` | 267/267 controlli, 18/11/2026 (`settori/patronato.md`) | codice controllato: niente innerHTML con dati, CSP, no-referrer |
+| Patronato / sportello servizi | pronto (demo) · `patronato.html` | 430/430 controlli a 1440, 390 e 320 px, telefono vecchio simulato, 18/11/2026 (`settori/patronato.md`) | codice controllato: niente innerHTML con dati, CSP con script solo dal sito, no-referrer |
 | Agenzia immobiliare | in costruzione | — | — |
 | Parrucchiere | da portare sulla base | — | — |
 | Centro estetico | da portare sulla base | — | — |

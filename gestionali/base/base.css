@@ -407,3 +407,13 @@ html.lg .modal{background:rgba(20,30,60,.4)}
 .solo-stampa{display:none}
 .tasti{display:flex;gap:8px;flex:0 0 auto}
 .indice .top{align-items:flex-start}
+.solo-stretto{display:none}
+.cfs{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:var(--surface)}
+.cfs-t{display:flex;justify-content:space-between;gap:10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.cfs .item{padding:7px 0}
+.cfs .item .d{margin-top:0;white-space:nowrap}
+html.lg .cfs{background:var(--glass-solid);border-color:var(--edge)}
+@media (max-width:599px){.solo-stretto{display:block}.solo-largo{display:none!important}}
+input[type=file]{max-width:100%;min-width:0;font-size:13px}
+@media (max-width:820px){.pill{white-space:normal;max-width:100%}}
+.caricamento{max-width:480px;margin:18vh auto;padding:0 16px;text-align:center;color:var(--muted);font-weight:600}
