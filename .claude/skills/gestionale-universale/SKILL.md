@@ -89,6 +89,9 @@ Scrivi le risposte in 5-10 righe nel README del settore prima di scrivere codice
 - Testo dell'utente con `textContent` o escape; mai `innerHTML` con dati dell'utente.
 - Niente `eval`, `new Function`, script da fonti non fissate. Librerie solo da CDN con versione esatta (meglio con `integrity`).
 - Meta `Content-Security-Policy` restrittiva e `referrer` `no-referrer`.
+- Export CSV con le formule neutralizzate (celle che iniziano con `=`, `+`, `-`, `@` precedute da un apostrofo), così Excel non esegue niente.
+- Documenti allegati: si scaricano, non si aprono dentro la pagina.
+- Meno librerie possibile: animazioni con CSS e Web Animations del browser, niente GSAP se non serve davvero.
 - Demo: solo dati inventati, banner «Progetto dimostrativo · dati inventati», mai dati reali di clienti o pazienti.
 
 **Versione vera:**
@@ -142,4 +145,6 @@ Ogni gestionale vecchio (artifact o demo di ottobre) si porta sulla base: si ric
 ## 14. Regole sempre valide
 - Niente strumenti tecnici o sezioni di vendita visibili al cliente.
 - Niente dati inventati spacciati per veri.
+- Niente data di scadenza nelle demo e niente blocchi di copia, tasto destro o stampa: la demo resta sempre online e si usa liberamente.
+- Confronti onesti: quando la base è piccola la differenza si mostra in euro, non in percentuale (niente «+1976%»).
 - A fine lavoro elencare onestamente tutti i problemi rimasti.
