@@ -466,3 +466,5 @@ footer li a:hover{color:var(--tx)}
 .stella{animation:respira 4s ease-in-out infinite alternate}
 .pietra{transform-box:fill-box;transform-origin:center;animation:pietra 6s ease-in-out infinite}
 @keyframes pietra{0%,100%{opacity:.55}50%{opacity:1}}
+
+@media(prefers-reduced-motion:reduce){.cr2 .pz{display:none}}
