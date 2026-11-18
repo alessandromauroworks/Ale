@@ -66,13 +66,11 @@ p{margin:0 0 1em}
 .hero:after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse 60% 50% at 75% 40%,rgba(var(--ac-rgb),.10),transparent 70%),linear-gradient(180deg,transparent 60%,var(--bg) 100%);pointer-events:none}
 .hero .wrap{display:grid;gap:40px;align-items:center}
 .eyebrow{display:inline-block;font:600 11px "Manrope",sans-serif;line-height:1.4;letter-spacing:.2em;text-transform:uppercase;color:var(--ac);margin-bottom:22px;padding:8px 14px;border:1px solid var(--line2);border-radius:999px}
-.hero h1{font-size:clamp(40px,8.6vw,78px);margin-bottom:22px;text-wrap:balance}
+.hero h1{font-size:clamp(40px,8.6vw,58px);margin-bottom:22px;text-wrap:balance}
 .hero h1 span{display:block}
 .lead{font-size:clamp(17px,2.2vw,20px);color:var(--mut);max-width:560px;margin-bottom:32px}
 .cta{display:flex;flex-wrap:wrap;gap:14px}
-.hv{display:flex;justify-content:center;will-change:transform}
-.hv svg{width:min(56vw,380px);height:auto;overflow:visible;filter:drop-shadow(0 0 40px rgba(var(--ac-rgb),.22))}
-@media(min-width:900px){.hero .wrap{grid-template-columns:1.3fr .7fr}}
+@media(min-width:900px){.hero .wrap{grid-template-columns:.95fr 1.05fr;gap:44px}}
 
 /* logo che si disegna */
 .dr{stroke-dasharray:var(--l,100);stroke-dashoffset:var(--l,100);animation:disegna 2.2s .3s cubic-bezier(.6,.05,.2,1) forwards}
@@ -244,4 +242,227 @@ footer li a:hover{color:var(--tx)}
   *,*:before,*:after{animation:none!important;transition:none!important}
   .dr{stroke-dashoffset:0}
   .js .rv{opacity:1;transform:none}
+  .sg.act .fill{transform:scaleX(1)}
+  .sg.done .fill{transform:scaleX(1)}
+  .toast{opacity:1;transform:none}
+  .pz{display:none}
+  .rm-nasc{display:none}
 }
+
+
+/* ============ lingua ============ */
+.lang{display:inline-flex;align-items:center;gap:0;font:600 12px/1 "Manrope",sans-serif;letter-spacing:.1em;border:1px solid var(--line);border-radius:999px;padding:3px}
+.lang a,.lang [aria-current]{padding:8px 11px;border-radius:999px;text-decoration:none;color:var(--mut);min-height:30px;display:inline-flex;align-items:center}
+.nav .lang a{font:inherit;padding:8px 11px;color:var(--mut)}
+.lang [aria-current]{background:rgba(var(--ac-rgb),.18);color:var(--tx)}
+.lang a:hover{color:var(--tx)}
+.lang i{width:1px;height:12px;background:var(--line2)}
+.mob .lang{align-self:flex-start;margin-top:26px}
+.mob .lang a{font:600 14px/1 "Manrope",sans-serif;border:0;padding:13px 16px;min-height:44px}
+.mob .lang [aria-current]{padding:13px 16px;min-height:44px}
+.btn small,.fi{font-weight:400;font-size:.82em;opacity:.78;margin-left:4px}
+@media(max-width:520px){.btn small{display:block;margin:2px 0 0;text-align:center}.btn{text-align:center;flex-direction:column;gap:0}}
+.langbar{position:fixed;right:12px;bottom:12px;z-index:130;display:flex;align-items:center;gap:6px;background:rgba(13,15,18,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--line2);border-radius:999px;padding:4px 4px 4px 16px;font:600 13px/1.2 "Manrope",sans-serif}
+.langbar a{color:var(--tx);text-decoration:none;padding:10px 4px;min-height:44px;display:inline-flex;align-items:center}
+.langbar a:hover{color:var(--hi)}
+.langbar button{width:44px;height:44px;border-radius:50%;border:0;background:none;color:var(--mut);font-size:20px;cursor:pointer;line-height:1}
+.langbar button:hover{color:var(--tx)}
+@media(max-width:560px){.langbar{left:12px;right:12px;bottom:66px;justify-content:space-between}.langbar a{flex:1}}
+
+/* 404 in due lingue */
+.b404{display:grid;gap:44px;width:100%;max-width:980px;margin-top:8px}
+.b404>div{display:flex;flex-direction:column;align-items:center;gap:18px}
+.b404 h1,.b404 h2{font-size:clamp(34px,6vw,56px);text-wrap:balance}
+.b404 .lead{margin:0}
+@media(min-width:860px){.b404{grid-template-columns:1fr 1fr;gap:0}.b404>div{padding:8px 36px}.b404>div+div{border-left:1px solid var(--line)}}
+
+/* ============ hero: tablet con il flusso Noxford ============ */
+.hv{display:flex;flex-direction:column;gap:12px;width:100%;max-width:600px;margin:0 auto;will-change:transform;min-width:0}
+.dev{container-type:inline-size;width:100%}
+.stand{position:relative;padding-bottom:7cqw;animation:flt 10s ease-in-out infinite}
+@keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.1cqw)}}
+.tab{position:relative;padding:1cqw;border-radius:3.4cqw;background:linear-gradient(135deg,var(--ac2) 0%,#2a2e36 22%,var(--ac) 44%,#1c1f26 66%,var(--ac2) 100%);box-shadow:0 4cqw 9cqw rgba(0,0,0,.6),0 0 12cqw rgba(var(--ac-rgb),.18),inset 0 0 0 .2cqw rgba(255,255,255,.25)}
+.tab:before{content:"";position:absolute;left:-.1cqw;top:50%;width:.5cqw;height:7cqw;transform:translateY(-50%);border-radius:1cqw;background:var(--ac2);opacity:.7}
+.bz{position:relative;padding:1.7cqw;border-radius:2.5cqw;background:#030405}
+.bz:before{content:"";position:absolute;left:.65cqw;top:50%;width:.55cqw;height:.55cqw;transform:translateY(-50%);border-radius:50%;background:#1b2028;box-shadow:inset 0 0 0 .1cqw #2b323d}
+.scr{position:relative;container-type:inline-size;aspect-ratio:10/7;border-radius:1.3cqw;overflow:hidden;background:radial-gradient(120% 90% at 88% 0%,rgba(var(--ac-rgb),.17),transparent 60%),radial-gradient(90% 80% at 0% 100%,rgba(var(--ac-rgb),.07),transparent 60%),linear-gradient(180deg,#0d1015,#07090c);color:var(--tx);font-family:"Manrope",system-ui,sans-serif;font-size:11px;font-size:3.4cqw;line-height:1.25}
+.scr:after{content:"";position:absolute;inset:0;z-index:9;pointer-events:none;background:linear-gradient(116deg,rgba(255,255,255,.075) 0%,rgba(255,255,255,.02) 26%,transparent 38%)}
+.scr *{box-sizing:border-box}
+.sb{position:absolute;left:0;right:0;top:0;height:8cqw;display:flex;align-items:center;justify-content:space-between;padding:0 3.2cqw;border-bottom:.2cqw solid rgba(var(--ac-rgb),.12)}
+.sb .lg{display:flex;align-items:center;gap:1.6cqw;color:var(--ac)}
+.sb .lg svg{width:4.2cqw;height:4.2cqw}
+.sb .lg b{font:600 2.5cqw/1 "Manrope",sans-serif;letter-spacing:.34em;color:var(--tx)}
+.sb .dt{display:flex;gap:1.1cqw}
+.sb .dt i{width:1.2cqw;height:1.2cqw;border-radius:50%;background:var(--ac2);opacity:.5}
+.sb .dt i:first-child{opacity:1;background:var(--hi)}
+.stg{position:absolute;left:0;right:0;top:8cqw;bottom:0}
+.fp{position:absolute;inset:0;padding:0 3.2cqw;opacity:0;visibility:hidden;transform:translateY(1.4cqw) scale(.985);transition:opacity .55s ease,transform .55s ease,visibility 0s linear .55s}
+.fp.on{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.hd{display:flex;align-items:center;justify-content:space-between;height:7cqw}
+.hd b{font:600 2.9cqw/1 "Manrope",sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--ac)}
+.hd span{font:400 2.7cqw/1 "Manrope",sans-serif;color:var(--mut)}
+.cd{background:rgba(var(--ac-rgb),.055);border:.2cqw solid rgba(var(--ac-rgb),.17);border-radius:1.8cqw;padding:2cqw 2.2cqw}
+.cd h4{margin:0 0 1.6cqw;font:600 2.7cqw/1 "Manrope",sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.sk{display:block;height:1.5cqw;border-radius:1cqw;background:rgba(var(--ac-rgb),.22)}
+.sk.s{background:rgba(var(--ac-rgb),.12)}
+.pop{}
+.fp.on .pop{animation:pop .65s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--t,0s)}
+@keyframes pop{from{opacity:0;transform:translateY(2.2cqw) scale(.97)}to{opacity:1;transform:none}}
+
+/* fase 1: video */
+.v1{display:flex;gap:4.5cqw;align-items:flex-start;height:49cqw}
+.vf{position:relative;flex:none;width:27cqw;height:47cqw;border-radius:2.4cqw;overflow:hidden;border:.35cqw solid #20242b;box-shadow:0 0 0 .2cqw rgba(var(--ac-rgb),.3),0 2cqw 4cqw rgba(0,0,0,.45);background:#0a0c10}
+.vbg{position:absolute;inset:-30%;background:radial-gradient(circle at 30% 28%,rgba(var(--ac-rgb),.6),transparent 42%),radial-gradient(circle at 72% 66%,rgba(var(--ac-rgb),.34),transparent 46%),radial-gradient(circle at 50% 100%,rgba(var(--ac-rgb),.4),transparent 52%);filter:blur(5px);animation:flusso 9s ease-in-out infinite alternate}
+.vf .ai{position:absolute;left:1.6cqw;top:1.8cqw;z-index:2;font:600 2.1cqw/1 "Manrope",sans-serif;letter-spacing:.06em;padding:.9cqw 1.3cqw;border-radius:99px;background:rgba(7,8,10,.62);border:.15cqw solid rgba(var(--ac-rgb),.45);color:var(--hi)}
+.wave{position:absolute;left:0;right:0;top:46%;height:9cqw;display:flex;align-items:center;justify-content:center;gap:.8cqw;z-index:2}
+.wave i{width:.9cqw;height:var(--h,50%);border-radius:1cqw;background:linear-gradient(180deg,var(--hi),var(--ac));opacity:.9}
+.fp.on .wave i{animation:wv .9s ease-in-out infinite alternate;animation-delay:var(--t,0s)}
+@keyframes wv{from{transform:scaleY(.22)}to{transform:scaleY(1)}}
+.sub{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:9cqw 1.5cqw 3.4cqw;text-align:center;background:linear-gradient(0deg,rgba(7,8,10,.92),transparent);font:600 3.3cqw/1.28 "Manrope",sans-serif}
+.sub .w{display:block}
+.sub .w+.w{color:var(--hi)}
+.vf .pb{position:absolute;left:1.6cqw;right:1.6cqw;bottom:1.3cqw;height:.5cqw;border-radius:1cqw;background:rgba(255,255,255,.2);z-index:4;overflow:hidden}
+.vf .pb i{display:block;height:100%;width:100%;transform-origin:left;transform:scaleX(.15);background:var(--hi)}
+.fp.on .vf .pb i{animation:fillp 3.4s linear both}
+@keyframes fillp{from{transform:scaleX(.08)}to{transform:scaleX(1)}}
+@keyframes flusso{from{transform:translate(-8%,-6%) rotate(0) scale(1)}to{transform:translate(8%,6%) rotate(25deg) scale(1.2)}}
+.cth{font:600 2.7cqw/1 "Manrope",sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:0 0 2cqw!important;padding:1.8cqw 2.2cqw!important}
+.cal{flex:1;min-width:0;max-width:52cqw}
+.cal .cr{display:flex;align-items:center;gap:2.4cqw;margin-bottom:2cqw;padding:1.7cqw 2cqw}
+.cal .dy{flex:none;width:7cqw;font:600 2.9cqw/1 "Manrope",sans-serif;color:var(--tx)}
+.cal .th{flex:none;width:5.2cqw;height:8.4cqw;border-radius:1cqw;background:linear-gradient(160deg,rgba(var(--ac-rgb),.6),rgba(var(--ac-rgb),.12));border:.15cqw solid rgba(var(--ac-rgb),.4)}
+.cal .tx{flex:1;display:grid;gap:1.3cqw}
+.cal .ck{flex:none;width:3.4cqw;height:3.4cqw;border-radius:50%;border:.2cqw solid var(--ac2);display:grid;place-items:center;color:var(--hi)}
+.cal .ck svg{width:2cqw;height:2cqw}
+
+/* fase 2: sito */
+.br{height:51cqw;max-width:84cqw;border-radius:2cqw;border:.2cqw solid rgba(var(--ac-rgb),.22);background:rgba(7,9,12,.7);overflow:hidden}
+.br .bar{display:flex;align-items:center;gap:1.1cqw;height:5.6cqw;padding:0 2cqw;background:rgba(var(--ac-rgb),.07);border-bottom:.2cqw solid rgba(var(--ac-rgb),.14)}
+.br .bar i{width:1.2cqw;height:1.2cqw;border-radius:50%;background:var(--ac2);opacity:.6}
+.br .bar .url{flex:1;height:3cqw;margin-left:1.5cqw;border-radius:99px;background:rgba(var(--ac-rgb),.12);display:flex;align-items:center;padding:0 1.6cqw;gap:1cqw}
+.br .bar .url svg{width:1.7cqw;height:1.7cqw;color:var(--ac)}
+.br .bar .url s{display:block;height:1cqw;width:34%;border-radius:1cqw;background:rgba(var(--ac-rgb),.3)}
+.pg{display:grid;gap:1.7cqw;padding:2cqw}
+.pg .nv{display:flex;align-items:center;gap:2cqw}
+.pg .nv .lo{width:5cqw;height:2.4cqw;border-radius:.8cqw;background:var(--ac)}
+.pg .nv s{display:block;height:1.3cqw;width:6cqw;border-radius:1cqw;background:rgba(var(--ac-rgb),.25)}
+.pg .nv s:nth-child(2){margin-left:auto}
+.pg .hr{display:grid;grid-template-columns:1.2fr 1fr;gap:2.4cqw;align-items:center;padding:2.2cqw;border-radius:1.6cqw;background:linear-gradient(120deg,rgba(var(--ac-rgb),.14),rgba(var(--ac-rgb),.04))}
+.pg .hr h5{margin:0 0 1.6cqw;font:600 4cqw/1.1 "Manrope",sans-serif;color:var(--tx)}
+.pg .hr .sk{width:80%;margin-bottom:1.1cqw}
+.pg .bt{display:inline-block;margin-top:1cqw;padding:1.3cqw 2.6cqw;border-radius:99px;background:linear-gradient(120deg,var(--ac2),var(--hi) 55%,var(--ac));color:var(--on-ac);font:600 2.8cqw/1 "Manrope",sans-serif}
+.pg .im{height:12.5cqw;border-radius:1.4cqw;background:radial-gradient(circle at 70% 30%,rgba(var(--ac-rgb),.55),transparent 55%),linear-gradient(160deg,rgba(var(--ac-rgb),.3),rgba(var(--ac-rgb),.06));border:.15cqw solid rgba(var(--ac-rgb),.3)}
+.pg .c3{display:grid;grid-template-columns:repeat(3,1fr);gap:2cqw}
+.pg .c3 div{height:6.4cqw;border-radius:1.2cqw;border:.15cqw solid rgba(var(--ac-rgb),.2);background:rgba(var(--ac-rgb),.05);padding:1.5cqw;display:grid;align-content:space-between}
+.pg .c3 div i{display:block;width:2.4cqw;height:2.4cqw;border-radius:.7cqw;background:rgba(var(--ac-rgb),.5)}
+.pg .bk{display:flex;align-items:center;flex-wrap:nowrap;gap:1.5cqw;font:600 2.8cqw/1 "Manrope",sans-serif}
+.pg .bk span{padding:1.3cqw 1.8cqw;border-radius:1cqw;border:.2cqw solid rgba(var(--ac-rgb),.28);color:var(--mut)}
+.pg .bk span.s{background:rgba(var(--ac-rgb),.2);color:var(--tx);border-color:var(--ac)}
+.pg .bk em{font-style:normal;width:.2cqw;height:4cqw;background:rgba(var(--ac-rgb),.3);margin:0 .6cqw}
+.pg .bk .okk{margin-left:1cqw;border:0;padding:0;color:var(--hi);display:inline-flex;align-items:center;gap:1cqw}
+.pg .bk .okk svg{width:3.2cqw;height:3.2cqw}
+
+/* fase 3: gestionale */
+.db{display:grid;grid-template-columns:8.6cqw 1fr;gap:2.4cqw;height:51cqw}
+.sd{display:grid;align-content:start;gap:2cqw;padding:2cqw 0;border-radius:1.8cqw;border:.2cqw solid rgba(var(--ac-rgb),.17);background:rgba(var(--ac-rgb),.04);justify-items:center;height:100%}
+.sd i{display:grid;place-items:center;width:5.2cqw;height:5.2cqw;border-radius:1.4cqw;color:var(--ac2)}
+.sd i.on{background:rgba(var(--ac-rgb),.2);color:var(--hi)}
+.sd svg{width:3.2cqw;height:3.2cqw}
+.mn{display:grid;grid-template-columns:1.15fr 1fr;grid-template-rows:auto 1fr;gap:2.2cqw;min-width:0}
+.ag .ar{display:flex;align-items:center;gap:2cqw;margin-bottom:1.5cqw}
+.ag .ar time{flex:none;width:7.6cqw;font:600 2.7cqw/1 "Manrope",sans-serif;color:var(--ac)}
+.ag .ar .sk{flex:1}
+.ag .ar:nth-child(3) .sk{width:70%;flex:none}
+.cl .pr{display:flex;align-items:center;gap:1.8cqw;margin-bottom:1.5cqw}
+.cl .av{flex:none;width:4.6cqw;height:4.6cqw;border-radius:50%;background:linear-gradient(140deg,var(--hi),var(--ac2));opacity:.85}
+.cl .pr:nth-child(3) .av{opacity:.5}
+.cl .pr div{flex:1;display:grid;gap:1cqw}
+.ch{grid-column:1;display:flex;flex-direction:column}
+.bars{flex:1;display:flex;align-items:flex-end;gap:2.2cqw;padding:0 .6cqw;min-height:11cqw;border-bottom:.2cqw solid rgba(var(--ac-rgb),.2)}
+.bars i{flex:1;height:var(--h);border-radius:.7cqw .7cqw 0 0;background:linear-gradient(180deg,var(--hi),rgba(var(--ac-rgb),.35));transform-origin:bottom}
+.fp.on .bars i{animation:grow 1.1s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--t,0s)}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.lbs{display:flex;gap:2.2cqw;padding:1.2cqw .6cqw 0;font:400 2.4cqw/1 "Manrope",sans-serif;color:var(--mut)}
+.lbs span{flex:1;text-align:center}
+.dl{grid-column:2}
+.dl .ar{display:flex;align-items:center;gap:1.6cqw;margin-bottom:1.5cqw}
+.dl .ar svg{flex:none;width:3.4cqw;height:3.4cqw;color:var(--ac)}
+.dl .ar .sk{flex:none;width:50%}
+
+/* fase 4: automazioni */
+.au{height:51cqw;display:flex;align-items:center}
+.au svg{width:100%;height:auto;overflow:visible;display:block}
+.au text{font-family:"Manrope",system-ui,sans-serif;fill:var(--tx);font-weight:600}
+.au .nd{fill:rgba(var(--ac-rgb),.07);stroke:rgba(var(--ac-rgb),.4);stroke-width:.35}
+.au .nd.tr{fill:rgba(var(--ac-rgb),.16);stroke:var(--ac)}
+.au .ln{fill:none;stroke:rgba(var(--ac-rgb),.35);stroke-width:.4;stroke-dasharray:1.2 1.2}
+.au .dot{fill:none;stroke:var(--hi);stroke-width:2.1;stroke-linecap:round;stroke-dasharray:.01 200;stroke-dashoffset:0;opacity:0;filter:drop-shadow(0 0 1.3px var(--hi)) drop-shadow(0 0 3px var(--ac))}
+.fp.on .au .dot{animation:viaggia 1.35s cubic-bezier(.45,.05,.4,1) var(--t,0s) 2 both}
+@keyframes viaggia{0%{stroke-dashoffset:0;opacity:1}98%{opacity:1}100%{stroke-dashoffset:-100;opacity:0}}
+.au .ok{fill:none;stroke:var(--hi);stroke-width:.7;stroke-linecap:round;stroke-linejoin:round;opacity:.25}
+.fp.on .au .ok{animation:acc .5s ease var(--t,0s) both}
+@keyframes acc{from{opacity:.2}to{opacity:1}}
+.au .ic2{fill:none;stroke:var(--ac);stroke-width:.6;stroke-linecap:round;stroke-linejoin:round}
+
+/* fase 5: agent */
+.chat{display:flex;flex-direction:column;gap:2.2cqw;height:49cqw}
+.chat .m{max-width:62cqw;padding:2cqw 2.6cqw;border-radius:2.2cqw;font:400 3.4cqw/1.3 "Manrope",sans-serif}
+.chat .cu{align-self:flex-end;background:rgba(var(--ac-rgb),.2);border:.15cqw solid rgba(var(--ac-rgb),.4);border-bottom-right-radius:.6cqw;color:var(--tx)}
+.chat .c2{margin-right:13cqw}
+.chat .as{align-self:flex-start;display:flex;gap:2cqw;align-items:flex-start;background:rgba(255,255,255,.05);border:.15cqw solid rgba(var(--ac-rgb),.18);border-bottom-left-radius:.6cqw;max-width:66cqw}
+.chat .as .av{flex:none;display:grid;place-items:center;width:5.6cqw;height:5.6cqw;border-radius:50%;background:linear-gradient(140deg,var(--hi),var(--ac2));color:var(--on-ac);font:700 2.3cqw/1 "Manrope",sans-serif}
+.chat .as b{display:block;font:600 2.4cqw/1 "Manrope",sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-bottom:.9cqw}
+.chat .ty{align-self:flex-start;display:flex;gap:1cqw;padding:2cqw 2.6cqw}
+.chat .ty i{width:1.4cqw;height:1.4cqw;border-radius:50%;background:var(--ac)}
+.fp.on .chat .ty i{animation:tp 1s ease-in-out infinite}
+.chat .ty i:nth-child(2){animation-delay:.15s!important}.chat .ty i:nth-child(3){animation-delay:.3s!important}
+@keyframes tp{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-.6cqw)}}
+
+/* telefono davanti */
+.mph{position:absolute;right:-1.5cqw;bottom:0;width:15.5cqw;height:31cqw;padding:.6cqw;border-radius:3cqw;background:linear-gradient(150deg,var(--ac2),#23272e 40%,var(--ac) 62%,#1a1d23);box-shadow:0 3cqw 6cqw rgba(0,0,0,.6),0 0 6cqw rgba(var(--ac-rgb),.16);animation:flt 8s ease-in-out -3s infinite}
+.mscr{position:relative;width:100%;height:100%;border-radius:2.5cqw;overflow:hidden;background:radial-gradient(circle at 70% 18%,rgba(var(--ac-rgb),.4),transparent 50%),linear-gradient(180deg,#10141a,#06080b);border:.5cqw solid #030405}
+.mscr:before{content:"";position:absolute;top:1.2cqw;left:50%;width:4.4cqw;height:1.1cqw;transform:translateX(-50%);border-radius:1cqw;background:#030405}
+.mscr .tm{position:absolute;left:0;right:0;top:6cqw;text-align:center}
+.mscr .tm i{display:block;margin:0 auto;width:5cqw;height:.8cqw;border-radius:1cqw;background:rgba(var(--ac-rgb),.5)}
+.mscr .tm i+i{width:3cqw;margin-top:1cqw;opacity:.6}
+.toast{position:absolute;right:.5cqw;bottom:.6cqw;width:38cqw;display:flex;align-items:center;gap:2cqw;padding:2cqw 2.4cqw;border-radius:2.4cqw;background:rgba(18,21,27,.95);border:.2cqw solid var(--line2);box-shadow:0 2.4cqw 6cqw rgba(0,0,0,.55),0 0 5cqw rgba(var(--ac-rgb),.2);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transform:translateY(2cqw) scale(.96);z-index:6;font-family:"Manrope",system-ui,sans-serif}
+.toast .ti{flex:none;display:grid;place-items:center;width:6.2cqw;height:6.2cqw;border-radius:1.6cqw;background:linear-gradient(140deg,var(--hi),var(--ac2));color:var(--on-ac)}
+.toast .ti svg{width:3.6cqw;height:3.6cqw}
+.toast .tt{display:grid;gap:.5cqw;min-width:0}
+.toast .tt b{font:600 2.3cqw/1.1 "Manrope",sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ac)}
+.toast .tt span{font:600 2.9cqw/1.2 "Manrope",sans-serif;color:var(--tx)}
+.hv[data-ph="4"] .toast{animation:toast .7s cubic-bezier(.2,.8,.2,1) 2.5s both}
+@keyframes toast{from{opacity:0;transform:translateY(2cqw) scale(.96)}to{opacity:1;transform:none}}
+.stand:after{content:"";position:absolute;left:8%;right:8%;bottom:3.5cqw;height:3cqw;border-radius:50%;background:rgba(var(--ac-rgb),.16);filter:blur(2.4cqw);z-index:-1}
+
+/* etichette e avanzamento */
+.seq{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-top:2px}
+.sg{position:relative;appearance:none;-webkit-appearance:none;background:none;border:0;color:var(--mut);font:600 clamp(9.5px,2.6vw,13px)/1.2 "Manrope",sans-serif;text-align:left;padding:13px 0 4px;cursor:pointer;min-height:48px;display:flex;flex-direction:column;gap:3px;min-width:0;letter-spacing:-.01em;transition:color .25s}
+.sg .fl{position:absolute;left:0;right:0;top:0;height:2px;border-radius:2px;background:var(--line2);overflow:hidden}
+.sg .fill{display:block;height:100%;transform:scaleX(0);transform-origin:left;background:linear-gradient(90deg,var(--ac2),var(--hi))}
+.sg.done .fill{transform:scaleX(1)}
+.sg.act .fill{animation:nfill 3.5s linear forwards}
+@keyframes nfill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.sg .n{font-size:.82em;letter-spacing:.14em;color:var(--ac2);font-weight:600}
+.sg.act,.sg:hover{color:var(--tx)}
+.sg.act .n{color:var(--hi)}
+.cr2{display:flex;align-items:center;gap:10px}
+.cp{flex:1;margin:0;min-height:2.6em;font-size:13px;line-height:1.3;color:var(--mut)}
+.pz{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px 0 8px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--mut);font:600 12px/1 "Manrope",sans-serif;cursor:pointer;transition:border-color .25s,color .25s}
+.pz:hover{border-color:var(--ac);color:var(--tx)}
+.pz .pi{position:relative;width:26px;height:26px;border-radius:50%;border:1px solid var(--line2)}
+.pz .pi:before,.pz .pi:after{content:"";position:absolute;top:8px;width:2px;height:8px;background:currentColor;border-radius:1px}
+.pz .pi:before{left:9px}.pz .pi:after{left:14px}
+.pz[aria-pressed="true"] .pi:before{left:10px;top:7px;width:0;height:0;background:none;border-left:8px solid currentColor;border-top:5px solid transparent;border-bottom:5px solid transparent;border-radius:0}
+.pz[aria-pressed="true"] .pi:after{display:none}
+.hv.pz2 .fill,.hv.pz2 .wave i,.hv.pz2 .vbg,.hv.pz2 .stand,.hv.pz2 .mph,.hv.pz2 .au .dot,.hv.pz2 .vf .pb i{animation-play-state:paused!important}
+
+/* il nome: disegno che parte quando compare */
+.nome .dr{animation:none}
+.nome .in .dr{animation:disegna 2.2s .3s cubic-bezier(.6,.05,.2,1) forwards}
+.nome .in .dr.l2{animation-delay:1.1s}
+.nome .in .dr.d3{animation-delay:.9s}
+.nome svg{max-width:360px;overflow:visible;filter:drop-shadow(0 0 40px rgba(var(--ac-rgb),.2))}
+.stella{animation:respira 4s ease-in-out infinite alternate}
+.pietra{transform-box:fill-box;transform-origin:center;animation:pietra 6s ease-in-out infinite}
+@keyframes pietra{0%,100%{opacity:.55}50%{opacity:1}}

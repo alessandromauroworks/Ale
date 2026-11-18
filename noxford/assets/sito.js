@@ -60,7 +60,7 @@
     if (!mob) return;
     mob.classList.remove("open");
     bg.setAttribute("aria-expanded", "false");
-    bg.setAttribute("aria-label", "Apri il menu");
+    bg.setAttribute("aria-label", bg.getAttribute("data-lo") || "Apri il menu");
     mob.setAttribute("aria-hidden", "true");
     mob.querySelectorAll("a").forEach(function (a) { a.setAttribute("tabindex", "-1"); });
     doc.body.style.overflow = "";
@@ -68,7 +68,7 @@
   function apri() {
     mob.classList.add("open");
     bg.setAttribute("aria-expanded", "true");
-    bg.setAttribute("aria-label", "Chiudi il menu");
+    bg.setAttribute("aria-label", bg.getAttribute("data-lc") || "Chiudi il menu");
     mob.setAttribute("aria-hidden", "false");
     mob.querySelectorAll("a").forEach(function (a) { a.removeAttribute("tabindex"); });
     doc.body.style.overflow = "hidden";
@@ -104,6 +104,117 @@
         });
       });
     });
+  }
+
+
+  /* ---------- lingua: tabella di corrispondenza italiano <-> inglese ---------- */
+  var PAGINE = [
+    ["", "en/"],
+    ["oro/", "en/oro/"],
+    ["video/", "en/video/"],
+    ["software/", "en/software/"],
+    ["gestionali/", "en/management/"],
+    ["automazioni/", "en/automation/"],
+    ["agent/", "en/agents/"],
+    ["medico/", "en/healthcare/"],
+    ["bnb/", "en/bnb/"],
+    ["immobiliari/", "en/real-estate/"]
+  ];
+  var CH_LINGUA = "nox-lingua", CH_BARRA = "nox-barra";
+  function leggi(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function scrivi(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  var langPag = (root.getAttribute("lang") || "it").slice(0, 2) === "en" ? "en" : "it";
+  var radice = null;
+  (function () {
+    var sc = doc.currentScript || doc.querySelector('script[src*="sito.js"]');
+    try { radice = new URL("../", sc.src); } catch (e) { radice = null; }
+  })();
+  function paginaCorrente() {
+    if (!radice) return -1;
+    var rel = location.pathname.slice(radice.pathname.length).replace(/index\.html$/, "");
+    if (rel && rel.charAt(rel.length - 1) !== "/") rel += "/";
+    var da = langPag === "en" ? 1 : 0;
+    for (var i = 0; i < PAGINE.length; i++) if (PAGINE[i][da] === rel) return i;
+    return -1;
+  }
+  function destinazione(lingua) {
+    var i = paginaCorrente();
+    if (i < 0 || !radice) return null;
+    return new URL(PAGINE[i][lingua === "en" ? 1 : 0], radice).href;
+  }
+  doc.querySelectorAll("a[data-lang]").forEach(function (a) {
+    var l = a.getAttribute("data-lang");
+    var d = destinazione(l);
+    if (d) a.setAttribute("href", d);
+    a.addEventListener("click", function () {
+      scrivi(CH_LINGUA, l);
+      var h = a.getAttribute("href").split("#")[0];
+      a.setAttribute("href", h + location.hash);
+    });
+  });
+
+  /* barra discreta per chi ha il browser non in italiano (nessun reindirizzamento) */
+  (function () {
+    if (langPag !== "it" || leggi(CH_LINGUA) || leggi(CH_BARRA)) return;
+    var nl = ((navigator.languages && navigator.languages[0]) || navigator.language || "it").toLowerCase();
+    if (nl.indexOf("it") === 0) return;
+    var d = destinazione("en");
+    if (!d) return;
+    var b = doc.createElement("div");
+    b.className = "langbar";
+    b.setAttribute("role", "region");
+    b.setAttribute("aria-label", "Language");
+    b.innerHTML = '<a href="' + d + '" lang="en" hreflang="en">View this site in English</a><button type="button" aria-label="Close">×</button>';
+    b.querySelector("a").addEventListener("click", function () { scrivi(CH_LINGUA, "en"); });
+    b.querySelector("button").addEventListener("click", function () { scrivi(CH_BARRA, "1"); b.remove(); });
+    doc.body.appendChild(b);
+  })();
+
+  /* ---------- hero: il tablet con il flusso Noxford ---------- */
+  var hv = doc.querySelector(".hv[data-flow]");
+  if (hv) {
+    var sg = [].slice.call(hv.querySelectorAll(".sg"));
+    var ps = [].slice.call(hv.querySelectorAll(".fp"));
+    var cp = hv.querySelector(".cp"), pzb = hv.querySelector(".pz");
+    var corr = -1, man = false, hov = false, foc = false, vis = true;
+    var vai = function (i) {
+      corr = i;
+      sg.forEach(function (b) { b.classList.remove("act"); });
+      void hv.offsetWidth;
+      ps.forEach(function (p, k) { p.classList.toggle("on", k === i); });
+      sg.forEach(function (b, k) {
+        b.classList.toggle("act", k === i);
+        b.classList.toggle("done", k < i && !ridotto);
+        b.setAttribute("aria-current", k === i ? "step" : "false");
+      });
+      hv.setAttribute("data-ph", String(i));
+      if (cp) cp.textContent = sg[i].getAttribute("data-cap") || "";
+    };
+    var agg = function () { hv.classList.toggle("pz2", man || hov || foc || !vis); };
+    sg.forEach(function (b, k) { b.addEventListener("click", function () { vai(k); }); });
+    if (ridotto) {
+      vai(2);
+      sg.forEach(function (b, k) { b.classList.toggle("done", false); });
+    } else {
+      vai(0);
+      hv.addEventListener("animationend", function (e) {
+        if (e.animationName === "nfill" && e.target.classList.contains("fill")) vai((corr + 1) % ps.length);
+      });
+      hv.addEventListener("pointerenter", function (e) { if (e.pointerType === "mouse") { hov = true; agg(); } });
+      hv.addEventListener("pointerleave", function (e) { if (e.pointerType === "mouse") { hov = false; agg(); } });
+      hv.addEventListener("focusin", function (e) { if (e.target.matches && e.target.matches(":focus-visible")) { foc = true; agg(); } });
+      hv.addEventListener("focusout", function () { foc = false; agg(); });
+      if (pzb) pzb.addEventListener("click", function () {
+        man = !man;
+        pzb.setAttribute("aria-pressed", man ? "true" : "false");
+        var t = pzb.querySelector(".pt");
+        if (t) t.textContent = pzb.getAttribute(man ? "data-r" : "data-p");
+        agg();
+      });
+      if ("IntersectionObserver" in window) {
+        new IntersectionObserver(function (es) { vis = es[0].isIntersecting; agg(); }, { threshold: 0.1 }).observe(hv);
+      }
+    }
   }
 
   /* fondo del cielo: poche luci e una linea d'acqua */
