@@ -3,7 +3,7 @@
 Pannello personale di Antonio (capofficina, carpenteria metallica con taglio laser). Lo usa solo lui, dal PC principale e dal telefono.
 Link: https://alessandromauroworks.github.io/Ale/officina/
 
-## Le 5 domande (skill gestionale-per-settore)
+## Le 5 domande (skill gestionale-universale)
 1. **Come lavora in una giornata:** riceve fogli di carta con disegni e liste pezzi da aziende e privati, file e vocali su WhatsApp (telefono e PC), modifiche a voce. Disegna in AutoCAD e SolidWorks su due PC (uno collegato al laser), poi taglia le lamiere. Oggi tiene tutto su carta e in memoria.
 2. **Dove perde tempo o rischia:** pezzi saltati o dimenticati; non sapere a che punto è ogni lavoro; modifiche arrivate a voce o su WhatsApp che si perdono; troppi cambi di lamiera al laser.
 3. **Moduli:** lavori con stato (Da disegnare → Disegnato → Da tagliare → Tagliato → Consegnato) e scadenza; pezzi per lavoro con spunta; coda laser raggruppata per materiale e spessore; schermata Oggi (ritardi, scadenze, pezzi da tagliare). Avviso bloccante se si chiude un lavoro con pezzi non spuntati.
