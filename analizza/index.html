@@ -76,6 +76,7 @@ h2{font-size:20px;margin:22px 4px 10px;letter-spacing:-.01em}
 .vuoto{text-align:center;color:var(--tenue);padding:24px 0}
 .istr{font-size:14px;color:var(--tenue)} .istr b{color:var(--testo)} .istr p{margin:6px 0}
 .dettaglio-err{margin-top:8px;color:var(--rosso);font-size:14px;white-space:pre-wrap;word-break:break-word}
+.nota-cloud{margin-top:8px;color:var(--tenue);font-size:14px;white-space:pre-wrap;word-break:break-word}
 #vista{position:fixed;inset:0;background:var(--sfondo);z-index:10;display:none;flex-direction:column;padding-top:env(safe-area-inset-top)}
 #vista.aperta{display:flex;animation:sali .25s ease both}
 #vista .barra{display:flex;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--linea);background:var(--sfondo)}
@@ -285,7 +286,7 @@ async function aggiornaPc(){
       box.className = "stato-pc ok"; t.textContent = "PC collegato";
       box.firstElementChild.classList.add("pulsa");
     } else {
-      box.className = "stato-pc no"; t.textContent = "PC spento: i link aspettano e partono quando lo accendi";
+      box.className = "stato-pc no"; t.textContent = "PC spento: Instagram e TikTok li fa il cloud (report base), gli altri aspettano il PC";
       box.firstElementChild.classList.remove("pulsa");
     }
   } catch(e){
@@ -317,11 +318,16 @@ function disegnaLista(righe){
     const b = document.createElement("span"); b.className = "badge " + stato;
     const p = document.createElement("span"); p.className = "pallino" + (stato === "in_lavoro" || stato === "in_attesa" ? " pulsa" : "");
     b.appendChild(p); b.appendChild(document.createTextNode(ETICHETTE[stato]));
-    const q = document.createElement("span"); q.textContent = quando(r.finito_il || r.creato_il);
+    const q = document.createElement("span"); q.textContent = quando(r.finito_il || r.creato_il) + (r.lavorato_da === "cloud" ? " · cloud" : "");
     meta.appendChild(b); meta.appendChild(q);
     corpo.appendChild(l); corpo.appendChild(meta);
     el.appendChild(corpo);
     const azioni = document.createElement("div"); azioni.className = "azioni";
+    if (stato === "in_attesa" && r.cloud_nota){
+      const n = document.createElement("div"); n.className = "nota-cloud";
+      n.textContent = r.cloud_nota;
+      corpo.appendChild(n);
+    }
     if (stato === "errore"){
       const d = document.createElement("div"); d.className = "dettaglio-err";
       d.textContent = r.errore || "Analisi non riuscita.";

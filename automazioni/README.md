@@ -10,6 +10,7 @@ Regola per sempre (05/11/2026): tutte le automazioni, di Alessandro e dei client
 | Demo commercialista: documenti che arrivano da soli | Edge Function `demo-commercialista` |
 | Demo dentista: preventivi che si firmano | Edge Function `demo-dentista` |
 | Demo barberia: richiami, recensioni, report | Edge Function `demo-barberia` |
+| Analizza con il PC spento (Instagram e TikTok) | Edge Function `analizza-cloud` + pg_cron ogni minuto, che avvia il workflow GitHub Actions `analizza-cloud.yml` (gratis: repo pubblico). Istruzioni e chiavi in `ponte-analizza/LEGGIMI.md`. Eccezione alla regola: trascrivere un video non si può fare dentro una Edge Function (niente ffmpeg e poca memoria), quindi il lavoro pesante gira su GitHub e Supabase fa solo da regista |
 | Risposte ai potenziali clienti da Gmail | attività programmata «Risposte clienti e riepilogo serale» (solo bozze, mai invii automatici); da portare su Edge Function quando servirà h24 |
 
 I file dei vecchi flussi sono stati tolti da questo repository il 05/11/2026 (restano solo nella cronologia di git).

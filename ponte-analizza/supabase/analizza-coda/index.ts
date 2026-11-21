@@ -63,7 +63,7 @@ function idValido(v: unknown): number | null {
   return Number.isInteger(n) && n > 0 ? n : null;
 }
 
-const COLONNE_ELENCO = "id, link, rifai, solo_video, stato, errore, creato_il, preso_il, finito_il, video_iphone";
+const COLONNE_ELENCO = "id, link, rifai, solo_video, stato, errore, creato_il, preso_il, finito_il, video_iphone, lavorato_da, cloud_nota";
 const COLONNE_SENZA_REPORT = "id, link, rifai, solo_video, stato, errore, richiesto_da, creato_il, preso_il, finito_il";
 const CARTELLA_VIDEO = "analizza-video";
 const DURATA_LINK_SECONDI = 60 * 60; // i link per guardare/scaricare il video valgono un'ora
@@ -180,7 +180,7 @@ Deno.serve(async (req: Request) => {
         const id = idValido(corpo.id);
         if (!id) return risposta({ errore: "Numero analisi non valido." }, 400, origin);
         const { data, error } = await db.from("coda_analisi")
-          .update({ stato: "in_attesa", errore: null, preso_il: null, finito_il: null })
+          .update({ stato: "in_attesa", errore: null, preso_il: null, finito_il: null, lavorato_da: null, cloud_nota: null })
           .eq("id", id).select(COLONNE_SENZA_REPORT).maybeSingle();
         if (error) return guasto();
         if (!data) return risposta({ errore: "Analisi non trovata." }, 404, origin);
